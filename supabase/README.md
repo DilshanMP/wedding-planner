@@ -3,7 +3,7 @@
 ## Set up cloud mode
 
 1. Create a Supabase project.
-2. Apply the migrations in order: `supabase db push` (Supabase CLI), or paste each file in `migrations/` into the SQL editor.
+2. Set up the database: open **SQL Editor → New query**, paste the whole of [`setup.sql`](setup.sql) and press **Run** (it is the migrations combined, in order). With the Supabase CLI you can run `supabase db push` instead.
 3. In *Authentication → URL configuration*, add your site URL (and `http://localhost:3000` for development) to the redirect URLs, so magic links return to `/dashboard`.
 4. Copy the project URL and the anon (publishable) key into `.env.local` (see `.env.example`) or your Vercel project settings.
 
