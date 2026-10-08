@@ -77,17 +77,34 @@ Every wedding-scoped table has RLS: members read, owners/editors/planners write.
 
 | Phase | Status |
 | --- | --- |
-| 1 — Core: setup, date, dashboard, countdown, checklist, guests, budget, vendors, timeline | Built. Authentication is built for cloud mode (magic link) |
-| 2 — Intelligence: quote comparison, planner vs self-plan, payments, readiness | Built. Documents: schema and storage policies only; upload UI next. Advanced analytics and PDF/Excel export next (CSV export exists for guests and budget) |
-| 3 — Signature: Wedding Day Mode, Simulator | Built. Public RSVP (`rsvp_token`, `public_slug` ready), AI assistant and SaaS plans next |
+| 1 — Core: authentication, setup, date, dashboard, countdown, checklist, guests, budget, vendors, timeline | Built |
+| 2 — Intelligence: quote comparison, planner vs self-plan, payments, documents, readiness, reports (PDF + Excel) | Built |
+| 3 — Signature: Wedding Day Mode, Simulator, online RSVP, AI assistant, SaaS plans | Built. Plans are defined and checked in code (`lib/domain/plans.ts`); billing is not connected, so everyone is on Free |
 
-### AI assistant boundary
+### Cloud features
 
-`lib/domain` already answers the assistant's questions deterministically from real data: `budgetInsights()` (where am I overspending?), `nextActions()` / `upcomingTasks()` (what should I do this month?), `scoreQuotes()` (compare these packages), `summarizeBudget()` (can I afford this?). A future assistant should call these as tools rather than reason over raw rows, so answers stay consistent with the UI.
+- **Sharing** (`supabase/migrations/20261009000000_sharing_and_rsvp.sql`): `invite_to_wedding()` adds an existing account immediately or stores a pending `wedding_invites` row; `claim_invites()` runs after every sign-in. Roles: owner, editor (family), planner, viewer (read-only).
+- **Online RSVP**: each guest row has a secret `rsvp_token`. With `weddings.rsvp_enabled` on, `rsvp_lookup()` / `rsvp_submit()` (security definer, granted to `anon`) expose exactly one invitation per token — nothing else is readable anonymously.
+- **Documents**: metadata in `documents`; files in IndexedDB (local) or the private `documents` Storage bucket, scoped by the `<wedding_id>/` path prefix and signed URLs.
+
+### AI assistant
+
+`lib/domain/assistant.ts` answers the common questions (affordability, overspending, what to book next, contingency, quote comparison, guests, payments, tasks, readiness) with the same functions the screens use, so answers never contradict the UI. With `ANTHROPIC_API_KEY` set, `/api/assistant` sends `assistantContext()` — aggregate figures only — to Claude (Opus 5.5, low effort, server-side refusal fallback). In cloud mode the route requires a signed-in user and is rate-limited.
+
+### Offline
+
+`public/sw.js` caches the app's pages and hashed assets (network-first for pages). In local mode the whole app works offline; in cloud mode an offline notice warns that changes can't sync.
+
+## Testing
+
+- `npm test` — domain, store, persistence, xlsx (validated with openpyxl when available), assistant.
+- `src/lib/data/supabase.integration.test.ts` — the real Supabase repository and cloud services against Postgres + PostgREST with RLS (skipped unless configured; see `supabase/README.md`).
+- `npm run test:e2e` — the 17 acceptance criteria plus documents, reports, assistant and WhatsApp, in a browser.
+- `npm run test:e2e:cloud` — sign-in gate, saving to Postgres, sharing, a guest replying through their RSVP link.
 
 ## Risks and follow-ups
 
-- **Cloud mode is not yet exercised against a live Supabase project.** The migration, RLS, and the column mapping of the full sample wedding were verified on local Postgres 16; the Supabase JS adapter itself should be smoke-tested once a project exists.
-- **Local mode is single-device.** Clearing site data deletes the plan; export regularly.
-- **Collaboration**: the schema supports family members and planners, but invitations to a wedding (writing `wedding_members`) need a small server endpoint.
-- **Offline**: the app is installable (manifest, icons) but has no service worker yet.
+- **Supabase Auth email and Storage** are the two pieces not exercised locally (they need a real project). Everything else in cloud mode is tested against Postgres + PostgREST.
+- **Local mode is single-device.** Clearing site data deletes the plan; export regularly. Backups contain data but not document files.
+- **Viewers** (read-only role) see a view-only notice; if they still try to edit, RLS rejects the change and it is undone with an error message.
+- **Billing** for Premium / Planner / Vendor plans is not connected; plan limits are defined but not enforced.

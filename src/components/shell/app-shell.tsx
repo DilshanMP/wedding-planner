@@ -32,6 +32,7 @@ import { guestMetrics } from "@/lib/domain/guests";
 import { reminders } from "@/lib/domain/notifications";
 import { budgetCategoryLabel } from "@/lib/domain/catalog";
 import { Dialog } from "@/components/ui/dialog";
+import { AccessNotice } from "./access-notice";
 import { cx } from "@/components/ui/primitives";
 
 interface NavItem {
@@ -175,6 +176,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       <main id="main" className="app-main">
         <div className="app-content">
           <TopBar onAdd={() => setAddOpen(true)} />
+          <AccessNotice weddingId={wedding.id} />
           {children}
         </div>
       </main>
