@@ -1,0 +1,38 @@
+@import "tailwindcss";
+/* Design-system classes sit in the components layer so Tailwind utilities can adjust them. */
+@import "../styles/wos.css";
+@import "../styles/app.css";
+
+/* Tailwind utilities read the Wedding OS tokens, so they follow the active theme. */
+@theme inline {
+  --font-display: var(--wos-display);
+  --font-sans: var(--wos-sans);
+
+  --color-surface: var(--surface);
+  --color-surface-raised: var(--surface-raised);
+  --color-surface-sunken: var(--surface-sunken);
+  --color-champagne-100: var(--champagne-100);
+  --color-champagne-300: var(--champagne-300);
+  --color-champagne-500: var(--champagne-500);
+  --color-champagne-700: var(--champagne-700);
+  --color-wine-50: var(--wine-50);
+  --color-wine-600: var(--wine-600);
+  --color-wine-700: var(--wine-700);
+  --color-on-wine: var(--on-wine);
+  --color-ink: var(--ink);
+  --color-ink-muted: var(--ink-muted);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-sage-50: var(--sage-50);
+  --color-sage-600: var(--sage-600);
+  --color-success: var(--success);
+  --color-success-50: var(--success-50);
+  --color-warning: var(--warning);
+  --color-warning-50: var(--warning-50);
+  --color-danger: var(--danger);
+  --color-danger-50: var(--danger-50);
+  --color-info: var(--info);
+  --color-info-50: var(--info-50);
+  --color-bride: var(--bride);
+  --color-groom: var(--groom);
+}

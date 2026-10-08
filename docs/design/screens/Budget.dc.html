@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Wedding Investment — Wedding OS</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="./wos.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,400&amp;family=Manrope:wght@400;500;600;700&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#7b1e2b}a:hover{color:#621622}
+</style>
+</helmet>
+<div style="display: flex; flex-wrap: wrap; min-height: 100vh; background: #fbf8f2; color: #2a1f1c; font-family: Manrope, 'Segoe UI', system-ui, sans-serif">
+
+<nav class="wos-nav" aria-label="Main" style="flex: 1 0 232px; box-sizing: border-box">
+<div class="wos-nav__brand">Nethmi &amp; Kasun<small>12 June 2027 · 247 days</small></div>
+<a href="Main.dc.html"><svg class="wos-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"></path></svg>Dashboard</a>
+<a href="Main.dc.html#checklist"><svg class="wos-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11M4 6h.01M4 12h.01M4 18h.01"></path></svg>Checklist</a>
+<a href="Main.dc.html#guests"><svg class="wos-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="4"></circle><path d="M2 21a7 7 0 0 1 14 0M16 4a4 4 0 0 1 0 8M22 21a7 7 0 0 0-4-6.3"></path></svg>Guests</a>
+<a href="Budget.dc.html" aria-current="page"><svg class="wos-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="6" width="18" height="14" rx="2"></rect><path d="M3 10h18M16 15h2"></path></svg>Investment</a>
+<a href="Main.dc.html#vendors"><svg class="wos-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9 5 4h14l2 5M4 9v11h16V9M3 9h18M9 20v-6h6v6"></path></svg>Vendors</a>
+<a href="Main.dc.html#timeline"><svg class="wos-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg>Timeline</a>
+<a href="WeddingDay.dc.html" class="wos-nav__day"><svg class="wos-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20s-7-4.4-9-9a5 5 0 0 1 9-3 5 5 0 0 1 9 3c-2 4.6-9 9-9 9z"></path></svg>Wedding Day</a>
+</nav>
+
+<main style="flex: 999 1 560px; min-width: 0; box-sizing: border-box; padding: 32px 32px 64px">
+<div style="max-width: 1180px; margin: 0 auto; display: flex; flex-direction: column; gap: 24px">
+
+<header style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 16px">
+<div style="display: flex; flex-direction: column; gap: 4px">
+<span class="wos-overline">Budget</span>
+<h1 style="margin: 0; font: 500 36px/42px 'Cormorant Garamond', Georgia, serif">Wedding Investment</h1>
+</div>
+<div style="display: flex; flex-wrap: wrap; gap: 12px">
+<button class="wos-btn wos-btn--secondary" type="button">Export</button>
+<button class="wos-btn wos-btn--primary" type="button"><svg class="wos-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M12 5v14"></path></svg>Record Payment</button>
+</div>
+</header>
+
+<div class="wos-tabs" role="tablist" aria-label="Investment views">
+<button class="wos-tab" role="tab" type="button" aria-selected="true">Overview</button>
+<button class="wos-tab" role="tab" type="button" aria-selected="false">Categories <span>9</span></button>
+<button class="wos-tab" role="tab" type="button" aria-selected="false">Payments <span>14</span></button>
+<button class="wos-tab" role="tab" type="button" aria-selected="false">Quotes <span>6</span></button>
+</div>
+
+<section class="wos-card wos-card--hero" aria-label="Investment summary" style="display: flex; flex-direction: column; gap: 24px">
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 24px">
+<div class="wos-stat"><span class="wos-overline">Original plan</span><span class="wos-stat__value"><small>LKR</small>3,500,000</span><span class="wos-stat__label">Set 14 March 2026</span></div>
+<div class="wos-stat wos-stat--key"><span class="wos-overline">Committed</span><span class="wos-stat__value"><small>LKR</small>2,850,000</span><span class="wos-stat__label">81% of plan</span></div>
+<div class="wos-stat"><span class="wos-overline">Paid</span><span class="wos-stat__value"><small>LKR</small>1,750,000</span><span class="wos-stat__label">LKR 1,100,000 still to pay</span></div>
+<div class="wos-stat"><span class="wos-overline">Projected</span><span class="wos-stat__value"><small>LKR</small>3,625,000</span><span class="wos-stat__delta wos-stat__delta--up"><svg class="wos-icon" style="width: 14px; height: 14px" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 15 6-6 6 6"></path></svg>LKR 125,000 over plan</span></div>
+</div>
+<div class="wos-budget">
+<div class="wos-budget__bar" role="img" aria-label="Paid 50 percent, committed 81 percent of plan"><i class="wos-budget__committed" style="width: 81%"></i><i class="wos-budget__paid" style="width: 50%"></i></div>
+<div class="wos-budget__legend"><span style="--k: #7b1e2b">Paid · LKR 1,750,000</span><span style="--k: #dcc7a0">Committed, not yet paid · LKR 1,100,000</span><span style="--k: #f3ede2">Remaining · LKR 650,000</span></div>
+</div>
+</section>
+
+<div style="display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-start">
+
+<section class="wos-card" aria-labelledby="h-cat" style="flex: 3 1 520px; min-width: 0; display: flex; flex-direction: column; gap: 16px">
+<div class="wos-card__head" style="margin: 0"><h2 class="wos-card__title" id="h-cat">By category</h2><span style="display: inline-flex; align-items: center; gap: 6px; font: 500 13px/18px Manrope, sans-serif; color: #6b5c53"><span style="width: 2px; height: 14px; background: #2a1f1c; border-radius: 1px"></span>Plan</span></div>
+<div style="display: grid; grid-template-columns: 180px 1fr 140px; gap: 16px; font: 700 11px/16px Manrope, sans-serif; letter-spacing: .1em; text-transform: uppercase; color: #6b5c53"><span>Category</span><span>Projected against plan</span><span style="text-align: right">Projected</span></div>
+<div style="display: flex; flex-direction: column; gap: 18px">
+<div class="wos-cat" style="grid-template-columns: 180px 1fr 140px"><span>Venue &amp; catering</span><div class="wos-cat__bar wos-cat__bar--over"><i style="width: 84.3%"></i><u style="left: 80%"></u></div><span class="wos-cat__val">1,580,000 <b style="color: #b42318">+5%</b></span></div>
+<div class="wos-cat" style="grid-template-columns: 180px 1fr 140px"><span>Decoration</span><div class="wos-cat__bar wos-cat__bar--over"><i style="width: 91.4%"></i><u style="left: 80%"></u></div><span class="wos-cat__val">400,000 <b style="color: #b42318">+14%</b></span></div>
+<div class="wos-cat" style="grid-template-columns: 180px 1fr 140px"><span>Attire &amp; jewellery</span><div class="wos-cat__bar"><i style="width: 83.6%; background: #8a5210"></i><u style="left: 80%"></u></div><span class="wos-cat__val">470,000 <b style="color: #8a5210">+4%</b></span></div>
+<div class="wos-cat" style="grid-template-columns: 180px 1fr 140px"><span>Photography &amp; video</span><div class="wos-cat__bar"><i style="width: 74.3%"></i><u style="left: 80%"></u></div><span class="wos-cat__val">325,000</span></div>
+<div class="wos-cat" style="grid-template-columns: 180px 1fr 140px"><span>Music &amp; entertainment</span><div class="wos-cat__bar"><i style="width: 80%"></i><u style="left: 80%"></u></div><span class="wos-cat__val">200,000</span></div>
+<div class="wos-cat" style="grid-template-columns: 180px 1fr 140px"><span>Poruwa &amp; ceremony</span><div class="wos-cat__bar"><i style="width: 77.3%"></i><u style="left: 80%"></u></div><span class="wos-cat__val">145,000</span></div>
+<div class="wos-cat" style="grid-template-columns: 180px 1fr 140px"><span>Invitations &amp; favours</span><div class="wos-cat__bar"><i style="width: 82.7%; background: #8a5210"></i><u style="left: 80%"></u></div><span class="wos-cat__val">155,000 <b style="color: #8a5210">+3%</b></span></div>
+<div class="wos-cat" style="grid-template-columns: 180px 1fr 140px"><span>Transport &amp; going-away</span><div class="wos-cat__bar"><i style="width: 80%"></i><u style="left: 80%"></u></div><span class="wos-cat__val">150,000</span></div>
+<div class="wos-cat" style="grid-template-columns: 180px 1fr 140px"><span>Contingency</span><div class="wos-cat__bar"><i style="width: 80%; background: #4a6a4c"></i><u style="left: 80%"></u></div><span class="wos-cat__val">200,000</span></div>
+</div>
+<p style="margin: 8px 0 0; font: 500 13px/18px Manrope, sans-serif; color: #6b5c53">Figures in LKR. Over plan is marked in words as well as colour.</p>
+</section>
+
+<section aria-labelledby="h-intel" style="flex: 2 1 340px; min-width: 0; display: flex; flex-direction: column; gap: 12px">
+<h2 id="h-intel" style="margin: 0 0 4px; font: 600 18px/26px Manrope, sans-serif">Budget intelligence</h2>
+<div class="wos-notice wos-notice--warning" role="status"><span class="wos-notice__icon"><svg class="wos-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 9v4M12 17h.01"></path><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"></path></svg></span><div class="wos-notice__body"><b>Decoration is trending 14% above plan.</b><span>Two quotes include fresh jasmine at a lower cost.</span><button class="wos-btn wos-btn--secondary wos-btn--sm" type="button" style="align-self: flex-start; margin-top: 8px">Review Options</button></div></div>
+<div class="wos-notice wos-notice--info"><span class="wos-notice__icon"><svg class="wos-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v4M12 17v4M3 12h4M17 12h4M6 6l2.5 2.5M15.5 15.5 18 18M6 18l2.5-2.5M15.5 8.5 18 6"></path></svg></span><div class="wos-notice__body"><b>Catering grew with your guest list.</b><span>20 more confirmed guests added LKR 80,000. Moving 10 guests to the cocktail-only list would bring it back to plan.</span><button class="wos-btn wos-btn--ghost wos-btn--sm" type="button" style="align-self: flex-start; margin-top: 8px">See Guest Impact</button></div></div>
+<div class="wos-notice wos-notice--success"><span class="wos-notice__icon"><svg class="wos-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg></span><div class="wos-notice__body"><b>Photography is within plan.</b><span>Ceylon Frames is LKR 25,000 under target with drone coverage included.</span></div></div>
+</section>
+
+</div>
+
+<section aria-labelledby="h-pay" style="display: flex; flex-direction: column; gap: 12px">
+<div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px">
+<h2 id="h-pay" style="margin: 0; font: 600 18px/26px Manrope, sans-serif">Payment schedule</h2>
+<div class="wos-tabs" role="tablist" aria-label="Filter payments">
+<button class="wos-tab" role="tab" type="button" aria-selected="true">Upcoming</button>
+<button class="wos-tab" role="tab" type="button" aria-selected="false">Paid</button>
+<button class="wos-tab" role="tab" type="button" aria-selected="false">All</button>
+</div>
+</div>
+<div class="wos-table-wrap">
+<table class="wos-table">
+<thead><tr><th>Vendor</th><th>Category</th><th>Due</th><th class="num">Amount</th><th>Status</th><th><span style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0)">Actions</span></th></tr></thead>
+<tbody>
+<tr><td><strong>Lotus Hall</strong><em>Second instalment</em></td><td>Venue &amp; catering</td><td>13 October 2026</td><td class="num">LKR 400,000</td><td><span class="wos-badge wos-badge--warning">Due in 5 days</span></td><td><button class="wos-btn wos-btn--ghost wos-btn--sm" type="button">Pay</button></td></tr>
+<tr><td><strong>Ceylon Frames</strong><em>Advance</em></td><td>Photography &amp; video</td><td>1 November 2026</td><td class="num">LKR 100,000</td><td><span class="wos-badge">Scheduled</span></td><td><button class="wos-btn wos-btn--ghost wos-btn--sm" type="button">Pay</button></td></tr>
+<tr><td><strong>Kandyan Drummers</strong><em>Booking deposit</em></td><td>Music &amp; entertainment</td><td>20 November 2026</td><td class="num">LKR 50,000</td><td><span class="wos-badge">Scheduled</span></td><td><button class="wos-btn wos-btn--ghost wos-btn--sm" type="button">Pay</button></td></tr>
+<tr><td><strong>Poruwa &amp; Ashtaka</strong><em>Balance</em></td><td>Poruwa &amp; ceremony</td><td>15 December 2026</td><td class="num">LKR 60,000</td><td><span class="wos-badge">Scheduled</span></td><td><button class="wos-btn wos-btn--ghost wos-btn--sm" type="button">Pay</button></td></tr>
+<tr><td><strong>Sari &amp; National Suit</strong><em>Fitting deposit</em></td><td>Attire &amp; jewellery</td><td>10 January 2027</td><td class="num">LKR 120,000</td><td><span class="wos-badge">Scheduled</span></td><td><button class="wos-btn wos-btn--ghost wos-btn--sm" type="button">Pay</button></td></tr>
+<tr><td><strong>Lotus Hall</strong><em>First instalment</em></td><td>Venue &amp; catering</td><td>14 June 2026</td><td class="num">LKR 600,000</td><td><span class="wos-badge wos-badge--success">Paid</span></td><td><button class="wos-btn wos-btn--ghost wos-btn--sm" type="button">Receipt</button></td></tr>
+</tbody>
+</table>
+</div>
+</section>
+
+</div>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1720}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>

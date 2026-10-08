@@ -1,0 +1,255 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Dashboard — Wedding OS</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="./wos.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,400&amp;family=Manrope:wght@400;500;600;700&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#7b1e2b}a:hover{color:#621622}
+</style>
+</helmet>
+<div style="display: flex; flex-wrap: wrap; min-height: 100vh; background: #fbf8f2; color: #2a1f1c; font-family: Manrope, 'Segoe UI', system-ui, sans-serif">
+
+<nav class="wos-nav" aria-label="Main" style="flex: 1 0 248px; box-sizing: border-box; padding: 24px 12px; gap: 2px">
+<div style="display: flex; align-items: center; gap: 12px; padding: 0 12px 24px">
+<span aria-hidden="true" style="display: flex">
+<span style="width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; background: #f7eaea; color: #9c3a54; font: 600 14px/1 Manrope, sans-serif; border: 2px solid #fffdf9">N</span>
+<span style="width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; background: #e6eef5; color: #3a4a63; font: 600 14px/1 Manrope, sans-serif; border: 2px solid #fffdf9; margin-left: -10px">K</span>
+</span>
+<div style="display: flex; flex-direction: column"><span style="font: 500 22px/26px 'Cormorant Garamond', Georgia, serif">Nethmi &amp; Kasun</span><span style="font: 500 12px/16px Manrope, sans-serif; color: #6b5c53">12 June 2027 · Kandy</span></div>
+</div>
+
+<span class="wos-overline" style="padding: 8px 12px 6px; color: #6b5c53">Plan</span>
+<a href="Main.dc.html" aria-current="page"><svg class="wos-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"></path></svg>Dashboard</a>
+<a href="#checklist"><svg class="wos-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11M4 6h.01M4 12h.01M4 18h.01"></path></svg><span style="flex: 1">Checklist</span><span class="wos-num" style="font: 600 12px/16px Manrope, sans-serif; color: #6b5c53">33</span></a>
+<a href="#journey"><svg class="wos-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg>Timeline</a>
+
+<span class="wos-overline" style="padding: 16px 12px 6px; color: #6b5c53">People</span>
+<a href="#guests"><svg class="wos-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="4"></circle><path d="M2 21a7 7 0 0 1 14 0M16 4a4 4 0 0 1 0 8M22 21a7 7 0 0 0-4-6.3"></path></svg><span style="flex: 1">Guests</span><span class="wos-badge wos-badge--warning wos-badge--plain" style="height: 20px; padding: 0 8px">90</span></a>
+<a href="#vendors"><svg class="wos-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9 5 4h14l2 5M4 9v11h16V9M3 9h18M9 20v-6h6v6"></path></svg>Vendors</a>
+<a href="#seating"><svg class="wos-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"></circle><circle cx="12" cy="3.5" r="1.5"></circle><circle cx="12" cy="20.5" r="1.5"></circle><circle cx="3.5" cy="12" r="1.5"></circle><circle cx="20.5" cy="12" r="1.5"></circle></svg>Seating</a>
+
+<span class="wos-overline" style="padding: 16px 12px 6px; color: #6b5c53">Money</span>
+<a href="Budget.dc.html"><svg class="wos-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="6" width="18" height="14" rx="2"></rect><path d="M3 10h18M16 15h2"></path></svg>Investment</a>
+<a href="Budget.dc.html"><svg class="wos-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 2v4M16 2v4M3 10h18"></path><rect x="3" y="4" width="18" height="18" rx="2"></rect></svg><span style="flex: 1">Payments</span><span class="wos-num" style="font: 600 12px/16px Manrope, sans-serif; color: #6b5c53">3 due</span></a>
+
+<div style="margin-top: auto; padding: 16px; border-radius: 16px; background: #f4ead8; display: flex; flex-direction: column; gap: 10px">
+<div style="display: flex; justify-content: space-between; align-items: baseline"><span class="wos-overline">Readiness</span><span style="font: 500 22px/26px 'Cormorant Garamond', Georgia, serif">62%</span></div>
+<div class="wos-progress__track" style="background: #fffdf9"><div class="wos-progress__fill" style="width: 62%"></div></div>
+<a href="WeddingDay.dc.html" class="wos-btn wos-btn--secondary wos-btn--sm" style="height: 36px; padding: 0 12px; color: #7b1e2b; background: #fffdf9"><svg class="wos-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20s-7-4.4-9-9a5 5 0 0 1 9-3 5 5 0 0 1 9 3c-2 4.6-9 9-9 9z"></path></svg>Preview Wedding Day</a>
+</div>
+</nav>
+
+<main style="flex: 999 1 560px; min-width: 0; box-sizing: border-box; padding: 20px 32px 64px">
+<div style="max-width: 1200px; margin: 0 auto; display: flex; flex-direction: column; gap: 24px">
+
+<div style="display: flex; flex-wrap: wrap; align-items: center; gap: 12px; padding-bottom: 20px; border-bottom: 1px solid #e7dccb">
+<label for="q" style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0)">Search guests, vendors and tasks</label>
+<div class="wos-input wos-input--prefix" style="flex: 1 1 280px; max-width: 440px; box-sizing: border-box; border-color: #e7dccb; background: #fffdf9">
+<svg class="wos-icon" viewBox="0 0 24 24" aria-hidden="true" style="color: #6b5c53"><circle cx="11" cy="11" r="7"></circle><path d="m21 21-4.3-4.3"></path></svg>
+<input id="q" type="search" placeholder="Search guests, vendors, tasks">
+</div>
+<div style="flex: 1"></div>
+<button class="wos-iconbtn" type="button" aria-label="Messages" style="width: 44px; height: 44px"><svg class="wos-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg></button>
+<button class="wos-iconbtn" type="button" aria-label="Notifications, 3 new" style="width: 44px; height: 44px; position: relative"><svg class="wos-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9M10.3 21a1.94 1.94 0 0 0 3.4 0"></path></svg><span style="position: absolute; top: 9px; right: 10px; width: 8px; height: 8px; border-radius: 50%; background: #b42318; box-shadow: 0 0 0 2px #fffdf9"></span></button>
+<button class="wos-btn wos-btn--primary" type="button"><svg class="wos-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M12 5v14"></path></svg>Add</button>
+</div>
+
+<header style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 16px">
+<div style="display: flex; flex-direction: column; gap: 4px">
+<span class="wos-overline">Thursday, 8 October 2026</span>
+<h1 style="margin: 0; font: 500 40px/46px 'Cormorant Garamond', Georgia, serif">Good afternoon, Nethmi &amp; Kasun</h1>
+<p style="margin: 0; font: 400 16px/26px Manrope, sans-serif; color: #6b5c53">Three things need you this week. Everything else is on track.</p>
+</div>
+<div class="wos-tabs" role="tablist" aria-label="Dashboard view">
+<button class="wos-tab" role="tab" type="button" aria-selected="true">Overview</button>
+<button class="wos-tab" role="tab" type="button" aria-selected="false">This week</button>
+<button class="wos-tab" role="tab" type="button" aria-selected="false">Family view</button>
+</div>
+</header>
+
+<section aria-label="Countdown and readiness" style="border-radius: 24px; background: #7b1e2b; color: #fffaf3; box-shadow: 0 24px 64px rgba(98,22,34,0.22); display: flex; flex-wrap: wrap; overflow: hidden">
+<div style="flex: 3 1 460px; padding: 40px; display: flex; flex-direction: column; gap: 20px; position: relative">
+<span class="wos-overline" style="color: #dcc7a0">Your wedding</span>
+<div style="display: flex; align-items: flex-end; gap: 16px; flex-wrap: wrap">
+<span class="wos-num" style="font: 300 120px/100px 'Cormorant Garamond', Georgia, serif; letter-spacing: -0.02em">247</span>
+<span style="font: 400 32px/36px 'Cormorant Garamond', Georgia, serif; padding-bottom: 6px">days to go</span>
+</div>
+<p style="margin: 0; font: 500 16px/26px Manrope, sans-serif; color: rgba(255,250,243,0.85)">Saturday, 12 June 2027 · Lotus Hall, Kandy</p>
+<ul style="list-style: none; margin: 8px 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: 10px">
+<li style="display: flex; flex-direction: column; padding: 10px 16px; border-radius: 12px; border: 1px solid rgba(255,250,243,0.28)"><span style="font: 700 11px/16px Manrope, sans-serif; letter-spacing: .14em; text-transform: uppercase; color: #dcc7a0">Poruwa</span><span class="wos-num" style="font: 600 15px/22px Manrope, sans-serif">10:30 AM</span></li>
+<li style="display: flex; flex-direction: column; padding: 10px 16px; border-radius: 12px; border: 1px solid rgba(255,250,243,0.28)"><span style="font: 700 11px/16px Manrope, sans-serif; letter-spacing: .14em; text-transform: uppercase; color: #dcc7a0">Reception</span><span class="wos-num" style="font: 600 15px/22px Manrope, sans-serif">7:00 PM</span></li>
+<li style="display: flex; flex-direction: column; padding: 10px 16px; border-radius: 12px; border: 1px solid rgba(255,250,243,0.28)"><span style="font: 700 11px/16px Manrope, sans-serif; letter-spacing: .14em; text-transform: uppercase; color: #dcc7a0">Going-away</span><span class="wos-num" style="font: 600 15px/22px Manrope, sans-serif">8:30 PM</span></li>
+</ul>
+</div>
+<div style="flex: 2 1 340px; padding: 40px; background: #621622; display: flex; gap: 28px; align-items: center; flex-wrap: wrap">
+<div class="wos-ring" role="img" aria-label="Wedding readiness 62 percent" style="width: 144px; height: 144px">
+<svg viewBox="0 0 132 132"><circle cx="66" cy="66" r="58" style="fill: none; stroke: rgba(255,250,243,0.16); stroke-width: 8"></circle><circle class="wos-ring__fill" cx="66" cy="66" r="58" stroke-dasharray="364.4" stroke-dashoffset="138.5" style="stroke: #dcc7a0"></circle></svg>
+<div class="wos-ring__label"><b style="color: #fffaf3; font-size: 40px; line-height: 44px">62%</b><span style="color: #dcc7a0">Ready</span></div>
+</div>
+<div style="flex: 1 1 160px; display: flex; flex-direction: column; gap: 12px">
+<div style="display: flex; flex-direction: column; gap: 4px"><div style="display: flex; justify-content: space-between; font: 600 13px/18px Manrope, sans-serif"><span>Budget committed</span><span class="wos-num">81%</span></div><div style="height: 6px; border-radius: 999px; background: rgba(255,250,243,0.16)"><div style="width: 81%; height: 100%; border-radius: 999px; background: #dcc7a0"></div></div></div>
+<div style="display: flex; flex-direction: column; gap: 4px"><div style="display: flex; justify-content: space-between; font: 600 13px/18px Manrope, sans-serif"><span>Tasks done</span><span class="wos-num">64%</span></div><div style="height: 6px; border-radius: 999px; background: rgba(255,250,243,0.16)"><div style="width: 64%; height: 100%; border-radius: 999px; background: #dcc7a0"></div></div></div>
+<div style="display: flex; flex-direction: column; gap: 4px"><div style="display: flex; justify-content: space-between; font: 600 13px/18px Manrope, sans-serif"><span>Guests confirmed</span><span class="wos-num">58%</span></div><div style="height: 6px; border-radius: 999px; background: rgba(255,250,243,0.16)"><div style="width: 58%; height: 100%; border-radius: 999px; background: #dcc7a0"></div></div></div>
+<div style="display: flex; flex-direction: column; gap: 4px"><div style="display: flex; justify-content: space-between; font: 600 13px/18px Manrope, sans-serif"><span>Vendors booked</span><span class="wos-num">58%</span></div><div style="height: 6px; border-radius: 999px; background: rgba(255,250,243,0.16)"><div style="width: 58%; height: 100%; border-radius: 999px; background: #dcc7a0"></div></div></div>
+<span style="font: 500 13px/18px Manrope, sans-serif; color: rgba(255,250,243,0.85)">Up 6% this month</span>
+</div>
+</div>
+</section>
+
+<section aria-label="Key numbers" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px">
+<a href="Budget.dc.html" class="wos-card wos-card--interactive" style="text-decoration: none; color: #2a1f1c; display: flex; flex-direction: column; gap: 10px; padding: 20px">
+<div style="display: flex; justify-content: space-between; align-items: center"><span class="wos-overline" style="color: #6b5c53">Committed</span><span style="width: 32px; height: 32px; border-radius: 10px; display: grid; place-items: center; background: #f7eaea; color: #7b1e2b"><svg class="wos-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="6" width="18" height="14" rx="2"></rect><path d="M3 10h18M16 15h2"></path></svg></span></div>
+<span style="font: 500 30px/34px 'Cormorant Garamond', Georgia, serif; color: #7b1e2b"><small style="font: 600 12px/16px Manrope, sans-serif; color: #6b5c53; margin-right: 6px">LKR</small>2,850,000</span>
+<span style="font: 500 13px/18px Manrope, sans-serif; color: #6b5c53">81% of LKR 3,500,000</span>
+</a>
+<a href="#guests" class="wos-card wos-card--interactive" style="text-decoration: none; color: #2a1f1c; display: flex; flex-direction: column; gap: 10px; padding: 20px">
+<div style="display: flex; justify-content: space-between; align-items: center"><span class="wos-overline" style="color: #6b5c53">Guests confirmed</span><span style="width: 32px; height: 32px; border-radius: 10px; display: grid; place-items: center; background: #e6eef5; color: #33597a"><svg class="wos-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="4"></circle><path d="M2 21a7 7 0 0 1 14 0M16 4a4 4 0 0 1 0 8M22 21a7 7 0 0 0-4-6.3"></path></svg></span></div>
+<span class="wos-num" style="font: 500 30px/34px 'Cormorant Garamond', Georgia, serif">186 <small style="font: 600 13px/18px Manrope, sans-serif; color: #6b5c53">of 320</small></span>
+<span style="font: 600 13px/18px Manrope, sans-serif; color: #25685c">12 more this week</span>
+</a>
+<a href="#vendors" class="wos-card wos-card--interactive" style="text-decoration: none; color: #2a1f1c; display: flex; flex-direction: column; gap: 10px; padding: 20px">
+<div style="display: flex; justify-content: space-between; align-items: center"><span class="wos-overline" style="color: #6b5c53">Vendors booked</span><span style="width: 32px; height: 32px; border-radius: 10px; display: grid; place-items: center; background: #f4ead8; color: #7a5a2b"><svg class="wos-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9 5 4h14l2 5M4 9v11h16V9M3 9h18M9 20v-6h6v6"></path></svg></span></div>
+<span class="wos-num" style="font: 500 30px/34px 'Cormorant Garamond', Georgia, serif">7 <small style="font: 600 13px/18px Manrope, sans-serif; color: #6b5c53">of 12</small></span>
+<span style="font: 500 13px/18px Manrope, sans-serif; color: #6b5c53">3 quotes waiting for you</span>
+</a>
+<a href="#checklist" class="wos-card wos-card--interactive" style="text-decoration: none; color: #2a1f1c; display: flex; flex-direction: column; gap: 10px; padding: 20px">
+<div style="display: flex; justify-content: space-between; align-items: center"><span class="wos-overline" style="color: #6b5c53">Tasks done</span><span style="width: 32px; height: 32px; border-radius: 10px; display: grid; place-items: center; background: #eaefe6; color: #4a6a4c"><svg class="wos-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg></span></div>
+<span class="wos-num" style="font: 500 30px/34px 'Cormorant Garamond', Georgia, serif">58 <small style="font: 600 13px/18px Manrope, sans-serif; color: #6b5c53">of 91</small></span>
+<span style="font: 500 13px/18px Manrope, sans-serif; color: #6b5c53">2 overdue</span>
+</a>
+</section>
+
+<section class="wos-card" aria-labelledby="h-attn" style="padding: 8px 24px">
+<div style="display: flex; justify-content: space-between; align-items: center; padding: 16px 0 8px"><h2 class="wos-card__title" id="h-attn">Needs your attention <span class="wos-badge wos-badge--wine wos-badge--plain" style="margin-left: 8px; vertical-align: 2px">3</span></h2></div>
+<ul class="wos-list">
+<li style="padding: 16px 0; gap: 16px; flex-wrap: wrap"><span style="width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; background: #f8ecda; color: #8a5210; flex: none"><svg class="wos-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 8v4l2.5 2.5"></path><circle cx="12" cy="12" r="9"></circle></svg></span><div style="flex: 1 1 260px; display: flex; flex-direction: column"><b style="font: 600 15px/22px Manrope, sans-serif">Lotus Hall's second instalment is due in 5 days.</b><span style="font: 400 14px/20px Manrope, sans-serif; color: #6b5c53">LKR 400,000 · due 13 October</span></div><button class="wos-btn wos-btn--primary wos-btn--sm" type="button">Pay Now</button></li>
+<li style="padding: 16px 0; gap: 16px; flex-wrap: wrap"><span style="width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; background: #e6eef5; color: #33597a; flex: none"><svg class="wos-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"></rect><path d="m3 7 9 6 9-6"></path></svg></span><div style="flex: 1 1 260px; display: flex; flex-direction: column"><b style="font: 600 15px/22px Manrope, sans-serif">44 guests haven't received invitations.</b><span style="font: 400 14px/20px Manrope, sans-serif; color: #6b5c53">Most are on the groom's side · send by 15 November</span></div><button class="wos-btn wos-btn--secondary wos-btn--sm" type="button">Review Invitations</button></li>
+<li style="padding: 16px 0; gap: 16px; flex-wrap: wrap"><span style="width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; background: #fbe9e6; color: #b42318; flex: none"><svg class="wos-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m22 7-8.5 8.5-5-5L2 17"></path><path d="M16 7h6v6"></path></svg></span><div style="flex: 1 1 260px; display: flex; flex-direction: column"><b style="font: 600 15px/22px Manrope, sans-serif">Your decoration budget is trending 14% above plan.</b><span style="font: 400 14px/20px Manrope, sans-serif; color: #6b5c53">Two quotes include fresh jasmine and could save about LKR 50,000</span></div><button class="wos-btn wos-btn--secondary wos-btn--sm" type="button">Review Options</button></li>
+</ul>
+</section>
+
+<div style="display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-start">
+
+<div style="flex: 2 1 560px; min-width: 0; display: flex; flex-direction: column; gap: 24px">
+
+<section class="wos-card" aria-labelledby="h-budget" style="display: flex; flex-direction: column; gap: 20px; padding: 28px">
+<div class="wos-card__head" style="margin: 0"><h2 class="wos-card__title" id="h-budget">Wedding Investment</h2><a class="wos-link" href="Budget.dc.html">Open Investment</a></div>
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 20px">
+<div class="wos-stat wos-stat--key"><span class="wos-overline">Committed</span><span class="wos-stat__value" style="font-size: 30px; line-height: 34px"><small>LKR</small>2,850,000</span></div>
+<div class="wos-stat"><span class="wos-overline">Paid</span><span class="wos-stat__value" style="font-size: 30px; line-height: 34px"><small>LKR</small>1,750,000</span></div>
+<div class="wos-stat"><span class="wos-overline">Projected</span><span class="wos-stat__value" style="font-size: 30px; line-height: 34px"><small>LKR</small>3,625,000</span><span class="wos-stat__delta wos-stat__delta--up">LKR 125,000 over plan</span></div>
+</div>
+<div class="wos-budget">
+<div class="wos-budget__bar" role="img" aria-label="Paid 50 percent, committed 81 percent of the LKR 3,500,000 plan"><i class="wos-budget__committed" style="width: 81%"></i><i class="wos-budget__paid" style="width: 50%"></i></div>
+<div class="wos-budget__legend"><span style="--k: #7b1e2b">Paid</span><span style="--k: #dcc7a0">Committed</span><span style="--k: #f3ede2">Remaining · LKR 650,000</span></div>
+</div>
+<div style="border-top: 1px solid #e7dccb; padding-top: 20px; display: flex; flex-direction: column; gap: 14px">
+<span class="wos-overline" style="color: #6b5c53">Largest categories, projected against plan</span>
+<div class="wos-cat" style="grid-template-columns: 170px 1fr 150px"><span>Venue &amp; catering</span><div class="wos-cat__bar wos-cat__bar--over"><i style="width: 84.3%"></i><u style="left: 80%"></u></div><span class="wos-cat__val">1,580,000 <b style="color: #b42318">+5%</b></span></div>
+<div class="wos-cat" style="grid-template-columns: 170px 1fr 150px"><span>Attire &amp; jewellery</span><div class="wos-cat__bar"><i style="width: 83.6%; background: #8a5210"></i><u style="left: 80%"></u></div><span class="wos-cat__val">470,000 <b style="color: #8a5210">+4%</b></span></div>
+<div class="wos-cat" style="grid-template-columns: 170px 1fr 150px"><span>Decoration</span><div class="wos-cat__bar wos-cat__bar--over"><i style="width: 91.4%"></i><u style="left: 80%"></u></div><span class="wos-cat__val">400,000 <b style="color: #b42318">+14%</b></span></div>
+<div class="wos-cat" style="grid-template-columns: 170px 1fr 150px"><span>Photography &amp; video</span><div class="wos-cat__bar"><i style="width: 74.3%"></i><u style="left: 80%"></u></div><span class="wos-cat__val">325,000 <b style="color: #25685c">within</b></span></div>
+</div>
+</section>
+
+<section class="wos-card" id="checklist" aria-labelledby="h-tasks" style="display: flex; flex-direction: column; gap: 16px; padding: 28px">
+<div class="wos-card__head" style="margin: 0; flex-wrap: wrap"><h2 class="wos-card__title" id="h-tasks">Upcoming tasks</h2>
+<div class="wos-tabs wos-tabs--line" role="tablist" aria-label="Task filter"><button class="wos-tab" role="tab" type="button" aria-selected="true">Mine &amp; shared <span>6</span></button><button class="wos-tab" role="tab" type="button" aria-selected="false">Family <span>4</span></button><button class="wos-tab" role="tab" type="button" aria-selected="false">Overdue <span>2</span></button></div>
+</div>
+<ul class="wos-list">
+<li style="padding: 14px 0"><input class="wos-check" type="checkbox" id="t1"><label for="t1" style="flex: 1; display: flex; flex-direction: column"><b style="font: 600 14px/20px Manrope, sans-serif">Send remaining invitations</b><span style="font: 500 13px/18px Manrope, sans-serif; color: #6b5c53">Guests · due 15 Nov</span></label><span class="wos-badge wos-badge--warning">This week</span><span title="Kasun" aria-label="Kasun" style="width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; background: #e6eef5; color: #3a4a63; font: 600 12px/1 Manrope, sans-serif">K</span></li>
+<li style="padding: 14px 0"><input class="wos-check" type="checkbox" id="t2"><label for="t2" style="flex: 1; display: flex; flex-direction: column"><b style="font: 600 14px/20px Manrope, sans-serif">Choose decoration theme</b><span style="font: 500 13px/18px Manrope, sans-serif; color: #6b5c53">Decoration · due 20 Nov</span></label><span title="Nethmi" aria-label="Nethmi" style="width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; background: #f7eaea; color: #9c3a54; font: 600 12px/1 Manrope, sans-serif">N</span></li>
+<li style="padding: 14px 0"><input class="wos-check" type="checkbox" id="t3"><label for="t3" style="flex: 1; display: flex; flex-direction: column"><b style="font: 600 14px/20px Manrope, sans-serif">Book menu tasting at Lotus Hall</b><span style="font: 500 13px/18px Manrope, sans-serif; color: #6b5c53">Catering · due 2 Dec</span></label><span aria-label="Nethmi and Kasun" style="display: flex"><span style="width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; background: #f7eaea; color: #9c3a54; font: 600 12px/1 Manrope, sans-serif; border: 2px solid #fffdf9">N</span><span style="width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; background: #e6eef5; color: #3a4a63; font: 600 12px/1 Manrope, sans-serif; border: 2px solid #fffdf9; margin-left: -8px">K</span></span></li>
+<li style="padding: 14px 0"><input class="wos-check" type="checkbox" id="t4"><label for="t4" style="flex: 1; display: flex; flex-direction: column"><b style="font: 600 14px/20px Manrope, sans-serif">Confirm Poruwa time with the astrologer</b><span style="font: 500 13px/18px Manrope, sans-serif; color: #6b5c53">Ceremony · due 10 Dec</span></label><span class="wos-badge wos-badge--champagne wos-badge--plain">Perera family</span></li>
+<li style="padding: 14px 0"><input class="wos-check" type="checkbox" id="t5" checked><label for="t5" style="flex: 1; display: flex; flex-direction: column; opacity: .6"><b style="font: 600 14px/20px Manrope, sans-serif; text-decoration: line-through">Shortlist three photographers</b><span style="font: 500 13px/18px Manrope, sans-serif; color: #6b5c53">Done 5 Oct</span></label><span class="wos-badge wos-badge--success">Done</span></li>
+</ul>
+<button class="wos-btn wos-btn--ghost wos-btn--sm" type="button" style="align-self: flex-start"><svg class="wos-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M12 5v14"></path></svg>Add Task</button>
+</section>
+
+</div>
+
+<div style="flex: 1 1 320px; min-width: 0; display: flex; flex-direction: column; gap: 24px">
+
+<section class="wos-card" id="guests" aria-labelledby="h-guests" style="display: flex; flex-direction: column; gap: 20px">
+<div class="wos-card__head" style="margin: 0"><h2 class="wos-card__title" id="h-guests">Guests</h2><a class="wos-link" href="#guests">Guest list</a></div>
+<div style="display: flex; align-items: center; gap: 20px; flex-wrap: wrap">
+<div role="img" aria-label="320 guests: 98 bride side confirmed, 88 groom side confirmed, 90 pending, 44 not invited" style="position: relative; width: 132px; height: 132px; flex: none">
+<svg viewBox="0 0 132 132" style="width: 100%; height: 100%; transform: rotate(-90deg)">
+<circle cx="66" cy="66" r="52" style="fill: none; stroke: #f3ede2; stroke-width: 14"></circle>
+<circle cx="66" cy="66" r="52" stroke-dasharray="98 228.7" stroke-dashoffset="0" style="fill: none; stroke: #9c3a54; stroke-width: 14"></circle>
+<circle cx="66" cy="66" r="52" stroke-dasharray="87.8 238.9" stroke-dashoffset="-100" style="fill: none; stroke: #3a4a63; stroke-width: 14"></circle>
+<circle cx="66" cy="66" r="52" stroke-dasharray="89.9 236.8" stroke-dashoffset="-189.8" style="fill: none; stroke: #dcc7a0; stroke-width: 14"></circle>
+</svg>
+<div style="position: absolute; inset: 0; display: grid; place-content: center; text-align: center"><b class="wos-num" style="font: 500 32px/34px 'Cormorant Garamond', Georgia, serif">186</b><span style="font: 700 10px/14px Manrope, sans-serif; letter-spacing: .14em; text-transform: uppercase; color: #6b5c53">Attending</span></div>
+</div>
+<ul style="list-style: none; margin: 0; padding: 0; flex: 1 1 140px; display: flex; flex-direction: column; gap: 8px; font: 500 13px/18px Manrope, sans-serif">
+<li style="display: flex; align-items: center; gap: 8px"><span style="width: 10px; height: 10px; border-radius: 3px; background: #9c3a54"></span><span style="flex: 1">Bride side</span><b class="wos-num">98</b></li>
+<li style="display: flex; align-items: center; gap: 8px"><span style="width: 10px; height: 10px; border-radius: 3px; background: #3a4a63"></span><span style="flex: 1">Groom side</span><b class="wos-num">88</b></li>
+<li style="display: flex; align-items: center; gap: 8px"><span style="width: 10px; height: 10px; border-radius: 3px; background: #dcc7a0"></span><span style="flex: 1">Pending</span><b class="wos-num">90</b></li>
+<li style="display: flex; align-items: center; gap: 8px"><span style="width: 10px; height: 10px; border-radius: 3px; background: #f3ede2; box-shadow: inset 0 0 0 1px #94806a"></span><span style="flex: 1">Not invited</span><b class="wos-num">44</b></li>
+</ul>
+</div>
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; border-top: 1px solid #e7dccb; padding-top: 16px">
+<div style="display: flex; flex-direction: column"><span class="wos-overline" style="color: #6b5c53">Meals</span><span style="font: 600 14px/20px Manrope, sans-serif">112 veg · 74 non-veg</span></div>
+<div style="display: flex; flex-direction: column"><span class="wos-overline" style="color: #6b5c53">Tables</span><span style="font: 600 14px/20px Manrope, sans-serif">19 of 32 seated</span></div>
+</div>
+</section>
+
+<section class="wos-card" aria-labelledby="h-pay" style="display: flex; flex-direction: column; gap: 16px">
+<div class="wos-card__head" style="margin: 0"><h2 class="wos-card__title" id="h-pay">Upcoming payments</h2><a class="wos-link" href="Budget.dc.html">Schedule</a></div>
+<ol style="list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column">
+<li style="display: grid; grid-template-columns: 48px 1fr; gap: 12px; padding-bottom: 16px; position: relative"><div style="display: flex; flex-direction: column; align-items: center; border-radius: 12px; background: #f8ecda; color: #8a5210; padding: 6px 0"><b class="wos-num" style="font: 600 18px/20px Manrope, sans-serif">13</b><span style="font: 700 10px/14px Manrope, sans-serif; letter-spacing: .1em; text-transform: uppercase">Oct</span></div><div style="display: flex; flex-direction: column"><b style="font: 600 14px/20px Manrope, sans-serif">Lotus Hall</b><span style="font: 500 13px/18px Manrope, sans-serif; color: #6b5c53">Second instalment</span><span class="wos-num" style="font: 600 14px/20px Manrope, sans-serif; margin-top: 2px">LKR 400,000 <span class="wos-badge wos-badge--warning" style="margin-left: 6px">In 5 days</span></span></div></li>
+<li style="display: grid; grid-template-columns: 48px 1fr; gap: 12px; padding: 16px 0; border-top: 1px solid #e7dccb"><div style="display: flex; flex-direction: column; align-items: center; border-radius: 12px; background: #f3ede2; padding: 6px 0"><b class="wos-num" style="font: 600 18px/20px Manrope, sans-serif">01</b><span style="font: 700 10px/14px Manrope, sans-serif; letter-spacing: .1em; text-transform: uppercase; color: #6b5c53">Nov</span></div><div style="display: flex; flex-direction: column"><b style="font: 600 14px/20px Manrope, sans-serif">Ceylon Frames</b><span style="font: 500 13px/18px Manrope, sans-serif; color: #6b5c53">Advance</span><span class="wos-num" style="font: 600 14px/20px Manrope, sans-serif; margin-top: 2px">LKR 100,000</span></div></li>
+<li style="display: grid; grid-template-columns: 48px 1fr; gap: 12px; padding-top: 16px; border-top: 1px solid #e7dccb"><div style="display: flex; flex-direction: column; align-items: center; border-radius: 12px; background: #f3ede2; padding: 6px 0"><b class="wos-num" style="font: 600 18px/20px Manrope, sans-serif">15</b><span style="font: 700 10px/14px Manrope, sans-serif; letter-spacing: .1em; text-transform: uppercase; color: #6b5c53">Dec</span></div><div style="display: flex; flex-direction: column"><b style="font: 600 14px/20px Manrope, sans-serif">Poruwa &amp; Ashtaka</b><span style="font: 500 13px/18px Manrope, sans-serif; color: #6b5c53">Balance</span><span class="wos-num" style="font: 600 14px/20px Manrope, sans-serif; margin-top: 2px">LKR 60,000</span></div></li>
+</ol>
+</section>
+
+<section class="wos-card" id="vendors" aria-labelledby="h-vendors" style="display: flex; flex-direction: column; gap: 12px">
+<div class="wos-card__head" style="margin: 0"><h2 class="wos-card__title" id="h-vendors">Vendors</h2><span style="font: 500 13px/18px Manrope, sans-serif; color: #6b5c53">7 of 12 booked</span></div>
+<ul class="wos-list">
+<li><span style="width: 36px; height: 36px; border-radius: 10px; display: grid; place-items: center; background: #f4ead8; color: #7a5a2b; flex: none"><svg class="wos-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 21h18M5 21V8l7-5 7 5v13M9 21v-6h6v6"></path></svg></span><div style="flex: 1; display: flex; flex-direction: column"><b style="font: 600 14px/20px Manrope, sans-serif">Lotus Hall</b><span style="font: 500 13px/18px Manrope, sans-serif; color: #6b5c53">Venue · Kandy</span></div><span class="wos-badge wos-badge--success">Booked</span></li>
+<li><span style="width: 36px; height: 36px; border-radius: 10px; display: grid; place-items: center; background: #f4ead8; color: #7a5a2b; flex: none"><svg class="wos-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3z"></path><circle cx="12" cy="13" r="3"></circle></svg></span><div style="flex: 1; display: flex; flex-direction: column"><b style="font: 600 14px/20px Manrope, sans-serif">Ceylon Frames</b><span style="font: 500 13px/18px Manrope, sans-serif; color: #6b5c53">Photography · Best value 91</span></div><span class="wos-badge wos-badge--warning">Negotiating</span></li>
+<li><span style="width: 36px; height: 36px; border-radius: 10px; display: grid; place-items: center; background: #f4ead8; color: #7a5a2b; flex: none"><svg class="wos-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 22V12M12 12c0-4 3-7 7-8-1 4-3 7-7 8zM12 12C12 8 9 5 5 4c1 4 3 7 7 8z"></path></svg></span><div style="flex: 1; display: flex; flex-direction: column"><b style="font: 600 14px/20px Manrope, sans-serif">Decoration</b><span style="font: 500 13px/18px Manrope, sans-serif; color: #6b5c53">3 quotes to compare</span></div><span class="wos-badge wos-badge--info">Quoted</span></li>
+</ul>
+<a class="wos-btn wos-btn--secondary wos-btn--sm" href="#vendors" style="align-self: flex-start">Compare Quotes</a>
+</section>
+
+</div>
+</div>
+
+<section class="wos-card" id="journey" aria-labelledby="h-journey" style="display: flex; flex-direction: column; gap: 20px; padding: 28px">
+<div class="wos-card__head" style="margin: 0"><div style="display: flex; flex-direction: column; gap: 2px"><span class="wos-overline">Stage 4 of 8</span><h2 id="h-journey" style="margin: 0; font: 500 28px/34px 'Cormorant Garamond', Georgia, serif">Your journey to 12 June</h2></div><a class="wos-link" href="#journey">Full timeline</a></div>
+<ol class="wos-journey" style="list-style: none; margin: 0; padding: 8px 0">
+<li class="wos-stage wos-stage--done"><span class="wos-stage__dot"><svg class="wos-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg></span><span class="wos-stage__name">Vision</span><span class="wos-stage__state">March</span></li>
+<li class="wos-stage wos-stage--done"><span class="wos-stage__dot"><svg class="wos-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg></span><span class="wos-stage__name">Budget</span><span class="wos-stage__state">March</span></li>
+<li class="wos-stage wos-stage--done"><span class="wos-stage__dot"><svg class="wos-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg></span><span class="wos-stage__name">Venue</span><span class="wos-stage__state">June</span></li>
+<li class="wos-stage wos-stage--active" aria-current="step"><span class="wos-stage__dot">04</span><span class="wos-stage__name">Guests</span><span class="wos-stage__state">In progress</span></li>
+<li class="wos-stage"><span class="wos-stage__dot">05</span><span class="wos-stage__name">Vendors</span><span class="wos-stage__state">By January</span></li>
+<li class="wos-stage"><span class="wos-stage__dot">06</span><span class="wos-stage__name">Poruwa</span><span class="wos-stage__state">12 June</span></li>
+<li class="wos-stage"><span class="wos-stage__dot">07</span><span class="wos-stage__name">Reception</span><span class="wos-stage__state">12 June</span></li>
+<li class="wos-stage"><span class="wos-stage__dot">08</span><span class="wos-stage__name">Going-away</span><span class="wos-stage__state">12 June</span></li>
+</ol>
+</section>
+
+</div>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":2440}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>

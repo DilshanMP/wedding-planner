@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Wedding Day Mode — Wedding OS</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="./wos.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,400&amp;family=Manrope:wght@400;500;600;700&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#d4707c}a:hover{color:#e48d97}
+</style>
+</helmet>
+<div class="wos-evening" style="width: 390px; height: 844px; box-sizing: border-box; overflow: hidden; background: #16110f; color: #f3ebdf; font-family: Manrope, 'Segoe UI', system-ui, sans-serif; padding: 24px 16px; display: flex; flex-direction: column; gap: 24px">
+
+<header style="display: flex; justify-content: space-between; align-items: center; gap: 12px">
+<div style="display: flex; flex-direction: column">
+<span class="wos-overline">Wedding day</span>
+<span style="font: 500 13px/18px Manrope, sans-serif; color: #b8a898">Saturday, 12 June 2027 · Lotus Hall</span>
+</div>
+<a href="Mobile.dc.html" class="wos-btn wos-btn--secondary wos-btn--sm">Exit</a>
+</header>
+
+<section aria-label="Now" style="display: flex; flex-direction: column; gap: 8px">
+<div class="wos-day__clock" style="font-size: 88px; line-height: 88px">7:40<small>PM</small></div>
+<span class="wos-overline" style="margin-top: 8px"><i class="wos-pulse"></i>Now</span>
+<h1 style="margin: 0; font: 500 36px/40px 'Cormorant Garamond', Georgia, serif; color: #d4707c; letter-spacing: .02em; text-transform: uppercase">Reception dinner</h1>
+<span style="font: 500 14px/20px Manrope, sans-serif; color: #b8a898">Until 8:20 PM · Grand ballroom</span>
+</section>
+
+<section aria-label="Next" style="border-top: 1px solid #33281f; padding-top: 16px; display: flex; flex-direction: column; gap: 4px">
+<span class="wos-overline">Next</span>
+<b style="font: 500 28px/34px 'Cormorant Garamond', Georgia, serif">Going-away</b>
+<span class="wos-num" style="font: 600 15px/24px Manrope, sans-serif; color: #b8a898">8:30 PM · Main entrance</span>
+</section>
+
+<section aria-labelledby="d-vendors" style="display: flex; flex-direction: column; gap: 12px">
+<h2 id="d-vendors" class="wos-overline" style="margin: 0; color: #b8a898">Vendors</h2>
+<ul class="wos-list" style="background: #201816; border: 1px solid #33281f; border-radius: 16px; padding: 12px 16px">
+<li style="border-color: #33281f"><span style="flex: 1; font: 600 14px/20px Manrope, sans-serif">Ceylon Frames</span><span class="wos-badge wos-badge--success">On site</span></li>
+<li style="border-color: #33281f"><span style="flex: 1; font: 600 14px/20px Manrope, sans-serif">Going-away car</span><span class="wos-badge wos-badge--warning">10 min late</span></li>
+<li style="border-color: #33281f"><span style="flex: 1; font: 600 14px/20px Manrope, sans-serif">Kandyan Drummers</span><span class="wos-badge wos-badge--success">Ready</span></li>
+</ul>
+</section>
+
+<section class="wos-notice" aria-label="Coordinator note" style="background: #201816; border: 1px solid #33281f">
+<span class="wos-notice__icon" style="background: #2c231c; color: #dcc196"><svg class="wos-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg></span>
+<div class="wos-notice__body"><b>Dilani, coordinator</b><span style="color: #b8a898">Car is on Peradeniya Road. Hold the going-away by 10 minutes; band will play one more set.</span></div>
+</section>
+
+<div style="margin-top: auto; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px">
+<button class="wos-btn wos-btn--secondary" type="button">Message Team</button>
+<button class="wos-btn wos-btn--primary" type="button"><svg class="wos-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2z"></path></svg>Call Coordinator</button>
+</div>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>
