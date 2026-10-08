@@ -2,6 +2,7 @@ import Link from "next/link";
 import { CalendarClock, Check, Scale, Sparkles, Store, SunMedium, Users, Wallet } from "lucide-react";
 import { JasmineMark, LotusMark, PoruwaMark } from "@/components/ui/primitives";
 import { LandingCta } from "./landing-cta";
+import { PLANS } from "@/lib/domain/plans";
 
 const JOURNEY = ["Vision", "Budget", "Venue", "Guest Planning", "Vendors", "Ceremony", "Reception", "Attire", "Invitations", "Final Preparation", "Wedding Day", "Post Wedding"];
 
@@ -156,7 +157,28 @@ export default function LandingPage() {
           </div>
         </section>
 
-        <section className="px-4 pb-24 md:px-6">
+        <section className="border-t border-line bg-surface-raised" aria-labelledby="plans">
+          <div className="mx-auto max-w-[1200px] px-4 py-16 md:px-6 md:py-24">
+            <span className="wos-overline">Plans</span>
+            <h2 id="plans" className="wos-h1 mt-2 mb-10">Free for couples. Built to grow.</h2>
+            <div className="grid gap-6 [grid-template-columns:repeat(auto-fill,minmax(240px,1fr))]">
+              {Object.values(PLANS).map((p) => (
+                <article key={p.id} className={`wos-card flex flex-col gap-3 ${p.available ? "wos-vendor--pick" : ""}`}>
+                  <div className="flex items-center justify-between gap-2">
+                    <h3 className="wos-h2">{p.name}</h3>
+                    <span className={`wos-badge ${p.available ? "wos-badge--success" : "wos-badge--champagne wos-badge--plain"}`}>{p.available ? "Available now" : "Coming soon"}</span>
+                  </div>
+                  <span className="text-[14px] text-ink-muted">{p.audience}</span>
+                  <ul className="m-0 flex flex-col gap-1.5 pl-5 text-[14px]">
+                    {p.highlights.map((h) => <li key={h}>{h}</li>)}
+                  </ul>
+                </article>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section className="px-4 py-24 md:px-6">
           <div className="wos-hero mx-auto max-w-[1200px] flex-col items-center gap-5 px-6 py-16 text-center">
             <h2 className="m-0 font-display text-[40px] leading-[44px] font-normal md:text-[48px] md:leading-[54px]">Spend intentionally. Enjoy the journey.</h2>
             <LandingCta variant="footer" />

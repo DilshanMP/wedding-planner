@@ -10,7 +10,7 @@ import { ConfirmDialog, Dialog } from "@/components/ui/dialog";
 import { ChoiceChips, NumberField, SelectField, TextArea, TextField, Toggle } from "@/components/ui/fields";
 import { useToast } from "@/components/shell/toast";
 
-type Draft = Omit<Guest, "id" | "createdAt" | "updatedAt">;
+type Draft = Omit<Guest, "id" | "createdAt" | "updatedAt" | "rsvpToken">;
 
 const blank: Draft = {
   name: "", phone: "", email: "", side: "bride", relation: "family", vip: false, partyType: "single",
@@ -27,7 +27,12 @@ export function GuestForm({ open, guest, onClose }: { open: boolean; guest?: Gue
 function Inner({ open, guest, onClose }: { open: boolean; guest?: Guest; onClose: () => void }) {
   const store = useStore();
   const toast = useToast();
-  const [draft, setDraft] = useState<Draft>(() => (guest ? { ...guest } : blank));
+  const [draft, setDraft] = useState<Draft>(() => {
+    if (!guest) return blank;
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { id, createdAt, updatedAt, rsvpToken, ...rest } = guest;
+    return rest;
+  });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [confirmDelete, setConfirmDelete] = useState(false);
   const set = <K extends keyof Draft>(k: K, v: Draft[K]) => setDraft((d) => ({ ...d, [k]: v }));
@@ -36,7 +41,7 @@ function Inner({ open, guest, onClose }: { open: boolean; guest?: Guest; onClose
     const res = guestSchema.safeParse(draft);
     if (!res.success) return setErrors(fieldErrors(res.error));
     const now = nowISO();
-    store.upsert("guests", { ...(guest ?? { id: newId(), createdAt: now }), ...res.data, updatedAt: now } as Guest);
+    store.upsert("guests", { ...(guest ?? { id: newId(), createdAt: now, rsvpToken: newId() }), ...res.data, updatedAt: now } as Guest);
     toast(guest ? "Guest updated." : `${res.data.name} added.`);
     if (another) {
       setDraft({ ...blank, side: draft.side, relation: draft.relation });

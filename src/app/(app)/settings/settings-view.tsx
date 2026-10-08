@@ -3,19 +3,21 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { Cloud, Download, HardDrive, Plus } from "lucide-react";
+import { Cloud, Download, HardDrive, Plus, Upload } from "lucide-react";
 import { usePage } from "@/lib/hooks/use-page";
-import { useAuth, useStore, useStoreState } from "@/lib/store/provider";
+import { useAuth, useFileStore, useStore, useStoreState } from "@/lib/store/provider";
 import { BUDGET_CATEGORIES, ROLE_LABEL, STYLE_LABEL } from "@/lib/domain/catalog";
 import { formatDate } from "@/lib/domain/dates";
 import { fieldErrors, setupSchema } from "@/lib/domain/schemas";
 import { generateTasks } from "@/lib/domain/tasks";
 import { nowISO } from "@/lib/domain/ids";
+import { normalizeWeddingData } from "@/lib/domain/normalize";
 import type { Blueprint, WeddingData, WeddingStyle } from "@/lib/domain/types";
 import { getSupabase } from "@/lib/supabase/client";
 import { Card, PageHeader } from "@/components/ui/primitives";
 import { ChoiceChips, MoneyField, MultiChips, NumberField, TagInput, TextArea, TextField } from "@/components/ui/fields";
 import { ConfirmDialog } from "@/components/ui/dialog";
+import { SharingCard } from "@/components/features/sharing-card";
 import { PageSkeleton } from "@/components/shell/wedding-gate";
 import { useToast } from "@/components/shell/toast";
 
@@ -91,8 +93,8 @@ function Settings({ data, today }: { data: WeddingData; today: string }) {
                 <input id={`person-${p.id}`} className="wos-input flex-1" defaultValue={p.name}
                   onBlur={(e) => { const name = e.target.value.trim(); if (name && name !== p.name) { store.upsert("people", { ...p, name }); toast("Name updated."); } }} />
                 <label className="sr-only" htmlFor={`phone-${p.id}`}>{ROLE_LABEL[p.role]} phone</label>
-                <input id={`phone-${p.id}`} className="wos-input w-[140px]" type="tel" placeholder="Phone" defaultValue={p.phone ?? ""}
-                  onBlur={(e) => { const phone = e.target.value.trim(); if (phone !== (p.phone ?? "")) { store.upsert("people", { ...p, phone }); toast("Phone saved."); } }} />
+                <input id={`phone-${p.id}`} className="wos-input w-[140px]" type="tel" placeholder="Phone" defaultValue={p.phone}
+                  onBlur={(e) => { const phone = e.target.value.trim(); if (phone !== p.phone) { store.upsert("people", { ...p, phone }); toast("Phone saved."); } }} />
                 <span className="hidden w-[110px] text-[13px] text-ink-muted sm:inline">{ROLE_LABEL[p.role]}</span>
               </li>
             ))}
@@ -104,6 +106,7 @@ function Settings({ data, today }: { data: WeddingData; today: string }) {
         </Card>
       </div>
 
+      <SharingCard weddingId={data.wedding.id} />
       <Checklist data={data} today={today} />
       <AccountAndData data={data} />
     </>
@@ -132,10 +135,27 @@ function Checklist({ data, today }: { data: WeddingData; today: string }) {
 function AccountAndData({ data }: { data: WeddingData }) {
   const auth = useAuth();
   const store = useStore();
+  const files = useFileStore();
   const state = useStoreState();
   const router = useRouter();
+  const toast = useToast();
   const [confirm, setConfirm] = useState(false);
   const weddings = state.status === "ready" ? state.weddings : [];
+
+  const [importError, setImportError] = useState<string | null>(null);
+  const importBackup = async (file: File) => {
+    setImportError(null);
+    try {
+      const parsed = JSON.parse(await file.text()) as { format?: string; version?: number; data?: WeddingData };
+      if (parsed.format !== "wedding-os" || parsed.version !== 1 || !parsed.data?.wedding?.id) throw new Error("This isn't a Wedding OS backup file.");
+      if (weddings.some((w) => w.id === parsed.data!.wedding.id)) throw new Error("This wedding is already here. Delete it first if you want to restore the backup over it.");
+      await store.createWedding(normalizeWeddingData(parsed.data));
+      toast(`${parsed.data.wedding.brideName} & ${parsed.data.wedding.groomName}'s wedding restored.`);
+      router.push("/dashboard");
+    } catch (e) {
+      setImportError(e instanceof SyntaxError ? "That file couldn't be read as a backup." : e instanceof Error ? e.message : "Import failed.");
+    }
+  };
 
   const exportJSON = () => {
     const blob = new Blob([JSON.stringify({ format: "wedding-os", version: 1, exportedAt: nowISO(), data }, null, 2)], { type: "application/json" });
@@ -164,7 +184,15 @@ function AccountAndData({ data }: { data: WeddingData }) {
             <button type="button" className="wos-btn wos-btn--secondary self-start" onClick={async () => { await getSupabase().auth.signOut(); router.replace("/login"); }}>Sign Out</button>
           </div>
         )}
-        <button type="button" className="wos-btn wos-btn--secondary self-start" onClick={exportJSON}><Download className="wos-icon" aria-hidden="true" />Export All Data</button>
+        <p className="m-0 text-[14px]"><b>Plan:</b> Free — everything in the app is included. <Link href="/#plans" className="wos-link">See plans</Link></p>
+        <div className="flex flex-wrap gap-3">
+          <button type="button" className="wos-btn wos-btn--secondary" onClick={exportJSON}><Download className="wos-icon" aria-hidden="true" />Export All Data</button>
+          <label className="wos-btn wos-btn--ghost cursor-pointer">
+            <Upload className="wos-icon" aria-hidden="true" />Import Backup
+            <input type="file" accept="application/json,.json" className="sr-only" onChange={(e) => { const f = e.target.files?.[0]; e.target.value = ""; if (f) void importBackup(f); }} />
+          </label>
+        </div>
+        {importError && <p role="alert" className="m-0 text-[13px] text-danger">{importError}</p>}
       </Card>
 
       <Card title="Weddings" className="flex-[1_1_300px]">
@@ -188,7 +216,12 @@ function AccountAndData({ data }: { data: WeddingData }) {
       <ConfirmDialog
         open={confirm}
         onCancel={() => setConfirm(false)}
-        onConfirm={async () => { setConfirm(false); await store.deleteWedding(data.wedding.id); router.replace("/dashboard"); }}
+        onConfirm={async () => {
+          setConfirm(false);
+          await files.remove(data.documents.map((d) => d.storagePath)).catch(() => undefined);
+          await store.deleteWedding(data.wedding.id);
+          router.replace("/dashboard");
+        }}
         title={`Delete ${data.wedding.brideName} & ${data.wedding.groomName}'s wedding?`}
         body={`This removes ${data.guests.length} guests, ${data.tasks.length} tasks, ${data.vendors.length} vendors and all payments${auth.mode === "local" ? " from this browser. It can't be undone — export a copy first if you might need it." : ". It can be recovered for 30 days by contacting support."}`}
         confirmLabel="Delete Wedding"

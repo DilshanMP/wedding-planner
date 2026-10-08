@@ -58,6 +58,8 @@ export interface Wedding extends Timestamps {
   /** Wedding Day Mode coordinator notes, newest first. */
   dayNotes: DayNote[];
   setupComplete: boolean;
+  /** Guests can answer through their personal RSVP link (cloud mode). */
+  rsvpEnabled: boolean;
 }
 
 export interface DayNote {
@@ -79,7 +81,7 @@ export interface Person {
   id: ID;
   name: string;
   role: PersonRole;
-  phone?: string;
+  phone: string;
 }
 
 /* ------------------------------------------------------------------ */
@@ -153,6 +155,8 @@ export interface Guest extends Timestamps {
   needsTransport: boolean;
   needsAccommodation: boolean;
   notes: string;
+  /** Secret token in the guest's personal RSVP link. */
+  rsvpToken: string;
 }
 
 /* ------------------------------------------------------------------ */
@@ -303,6 +307,28 @@ export type SimulatorScene =
   | "other";
 
 /* ------------------------------------------------------------------ */
+/* Documents                                                           */
+/* ------------------------------------------------------------------ */
+
+export const DOCUMENT_KINDS = ["contract", "quotation", "receipt", "invoice", "guest", "wedding", "vendor", "other"] as const;
+export type DocumentKind = (typeof DOCUMENT_KINDS)[number];
+
+/** Metadata for a file in the document vault. The file itself lives in a FileStore. */
+export interface WeddingDocument extends Timestamps {
+  id: ID;
+  kind: DocumentKind;
+  title: string;
+  /** Path inside the file store: `<weddingId>/<documentId>-<fileName>`. */
+  storagePath: string;
+  mimeType: string;
+  sizeBytes: number;
+  notes: string;
+  vendorId: ID | null;
+  budgetItemId: ID | null;
+  taskId: ID | null;
+}
+
+/* ------------------------------------------------------------------ */
 /* Aggregate                                                           */
 /* ------------------------------------------------------------------ */
 
@@ -316,6 +342,7 @@ export interface WeddingData {
   quotes: VendorQuote[];
   payments: Payment[];
   timeline: TimelineEvent[];
+  documents: WeddingDocument[];
 }
 
 /** Collections that are edited item by item. */

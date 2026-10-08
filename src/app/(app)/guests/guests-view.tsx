@@ -13,6 +13,7 @@ import { Badge, Card, EmptyState, Notice, PageHeader, ProgressBar, SideChip, cx 
 import { PageSkeleton } from "@/components/shell/wedding-gate";
 import { GuestForm } from "@/components/features/guest-form";
 import { GuestDonut } from "@/components/features/guest-donut";
+import { GuestInviteActions, RsvpSettings } from "@/components/features/guest-invite";
 import { ConfirmDialog } from "@/components/ui/dialog";
 import { useToast } from "@/components/shell/toast";
 
@@ -92,6 +93,7 @@ export function GuestsView() {
             <Card title="Bride and groom sides" className="flex-[2_1_420px]">
               <ProgressBar label={<SideChip side="bride" />} detail={`${m.bySide.bride.confirmed} of ${m.bySide.bride.total} confirmed`} value={(m.bySide.bride.confirmed / Math.max(1, m.bySide.bride.total)) * 100} tone="bride" />
               <ProgressBar label={<SideChip side="groom" />} detail={`${m.bySide.groom.confirmed} of ${m.bySide.groom.total} confirmed`} value={(m.bySide.groom.confirmed / Math.max(1, m.bySide.groom.total)) * 100} tone="groom" />
+              <RsvpSettings wedding={data.wedding} />
               <dl className="m-0 grid grid-cols-2 gap-4 border-t border-line pt-4 sm:grid-cols-4">
                 {[
                   ["Invitation coverage", `${m.invitationCoverage}%`],
@@ -169,7 +171,10 @@ export function GuestsView() {
                         <td><span className={cx(bloom === g.id && "wos-bloom inline-block")}><InlineSelect label={`RSVP for ${g.name}`} value={g.rsvp} options={RSVP_STATUSES.map((s) => [s, RSVP_LABEL[s]])} tone={RSVP_TONE[g.rsvp]} onChange={(v) => patch(g, { rsvp: v as RsvpStatus })} /></span></td>
                         <td>{g.meal === "unknown" ? <em>—</em> : MEAL_LABEL[g.meal]}</td>
                         <td>{g.table || <em>—</em>}</td>
-                        <td><button type="button" className="wos-btn wos-btn--ghost wos-btn--sm" onClick={() => q.set({ guest: g.id })} aria-label={`Edit ${g.name}`}>Edit</button></td>
+                        <td className="whitespace-nowrap">
+                          <GuestInviteActions guest={g} wedding={data.wedding} />
+                          <button type="button" className="wos-btn wos-btn--ghost wos-btn--sm" onClick={() => q.set({ guest: g.id })} aria-label={`Edit ${g.name}`}>Edit</button>
+                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -189,6 +194,7 @@ export function GuestsView() {
                     <div className="flex flex-wrap gap-2">
                       <InlineSelect label={`Invitation for ${g.name}`} value={g.invitation} options={INVITATION_STATUSES.map((s) => [s, INVITATION_LABEL[s]])} tone={INVITATION_TONE[g.invitation]} onChange={(v) => patch(g, { invitation: v as InvitationStatus })} />
                       <InlineSelect label={`RSVP for ${g.name}`} value={g.rsvp} options={RSVP_STATUSES.map((s) => [s, RSVP_LABEL[s]])} tone={RSVP_TONE[g.rsvp]} onChange={(v) => patch(g, { rsvp: v as RsvpStatus })} />
+                      <span className="ml-auto"><GuestInviteActions guest={g} wedding={data.wedding} /></span>
                     </div>
                   </li>
                 ))}

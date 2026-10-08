@@ -142,3 +142,20 @@ textarea.wos-input { height: auto; min-height: 96px; padding: var(--space-3) var
 /* Simulator */
 .sim-scene { min-height: 88dvh; display: grid; align-items: center; }
 }
+
+/* Print / Save as PDF: just the document, no app chrome. */
+@media print {
+  @page { size: A4; margin: 14mm; }
+  html, body { background: #fff !important; }
+  .app-sidebar, .app-bottomnav, .no-print, .wos-toast, nextjs-portal { display: none !important; }
+  .app-main { padding: 0 !important; }
+  .app-content > :first-child { display: none !important; } /* top bar */
+  .wos-card { box-shadow: none !important; border: 0 !important; padding: 0 !important; }
+  .report { break-after: page; }
+  .report:last-child { break-after: auto; }
+  .wos-table-wrap { overflow: visible !important; border: 0 !important; }
+  .wos-table { font-size: 10px; }
+  .wos-table th, .wos-table td { padding: 4px 6px !important; white-space: normal !important; }
+  .wos-table tr { break-inside: avoid; }
+  .wos-table thead { display: table-header-group; }
+}

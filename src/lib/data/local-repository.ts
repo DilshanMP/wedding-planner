@@ -1,4 +1,5 @@
 import type { CollectionItem, CollectionKey, Wedding, WeddingData } from "@/lib/domain/types";
+import { normalizeWeddingData } from "@/lib/domain/normalize";
 import { toSummary, type WeddingRepository, type WeddingSummary } from "./repository";
 
 /**
@@ -53,9 +54,10 @@ export class LocalRepository implements WeddingRepository {
   }
 
   private wedding(id: string): WeddingData {
-    const data = this.read().weddings[id];
-    if (!data) throw new Error("This wedding no longer exists on this device.");
-    return data;
+    const weddings = this.read().weddings;
+    if (!weddings[id]) throw new Error("This wedding no longer exists on this device.");
+    weddings[id] = normalizeWeddingData(weddings[id]);
+    return weddings[id];
   }
 
   async listWeddings(): Promise<WeddingSummary[]> {
@@ -64,7 +66,7 @@ export class LocalRepository implements WeddingRepository {
 
   async loadWedding(id: string): Promise<WeddingData | null> {
     const data = this.read().weddings[id];
-    return data ? structuredClone(data) : null;
+    return data ? normalizeWeddingData(structuredClone(data)) : null;
   }
 
   async createWedding(data: WeddingData): Promise<void> {

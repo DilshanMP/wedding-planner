@@ -1,5 +1,5 @@
 -- RLS smoke test: a second user must not see or change another wedding.
-insert into auth.users values ('11111111-1111-1111-1111-111111111111'), ('22222222-2222-2222-2222-222222222222');
+insert into auth.users values ('11111111-1111-1111-1111-111111111111', 'nethmi@example.com'), ('22222222-2222-2222-2222-222222222222', 'other@example.com');
 set role authenticated;
 select set_config('request.jwt.claim.sub', '11111111-1111-1111-1111-111111111111', false);
 insert into public.weddings (id, bride_name, groom_name, wedding_date) values ('aaaaaaaa-0000-0000-0000-000000000001', 'Nethmi', 'Kasun', '2027-06-12');

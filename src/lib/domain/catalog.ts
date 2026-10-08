@@ -1,4 +1,5 @@
 import type {
+  DocumentKind,
   BudgetCategoryId,
   BudgetItemStatus,
   InvitationStatus,
@@ -341,4 +342,15 @@ export const VENDOR_DAY_TONE: Record<VendorDayStatus, Tone> = {
   ready: "success",
   delayed: "warning",
   done: "neutral",
+};
+
+export const DOCUMENT_KIND_LABEL: Record<DocumentKind, string> = {
+  contract: "Contract",
+  quotation: "Quotation",
+  receipt: "Receipt",
+  invoice: "Invoice",
+  guest: "Guest document",
+  wedding: "Wedding document",
+  vendor: "Vendor document",
+  other: "Other",
 };

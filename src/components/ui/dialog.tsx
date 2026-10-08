@@ -35,7 +35,9 @@ export function Dialog({ open, onClose, title, description, children, footer, va
       className={cx("wos-dialog", variant === "sheet" ? "wos-dialog--sheet" : "wos-dialog--modal")}
       aria-labelledby={titleId}
       aria-describedby={description ? descId : undefined}
-      onClose={onClose}
+      // Only user actions close it (Esc, backdrop, close button). The native
+      // "close" event also fires when we close it programmatically, e.g. to
+      // hand over to a confirmation, so it must not call onClose.
       onCancel={(e) => {
         e.preventDefault();
         onClose();

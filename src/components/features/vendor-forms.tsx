@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import { useStore, useWeddingData } from "@/lib/store/provider";
 import { BUDGET_CATEGORIES, VENDOR_STATUS_LABEL, budgetCategory } from "@/lib/domain/catalog";
@@ -41,6 +42,7 @@ function VendorInner({ open, vendor, onClose, defaultCategory }: { open: boolean
 
   const balance = vendor ? vendorBalance(vendor.id, data.budgetItems, data.payments) : null;
   const quoteCount = vendor ? data.quotes.filter((q) => q.vendorId === vendor.id).length : 0;
+  const docCount = vendor ? data.documents.filter((d) => d.vendorId === vendor.id).length : 0;
 
   return (
     <>
@@ -63,6 +65,11 @@ function VendorInner({ open, vendor, onClose, defaultCategory }: { open: boolean
               <div key={k} className="flex flex-col"><dt className="wos-overline !text-ink-muted">{k}</dt><dd className="m-0 font-semibold">{v}</dd></div>
             ))}
           </dl>
+        )}
+        {vendor && (
+          <Link href={`/documents?vendor=${vendor.id}`} className="wos-link mb-4 inline-block">
+            {docCount ? `${docCount} ${docCount === 1 ? "document" : "documents"} — contracts and receipts` : "Add a contract or receipt"}
+          </Link>
         )}
         <form className="wos-form" onSubmit={(e) => { e.preventDefault(); save(); }} noValidate>
           <TextField className="full" label="Vendor name" value={draft.name} onChange={(v) => set("name", v)} error={errors.name} autoFocus={!vendor} />

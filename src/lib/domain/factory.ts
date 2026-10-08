@@ -63,11 +63,11 @@ export function defaultTimeline(now: string): TimelineEvent[] {
 
 export function defaultPeople(brideName: string, groomName: string): Person[] {
   return [
-    { id: newId(), name: brideName.trim() || "Bride", role: "bride" },
-    { id: newId(), name: groomName.trim() || "Groom", role: "groom" },
-    { id: newId(), name: "Bride's family", role: "bride_family" },
-    { id: newId(), name: "Groom's family", role: "groom_family" },
-    { id: newId(), name: "Coordinator", role: "coordinator" },
+    { id: newId(), name: brideName.trim() || "Bride", role: "bride", phone: "" },
+    { id: newId(), name: groomName.trim() || "Groom", role: "groom", phone: "" },
+    { id: newId(), name: "Bride's family", role: "bride_family", phone: "" },
+    { id: newId(), name: "Groom's family", role: "groom_family", phone: "" },
+    { id: newId(), name: "Coordinator", role: "coordinator", phone: "" },
   ];
 }
 
@@ -117,6 +117,7 @@ export function createWeddingData(setup: WeddingSetup, today: ISODate, now: stri
     plannerQuotes: {},
     dayNotes: [],
     setupComplete: true,
+    rsvpEnabled: false,
     ...stamp(now),
   };
   const tasks: Task[] = generateTasks({ weddingDate: setup.weddingDate, today, people, now });
@@ -130,5 +131,6 @@ export function createWeddingData(setup: WeddingSetup, today: ISODate, now: stri
     quotes: [] as VendorQuote[],
     payments: [] as Payment[],
     timeline: defaultTimeline(now),
+    documents: [],
   };
 }

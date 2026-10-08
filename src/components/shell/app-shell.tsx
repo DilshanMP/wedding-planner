@@ -7,8 +7,11 @@ import {
   Bell,
   CalendarClock,
   CreditCard,
+  FileBarChart,
+  FolderClosed,
   Home,
   ListChecks,
+  MessageCircleQuestion,
   Plus,
   Search,
   Settings,
@@ -18,7 +21,8 @@ import {
   Users,
   Wallet,
 } from "lucide-react";
-import { useWeddingData } from "@/lib/store/provider";
+import { useAuth, useWeddingData } from "@/lib/store/provider";
+import { useOnline } from "@/lib/hooks/use-online";
 import { useClock } from "@/lib/hooks/use-clock";
 import { computeReadiness } from "@/lib/domain/readiness";
 import { daysBetween, formatDate } from "@/lib/domain/dates";
@@ -84,6 +88,13 @@ export function AppShell({ children }: { children: ReactNode }) {
         { href: "/budget?tab=payments", label: "Payments", icon: CreditCard, count: dueSoon ? `${dueSoon} due` : undefined },
       ],
     },
+    {
+      title: "Records",
+      items: [
+        { href: "/documents", label: "Documents", icon: FolderClosed, count: data.documents.length || undefined },
+        { href: "/reports", label: "Reports", icon: FileBarChart },
+      ],
+    },
   ];
 
   const isActive = (href: string) => {
@@ -129,6 +140,10 @@ export function AppShell({ children }: { children: ReactNode }) {
         ))}
 
         <div className="mt-4 flex flex-col gap-[2px]">
+          <Link href="/assistant" aria-current={isActive("/assistant") ? "page" : undefined} title="Ask about your wedding">
+            <MessageCircleQuestion className="wos-icon" aria-hidden="true" />
+            <span className="nav-label">Ask</span>
+          </Link>
           <Link href="/simulator" aria-current={isActive("/simulator") ? "page" : undefined} title="Experience your wedding">
             <Sparkles className="wos-icon" aria-hidden="true" />
             <span className="nav-label">Simulator</span>
@@ -214,8 +229,15 @@ function QuickAdd({ open, onClose }: { open: boolean; onClose: () => void }) {
 }
 
 function TopBar({ onAdd }: { onAdd: () => void }) {
+  const online = useOnline();
+  const auth = useAuth();
   return (
     <div className="flex flex-wrap items-center gap-3 border-b border-line pb-5">
+      {!online && (
+        <p role="status" className="m-0 w-full rounded-xl bg-warning-50 px-4 py-2 text-[13px] font-semibold text-warning">
+          {auth.mode === "local" ? "You're offline. Everything still works and is saved on this device." : "You're offline. Changes can't sync until you reconnect — avoid editing until then."}
+        </p>
+      )}
       <GlobalSearch />
       <div className="flex-1" />
       <Notifications />

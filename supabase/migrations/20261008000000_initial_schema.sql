@@ -130,7 +130,7 @@ create table public.participants (
   wedding_id uuid not null references public.weddings (id) on delete cascade,
   name text not null,
   role text not null check (role in ('bride', 'groom', 'bride_family', 'groom_family', 'planner', 'coordinator')),
-  phone text,
+  phone text not null default '',
   user_id uuid references auth.users (id) on delete set null,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()

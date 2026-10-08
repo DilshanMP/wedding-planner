@@ -131,6 +131,7 @@ function sampleGuests(now: string): Guest[] {
         needsTransport: rand() < 0.08,
         needsAccommodation: block.relation === "family" && rand() < 0.12,
         notes: block.vip ? "Seat near the Poruwa." : "",
+        rsvpToken: newId(),
         ...stamp(now),
       });
     }

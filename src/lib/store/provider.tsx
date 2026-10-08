@@ -4,6 +4,8 @@ import { createContext, useContext, useEffect, useMemo, useState, useSyncExterna
 import type { Session } from "@supabase/supabase-js";
 import { LocalRepository, MemoryStorage, type KeyValueStore } from "@/lib/data/local-repository";
 import { SupabaseRepository } from "@/lib/data/supabase-repository";
+import { claimInvites } from "@/lib/data/cloud-services";
+import { IndexedDbFileStore, SupabaseFileStore, type FileStore } from "@/lib/data/file-store";
 import { cloudEnabled, getSupabase } from "@/lib/supabase/client";
 import type { WeddingData } from "@/lib/domain/types";
 import { WeddingStore, type StoreState } from "./wedding-store";
@@ -16,6 +18,7 @@ export type AuthState =
 interface Ctx {
   store: WeddingStore;
   auth: AuthState;
+  files: FileStore;
 }
 
 const StoreContext = createContext<Ctx | null>(null);
@@ -43,6 +46,7 @@ function makeStore(): WeddingStore {
 
 export function WeddingProvider({ children }: { children: ReactNode }) {
   const [store] = useState(makeStore);
+  const [files] = useState<FileStore>(() => (cloudEnabled && typeof window !== "undefined" ? new SupabaseFileStore(getSupabase()) : new IndexedDbFileStore()));
   const [auth, setAuth] = useState<AuthState>(cloudEnabled ? { mode: "cloud", status: "loading" } : { mode: "local" });
 
   useEffect(() => {
@@ -54,7 +58,8 @@ export function WeddingProvider({ children }: { children: ReactNode }) {
     const apply = (session: Session | null) => {
       if (session) {
         setAuth({ mode: "cloud", status: "signed_in", email: session.user.email ?? null });
-        void store.init();
+        // Join any weddings this email was invited to, then load.
+        void claimInvites(supabase).catch(() => 0).finally(() => void store.init());
       } else setAuth({ mode: "cloud", status: "signed_out" });
     };
     void supabase.auth.getSession().then(({ data }) => apply(data.session));
@@ -64,7 +69,7 @@ export function WeddingProvider({ children }: { children: ReactNode }) {
     return () => data.subscription.unsubscribe();
   }, [store]);
 
-  const value = useMemo(() => ({ store, auth }), [store, auth]);
+  const value = useMemo(() => ({ store, auth, files }), [store, auth, files]);
   return <StoreContext.Provider value={value}>{children}</StoreContext.Provider>;
 }
 
@@ -78,6 +83,10 @@ const LOADING: StoreState = { status: "loading" };
 
 export function useStore(): WeddingStore {
   return useCtx().store;
+}
+
+export function useFileStore(): FileStore {
+  return useCtx().files;
 }
 
 export function useAuth(): AuthState {

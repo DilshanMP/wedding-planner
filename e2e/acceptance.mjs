@@ -9,6 +9,7 @@ mkdirSync(out, { recursive: true });
 const browser = await chromium.launch(process.env.CHROMIUM_PATH ? { executablePath: process.env.CHROMIUM_PATH } : {});
 let failed = 0;
 const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
+page.setDefaultTimeout(15000);
 const errors = [];
 page.on("pageerror", (e) => errors.push("PAGEERROR " + e.message));
 page.on("console", (m) => m.type() === "error" && errors.push(m.text().slice(0, 300)));
@@ -61,6 +62,7 @@ await step("6-7 add bride and groom family guests", async () => {
   await dlg().getByRole("radio", { name: "Groom side" }).click();
   await dlg().getByLabel("Name").fill("Fernando family");
   await dlg().getByLabel("Children").fill("3");
+  await dlg().getByLabel("Phone").fill("077 123 4567");
   await dlg().getByRole("button", { name: "Add Guest" }).click();
   await page.getByText("Fernando family").first().waitFor();
 });
@@ -113,6 +115,13 @@ await step("14 edit wedding timeline", async () => {
   await dlg().getByRole("button", { name: "Add Moment" }).click();
   await page.getByText("Tea ceremony").waitFor();
 });
+await step("delete with confirmation", async () => {
+  await page.goto(B + "/tasks?q=Kandyan");
+  await page.getByRole("button", { name: "Edit Book Kandyan dancers" }).click();
+  await dlg().getByRole("button", { name: "Delete" }).click();
+  await page.getByRole("button", { name: "Delete Task" }).click();
+  await page.getByText("Book Kandyan dancers").waitFor({ state: "detached" });
+});
 await step("15 readiness", async () => {
   await page.goto(B + "/dashboard");
   await page.getByRole("button", { name: /How readiness is calculated/ }).click();
@@ -130,6 +139,46 @@ await step("17 simulator", async () => {
   await page.getByText("Sanduni & Tharindu").waitFor();
   await page.mouse.wheel(0, 3000);
   await page.waitForTimeout(500);
+});
+await step("WhatsApp invitation link", async () => {
+  await page.goto(B + "/guests");
+  const wa = page.getByRole("link", { name: "Send invitation to Fernando family on WhatsApp" }).first();
+  const href = await wa.getAttribute("href");
+  if (!href?.startsWith("https://wa.me/94771234567?text=")) throw new Error("unexpected WhatsApp link: " + href);
+  if (!decodeURIComponent(href).includes("Sanduni & Tharindu")) throw new Error("message missing couple names");
+});
+await step("document vault: upload, preview, delete", async () => {
+  await page.goto(B + "/documents");
+  const pdf = Buffer.from("%PDF-1.4\n1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj 2 0 obj<</Type/Pages/Kids[3 0 R]/Count 1>>endobj 3 0 obj<</Type/Page/MediaBox[0 0 200 200]/Parent 2 0 R>>endobj\ntrailer<</Root 1 0 R>>\n%%EOF");
+  await page.getByLabel("Choose a file to upload").setInputFiles({ name: "Lens A contract.pdf", mimeType: "application/pdf", buffer: pdf });
+  await dlg().getByLabel("Type").selectOption("contract");
+  await dlg().getByLabel("Vendor").selectOption({ label: "Lens A" });
+  await dlg().getByRole("button", { name: "Save Document" }).click();
+  await page.getByText("Lens A contract").first().click();
+  await dlg().locator("iframe").waitFor();
+  await page.reload(); // the open document is in the URL, so it reopens
+  await dlg().locator("iframe").waitFor(); // file survives reload (IndexedDB)
+  await dlg().getByRole("button", { name: "Delete" }).click();
+  await page.getByRole("button", { name: "Delete Document" }).click();
+  await page.getByText("No documents yet.").waitFor();
+});
+await step("reports: Excel download and PDF", async () => {
+  await page.goto(B + "/reports?r=all");
+  await page.getByRole("heading", { name: "Wedding readiness report" }).waitFor();
+  const [download] = await Promise.all([page.waitForEvent("download"), page.getByRole("button", { name: "Download Excel" }).click()]);
+  if (!download.suggestedFilename().endsWith(".xlsx")) throw new Error("bad filename " + download.suggestedFilename());
+  const path = await download.path();
+  const { readFileSync } = await import("node:fs");
+  if (readFileSync(path).subarray(0, 2).toString() !== "PK") throw new Error("not a zip");
+  await page.getByRole("button", { name: "Download PDF" }).waitFor();
+});
+await step("assistant answers from the plan", async () => {
+  await page.goto(B + "/assistant");
+  await page.getByRole("button", { name: "Where am I overspending?" }).click();
+  await page.getByText(/over plan|Nothing is over plan/).first().waitFor();
+  await page.getByLabel("Your question").fill("Can I afford a photographer for LKR 350,000?");
+  await page.getByRole("button", { name: "Ask", exact: true }).click();
+  await page.getByText(/projected total would be|Not without trade-offs/).first().waitFor();
 });
 await step("persistence after reload", async () => {
   await page.goto(B + "/guests");

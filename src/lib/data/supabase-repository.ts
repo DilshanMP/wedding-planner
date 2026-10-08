@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { CollectionItem, CollectionKey, Wedding, WeddingData } from "@/lib/domain/types";
+import { normalizeWeddingData } from "@/lib/domain/normalize";
 import { fromRow, TABLES, toRow } from "./mapping";
 import type { WeddingRepository, WeddingSummary } from "./repository";
 
@@ -10,7 +11,7 @@ import type { WeddingRepository, WeddingSummary } from "./repository";
  */
 
 /** Insert order respects foreign keys (vendors before budget items before payments …). */
-const INSERT_ORDER: CollectionKey[] = ["people", "vendors", "budgetItems", "quotes", "payments", "tasks", "guests", "timeline"];
+const INSERT_ORDER: CollectionKey[] = ["people", "vendors", "budgetItems", "quotes", "payments", "tasks", "guests", "timeline", "documents"];
 
 export class SupabaseRepository implements WeddingRepository {
   readonly mode = "cloud" as const;
@@ -35,7 +36,10 @@ export class SupabaseRepository implements WeddingRepository {
     const { data: weddingRow, error } = await this.client.from("weddings").select("*").eq("id", id).is("deleted_at", null).maybeSingle();
     this.fail("load the wedding", error);
     if (!weddingRow) return null;
-    const result = { wedding: fromRow<Wedding>(weddingRow) } as WeddingData;
+    // weddings.owner_id is the account that owns the wedding; it isn't part of the domain model.
+    const { ownerId, ...wedding } = fromRow<Wedding & { ownerId?: string }>(weddingRow);
+    void ownerId;
+    const result = { wedding } as WeddingData;
     await Promise.all(
       INSERT_ORDER.map(async (key) => {
         const { data, error: e } = await this.client.from(TABLES[key]).select("*").eq("wedding_id", id);
@@ -43,7 +47,7 @@ export class SupabaseRepository implements WeddingRepository {
         (result as unknown as Record<string, unknown[]>)[key] = (data ?? []).map((r) => fromRow(r));
       }),
     );
-    return result;
+    return normalizeWeddingData(result);
   }
 
   async createWedding(data: WeddingData): Promise<void> {

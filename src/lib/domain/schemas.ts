@@ -2,6 +2,7 @@ import { z } from "zod";
 import { BUDGET_CATEGORIES } from "./catalog";
 import { isISODate, isTime } from "./dates";
 import {
+  DOCUMENT_KINDS,
   BUDGET_ITEM_STATUSES,
   INVITATION_STATUSES,
   RSVP_STATUSES,
@@ -131,6 +132,15 @@ export const timelineEventSchema = z.object({
   vendorIds: z.array(z.string()),
   ownerId: z.string().nullable(),
   scene: z.enum(["venue", "arrival", "groom", "bride", "poruwa", "photos", "reception", "dinner", "entertainment", "cake", "going_away", "preparation", "other"]),
+});
+
+export const documentSchema = z.object({
+  kind: z.enum(DOCUMENT_KINDS),
+  title: name("Title"),
+  notes: z.string().max(2000),
+  vendorId: z.string().nullable(),
+  budgetItemId: z.string().nullable(),
+  taskId: z.string().nullable(),
 });
 
 /** Flatten a zod error into `{ field: message }` for inline form errors. */

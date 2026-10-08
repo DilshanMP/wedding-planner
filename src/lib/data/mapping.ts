@@ -10,13 +10,14 @@ export const TABLES: Record<CollectionKey, string> = {
   quotes: "vendor_quotes",
   payments: "payments",
   timeline: "timeline_events",
+  documents: "documents",
 };
 
 /** JSON / array columns whose inner keys must not be case-converted. */
 const OPAQUE = new Set(["features", "blueprint", "plannerQuotes", "dayNotes", "priorities", "mustHave", "niceToHave", "avoidOverspending", "dependsOn", "vendorIds"]);
 
 /** Database-only columns that the domain model doesn't carry. */
-const DB_ONLY = new Set(["wedding_id", "owner_id", "deleted_at", "public_slug", "rsvp_token", "user_id", "invited_by"]);
+const DB_ONLY = new Set(["wedding_id", "deleted_at", "public_slug", "user_id", "invited_by", "uploaded_by"]);
 
 const toSnake = (k: string) => k.replace(/[A-Z]/g, (c) => `_${c.toLowerCase()}`);
 const toCamel = (k: string) => k.replace(/_([a-z])/g, (_, c: string) => c.toUpperCase());
@@ -38,7 +39,10 @@ export function fromRow<T>(row: Record<string, unknown>): T {
   for (const [k, v] of Object.entries(row)) {
     if (DB_ONLY.has(k)) continue;
     const key = toCamel(k);
-    out[key] = NUMERIC.has(key) && typeof v === "string" ? Number(v) : v;
+    if (NUMERIC.has(key) && typeof v === "string") out[key] = Number(v);
+    // Timestamps come back as "…+00:00"; keep the app's canonical ISO form.
+    else if (key.endsWith("At") && typeof v === "string" && v.includes("T")) out[key] = new Date(v).toISOString();
+    else out[key] = v;
   }
   return out as T;
 }

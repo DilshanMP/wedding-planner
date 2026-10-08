@@ -141,7 +141,7 @@ describe("guests", () => {
   const g = (over: Partial<Guest>): Guest => ({
     id: "x", name: "Test", phone: "", email: "", side: "bride", relation: "family", vip: false, partyType: "single",
     adults: 1, children: 0, invitation: "sent", rsvp: "pending", meal: "unknown", vegCount: 0, table: "",
-    needsTransport: false, needsAccommodation: false, notes: "", createdAt: NOW, updatedAt: NOW, ...over,
+    needsTransport: false, needsAccommodation: false, notes: "", rsvpToken: "t", createdAt: NOW, updatedAt: NOW, ...over,
   });
   it("counts people, not parties", () => {
     const m = guestMetrics(
