@@ -34,7 +34,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en-LK" className={`${display.variable} ${sans.variable}`}>
+    <html lang="en-LK" data-scroll-behavior="smooth" className={`${display.variable} ${sans.variable}`}>
       <body>
         <WeddingProvider>{children}</WeddingProvider>
       </body>

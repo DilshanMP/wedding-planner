@@ -73,7 +73,7 @@ function DayTimeline({ data, onEdit, onAdd }: { data: WeddingData; onEdit: (id: 
               <button type="button" onClick={() => onEdit(e.id)} className={cx("wos-card wos-card--interactive mb-3 flex cursor-pointer flex-col gap-1 !p-4 text-left text-ink", isKey && "!border-wine-600")}>
                 <span className="flex flex-wrap items-center gap-2">
                   <b className={cx("text-[16px] leading-6 font-semibold", isKey && "font-display text-[22px] leading-7 font-medium text-wine-600")}>{e.title}</b>
-                  {clash.has(e.id) && <Badge tone="info">Overlaps</Badge>}
+                  {clash.has(e.id) && <Badge tone="info">Same place, same time</Badge>}
                 </span>
                 <span className="flex flex-wrap gap-x-4 gap-y-1 text-[13px] leading-[18px] text-ink-muted">
                   {e.location && <span className="inline-flex items-center gap-1"><MapPin className="wos-icon size-4" aria-hidden="true" />{e.location}</span>}

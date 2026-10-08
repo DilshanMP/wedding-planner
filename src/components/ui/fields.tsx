@@ -97,7 +97,7 @@ export function MoneyField({ label, error, help, className, value, onChange, opt
           id={id}
           inputMode="numeric"
           value={shown}
-          onFocus={() => setDraft(value === null ? "" : String(value))}
+          // Keep the text as typed while editing; regroup digits on blur.
           onBlur={() => setDraft(null)}
           onChange={(e) => {
             setDraft(e.target.value);

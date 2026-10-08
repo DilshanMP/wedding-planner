@@ -7,7 +7,7 @@ import { TASK_TEMPLATES } from "../task-templates";
 import { guestMetrics, guestGroup } from "../guests";
 import { scoreQuotes, trueCost } from "../quotes";
 import { computeReadiness, computeJourney } from "../readiness";
-import { nowNext } from "../day";
+import { nowNext, overlaps } from "../day";
 import { budgetInsights, nextActions } from "../insights";
 import { createSampleWedding } from "../sample-data";
 import { createWeddingData, defaultPeople } from "../factory";
@@ -238,6 +238,12 @@ describe("wedding day", () => {
     expect(at1040.next?.title).toBe("Marriage registration");
     expect(nowNext(data.timeline, 4 * 60).phase).toBe("before");
     expect(nowNext(data.timeline, 23 * 60).phase).toBe("after");
+  });
+  it("flags clashes only when moments share a place", () => {
+    expect(overlaps(data.timeline).size).toBe(0);
+    const poruwa = data.timeline.find((e) => e.scene === "poruwa")!;
+    const clash = { ...poruwa, id: "x", title: "Drummers rehearsal", scene: "other" as const, time: "10:45" };
+    expect([...overlaps([...data.timeline, clash])].sort()).toEqual([poruwa.id, "x"].sort());
   });
 });
 

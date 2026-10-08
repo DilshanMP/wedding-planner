@@ -126,6 +126,8 @@ textarea.wos-input { height: auto; min-height: 96px; padding: var(--space-3) var
 .wos-hero__bar i { display: block; height: 100%; border-radius: inherit; background: var(--champagne-300); transition: width var(--dur-slow) var(--ease-silk); }
 .wos-hero .wos-ring__track { stroke: rgba(255, 250, 243, 0.16); }
 .wos-hero .wos-ring__fill { stroke: var(--champagne-300); }
+.wos-hero .wos-ring__label b { color: var(--on-wine); }
+.wos-hero .wos-ring__label span { color: var(--champagne-300); }
 .wos-hero a { color: inherit; }
 .wos-hero__lotus { position: absolute; right: var(--space-5); bottom: var(--space-5); width: 120px; height: 120px; color: rgba(255, 250, 243, 0.12); pointer-events: none; }
 

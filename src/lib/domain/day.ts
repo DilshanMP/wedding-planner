@@ -36,14 +36,25 @@ export function nowNext(events: TimelineEvent[], minutes: number): NowNext {
   return { current: null, next, progress: 0, phase: next ? "between" : "after" };
 }
 
-/** Events that overlap each other — shown as a gentle warning in the editor. */
+/**
+ * Moments that clash: they overlap in time *and* share a location. Parallel
+ * tracks in different places are normal, and preparation is expected to
+ * overlap with whatever is photographed or set up around it.
+ */
 export function overlaps(events: TimelineEvent[]): Set<string> {
   const sorted = sortTimeline(events);
   const ids = new Set<string>();
-  for (let i = 1; i < sorted.length; i++) {
-    if (timeToMinutes(sorted[i].time) < endTime(sorted[i - 1])) {
-      ids.add(sorted[i].id);
-      ids.add(sorted[i - 1].id);
+  for (let i = 0; i < sorted.length; i++) {
+    for (let j = i + 1; j < sorted.length; j++) {
+      const a = sorted[i];
+      const b = sorted[j];
+      if (timeToMinutes(b.time) >= endTime(a)) break;
+      const place = a.location.trim().toLowerCase();
+      if (a.scene === "preparation" || b.scene === "preparation") continue;
+      if (place && place === b.location.trim().toLowerCase()) {
+        ids.add(a.id);
+        ids.add(b.id);
+      }
     }
   }
   return ids;

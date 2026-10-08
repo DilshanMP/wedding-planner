@@ -20,6 +20,7 @@ Open the app, choose **Start Planning** for your own wedding, or **Explore Sampl
 | `npm run lint` | ESLint |
 | `npm run typecheck` | TypeScript, strict |
 | `npm test` | Domain, store and persistence tests (Vitest) |
+| `npm run test:e2e` | Acceptance flow in a real browser against a running app (`BASE_URL`, optional `CHROMIUM_PATH`) |
 
 ## Storage modes
 
