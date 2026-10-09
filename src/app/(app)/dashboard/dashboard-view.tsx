@@ -21,6 +21,7 @@ import { GuestDonut } from "@/components/features/guest-donut";
 import { JourneyStrip } from "@/components/features/journey";
 import { TaskRow } from "@/components/features/task-row";
 import { ReadinessBreakdown } from "@/components/features/readiness-breakdown";
+import { RecentActivityCard } from "@/components/features/activity-feed";
 
 const toneIcon = { danger: AlertTriangle, warning: Clock, info: Info, success: CheckCircle2 } as const;
 const toneGround = { danger: "bg-danger-50 text-danger", warning: "bg-warning-50 text-warning", info: "bg-info-50 text-info", success: "bg-success-50 text-success" } as const;
@@ -214,6 +215,8 @@ function Dashboard({ today, data }: { today: string; data: WeddingData }) {
         </div>
 
         <div className="flex min-w-0 flex-[1_1_300px] flex-col gap-6">
+          <RecentActivityCard wedding={data.wedding} />
+
           <Card title="Guests" action={<Link className="wos-link" href="/guests">Guest list</Link>} className="!gap-5">
             {m.guests.total === 0 ? (
               <p className="m-0 text-ink-muted">No guests yet. <Link className="wos-link" href="/guests?new=1">Add your first guest</Link></p>

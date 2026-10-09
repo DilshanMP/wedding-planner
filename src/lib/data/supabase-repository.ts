@@ -1,4 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import type { ActivityEntry } from "@/lib/domain/activity";
 import type { CollectionItem, CollectionKey, Wedding, WeddingData } from "@/lib/domain/types";
 import { normalizeWeddingData } from "@/lib/domain/normalize";
 import { fromRow, TABLES, toRow } from "./mapping";
@@ -85,5 +86,32 @@ export class SupabaseRepository implements WeddingRepository {
     const { error } = await this.client.from("weddings").update({ deleted_at: new Date().toISOString() }).eq("id", id);
     this.fail("delete the wedding", error);
   }
-}
 
+  async logActivity(entries: ActivityEntry[]): Promise<void> {
+    if (entries.length === 0) return;
+    // actor_id defaults to auth.uid() in the database, so it can't be spoofed.
+    const { error } = await this.client.from("activity").insert(
+      entries.map((e) => ({ id: e.id, wedding_id: e.weddingId, actor_name: e.actorName, kind: e.kind, summary: e.summary, created_at: e.at })),
+    );
+    this.fail("record activity", error);
+  }
+
+  async listActivity(weddingId: string, limit: number): Promise<ActivityEntry[]> {
+    const { data, error } = await this.client
+      .from("activity")
+      .select("id, wedding_id, actor_id, actor_name, kind, summary, created_at")
+      .eq("wedding_id", weddingId)
+      .order("created_at", { ascending: false })
+      .limit(limit);
+    this.fail("load activity", error);
+    return (data ?? []).map((r) => ({
+      id: r.id as string,
+      weddingId: r.wedding_id as string,
+      actorId: (r.actor_id as string | null) ?? null,
+      actorName: r.actor_name as string,
+      kind: r.kind as ActivityEntry["kind"],
+      summary: r.summary as string,
+      at: new Date(r.created_at as string).toISOString(),
+    }));
+  }
+}

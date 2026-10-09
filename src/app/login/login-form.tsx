@@ -10,6 +10,8 @@ import { cloudEnabled, getSupabase } from "@/lib/supabase/client";
 import { useAuth } from "@/lib/store/provider";
 import { TextField } from "@/components/ui/fields";
 import { LotusMark, Notice } from "@/components/ui/primitives";
+import { PoruwaScene } from "@/components/features/poruwa-scene";
+import { CoupleLoader } from "@/components/features/couple-loader";
 
 type Method = "password" | "link";
 type PasswordMode = "sign_in" | "sign_up";
@@ -32,6 +34,7 @@ export function LoginForm() {
   const router = useRouter();
   const [method, setMethod] = useState<Method>("password");
   const [mode, setMode] = useState<PasswordMode>("sign_in");
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -73,7 +76,12 @@ export function LoginForm() {
       if (e) setError(authMessage(e, "We couldn't sign you in. Try again."));
       return;
     }
-    const { data, error: e } = await supabase.auth.signUp({ email: address, password, options: { emailRedirectTo: `${window.location.origin}/dashboard` } });
+    const { data, error: e } = await supabase.auth.signUp({
+      email: address,
+      password,
+      // The name is how your partner sees you in the activity feed.
+      options: { emailRedirectTo: `${window.location.origin}/dashboard`, data: name.trim() ? { name: name.trim().slice(0, 120) } : undefined },
+    });
     setBusy(false);
     if (e) return setError(authMessage(e, "We couldn't create the account. Try again."));
     // With email confirmation off, sign-up returns a session and the provider takes over.
@@ -86,9 +94,15 @@ export function LoginForm() {
     setEmailError(null);
   };
 
+  const opening = auth.mode === "cloud" && auth.status === "signed_in";
+
   return (
-    <div className="flex min-h-dvh items-center justify-center px-4 py-10">
-      <div className="wos-card wos-card--hero flex w-full max-w-[440px] flex-col gap-5">
+    <div className="relative flex min-h-dvh items-end justify-center overflow-hidden px-4 pt-[62vw] pb-8 sm:items-center sm:py-10 lg:justify-start lg:pl-[8vw]">
+      <div className="login-scene" aria-hidden="true">
+        <PoruwaScene hall={false} entrance />
+      </div>
+      {opening && <CoupleLoader />}
+      <div className="wos-card wos-card--hero relative flex w-full max-w-[440px] flex-col gap-5 !bg-[color-mix(in_srgb,var(--surface-raised)_90%,transparent)] backdrop-blur-md">
         <LotusMark className="size-12 text-champagne-700" />
         <h1 className="wos-h1">{method === "password" && mode === "sign_up" ? "Create your account" : "Welcome back"}</h1>
         {!cloudEnabled ? (
@@ -109,6 +123,7 @@ export function LoginForm() {
             </div>
             {method === "password" ? (
               <form className="flex flex-col gap-4" onSubmit={(e) => { e.preventDefault(); void submitPassword(); }} noValidate>
+                {mode === "sign_up" && <TextField label="Your name" autoComplete="name" value={name} onChange={setName} help="Shown to your partner and family when you make changes." />}
                 <TextField label="Email" type="email" autoComplete="email" value={email} onChange={setEmail} error={emailError ?? undefined} autoFocus />
                 <TextField
                   label="Password"

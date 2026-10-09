@@ -8,6 +8,8 @@ import {
   CalendarClock,
   CreditCard,
   FileBarChart,
+  History,
+  Palette,
   FolderClosed,
   Home,
   ListChecks,
@@ -94,6 +96,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       items: [
         { href: "/documents", label: "Documents", icon: FolderClosed, count: data.documents.length || undefined },
         { href: "/reports", label: "Reports", icon: FileBarChart },
+        { href: "/activity", label: "Activity", icon: History },
       ],
     },
   ];
@@ -148,6 +151,10 @@ export function AppShell({ children }: { children: ReactNode }) {
           <Link href="/simulator" aria-current={isActive("/simulator") ? "page" : undefined} title="Experience your wedding">
             <Sparkles className="wos-icon" aria-hidden="true" />
             <span className="nav-label">Simulator</span>
+          </Link>
+          <Link href="/studio" aria-current={isActive("/studio") ? "page" : undefined} title="Poruwa Studio">
+            <Palette className="wos-icon" aria-hidden="true" />
+            <span className="nav-label">Poruwa Studio</span>
           </Link>
           <Link href="/settings" aria-current={isActive("/settings") ? "page" : undefined} title="Settings">
             <Settings className="wos-icon" aria-hidden="true" />

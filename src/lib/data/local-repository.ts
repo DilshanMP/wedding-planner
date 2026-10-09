@@ -1,4 +1,5 @@
 import type { CollectionItem, CollectionKey, Wedding, WeddingData } from "@/lib/domain/types";
+import type { ActivityEntry } from "@/lib/domain/activity";
 import { normalizeWeddingData } from "@/lib/domain/normalize";
 import { toSummary, type WeddingRepository, type WeddingSummary } from "./repository";
 
@@ -8,6 +9,8 @@ import { toSummary, type WeddingRepository, type WeddingSummary } from "./reposi
  */
 
 const KEY = "wedding-os:v1";
+const ACTIVITY_KEY = (weddingId: string) => `wedding-os:activity:${weddingId}`;
+const ACTIVITY_LIMIT = 300;
 
 interface Snapshot {
   version: 1;
@@ -100,6 +103,37 @@ export class LocalRepository implements WeddingRepository {
   async deleteWedding(id: string): Promise<void> {
     delete this.read().weddings[id];
     this.write();
+    try {
+      this.storage.setItem(ACTIVITY_KEY(id), "");
+    } catch {
+      // Nothing to clean up.
+    }
+  }
+
+  private readActivity(weddingId: string): ActivityEntry[] {
+    try {
+      const raw = this.storage.getItem(ACTIVITY_KEY(weddingId));
+      const list = raw ? (JSON.parse(raw) as ActivityEntry[]) : [];
+      return Array.isArray(list) ? list : [];
+    } catch {
+      return [];
+    }
+  }
+
+  async logActivity(entries: ActivityEntry[]): Promise<void> {
+    for (const weddingId of new Set(entries.map((e) => e.weddingId))) {
+      const fresh = entries.filter((e) => e.weddingId === weddingId).reverse();
+      const next = [...fresh, ...this.readActivity(weddingId)].slice(0, ACTIVITY_LIMIT);
+      try {
+        this.storage.setItem(ACTIVITY_KEY(weddingId), JSON.stringify(next));
+      } catch {
+        // A full browser store shouldn't break planning; the feed is a convenience.
+      }
+    }
+  }
+
+  async listActivity(weddingId: string, limit: number): Promise<ActivityEntry[]> {
+    return this.readActivity(weddingId).slice(0, limit);
   }
 }
 

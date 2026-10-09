@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useRef, type ReactNode } from "react";
+import { useRef, useState, type ReactNode } from "react";
 import { motion, useReducedMotion, useScroll, useSpring, useTransform } from "motion/react";
 import { ArrowDown, X } from "lucide-react";
 import { usePage } from "@/lib/hooks/use-page";
@@ -14,7 +14,9 @@ import { summarizeBudget } from "@/lib/domain/budget";
 import { computeReadiness } from "@/lib/domain/readiness";
 import { formatLKR } from "@/lib/domain/money";
 import type { TimelineEvent, WeddingData } from "@/lib/domain/types";
-import { JasmineMark, LotusMark, PoruwaMark, Skeleton } from "@/components/ui/primitives";
+import { JasmineMark, LotusMark, Skeleton } from "@/components/ui/primitives";
+import { PoruwaScene } from "@/components/features/poruwa-scene";
+import { loadStudio } from "@/lib/studio";
 
 /**
  * "Experience your wedding": the planned day as a sequence of scenes,
@@ -52,7 +54,10 @@ function Simulator() {
           {events.length === 0 ? (
             <Link href="/timeline?new=1" className="wos-btn wos-btn--primary">Add Your First Moment</Link>
           ) : (
-            <span className="mt-6 inline-flex items-center gap-2 text-[14px] font-semibold text-ink-muted">Scroll to walk through the day <ArrowDown className="wos-icon" aria-hidden="true" /></span>
+            <>
+              <span className="mt-6 inline-flex items-center gap-2 text-[14px] font-semibold text-ink-muted">Scroll to walk through the day <ArrowDown className="wos-icon" aria-hidden="true" /></span>
+              <Link href="/studio" className="wos-btn wos-btn--secondary">Open Poruwa Studio</Link>
+            </>
           )}
         </div>
       </Scene>
@@ -88,7 +93,7 @@ function EventScene({ event, index, total, data }: { event: TimelineEvent; index
   const owner = data.people.find((p) => p.id === event.ownerId);
   const copy = event.description && event.scene === "other" ? event.description : SCENE_COPY[event.scene];
   const gm = guestMetrics(data.guests, data.wedding);
-  const Mark = event.scene === "poruwa" ? PoruwaMark : event.scene === "preparation" || event.scene === "bride" ? JasmineMark : null;
+  const Mark = event.scene === "preparation" || event.scene === "bride" ? JasmineMark : null;
   return (
     <Scene evening={evening} label={`${formatTime(event.time)}, ${event.title}`}>
       <div className="flex flex-col gap-5">
@@ -107,8 +112,24 @@ function EventScene({ event, index, total, data }: { event: TimelineEvent; index
           {vendors.length > 0 && <Fact label="With" value={vendors.map((v) => v.name).join(", ")} />}
         </dl>
         {Mark && <Mark className="mt-4 size-12 text-champagne-700" />}
+        {event.scene === "poruwa" && <PoruwaMoment weddingId={data.wedding.id} />}
       </div>
     </Scene>
+  );
+}
+
+/** The couple on the Poruwa, dressed as they chose in Poruwa Studio. */
+function PoruwaMoment({ weddingId }: { weddingId: string }) {
+  const [studio] = useState(() => loadStudio(weddingId));
+  return (
+    <figure className="m-0 mt-4 flex flex-col gap-2">
+      <div className="overflow-hidden rounded-[24px] border border-line">
+        <PoruwaScene look={studio.look} theme={studio.theme} animated={studio.animated} className="block h-auto w-full" />
+      </div>
+      <figcaption className="text-[14px] text-ink-muted">
+        <Link href="/studio" className="wos-link">Dress the scene and add your photos in Poruwa Studio</Link>
+      </figcaption>
+    </figure>
   );
 }
 

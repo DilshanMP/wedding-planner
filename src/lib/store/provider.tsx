@@ -44,6 +44,15 @@ function makeStore(): WeddingStore {
   return new WeddingStore(repo, prefs);
 }
 
+/** The name shown in the activity feed: the name given at sign-up, else the email's first part. */
+export function displayName(session: Session): string {
+  const meta = session.user.user_metadata as { name?: unknown } | undefined;
+  const name = typeof meta?.name === "string" ? meta.name.trim() : "";
+  if (name) return name.slice(0, 120);
+  const email = session.user.email ?? "";
+  return email ? email.split("@")[0] : "Someone";
+}
+
 export function WeddingProvider({ children }: { children: ReactNode }) {
   const [store] = useState(makeStore);
   const [files] = useState<FileStore>(() => (cloudEnabled && typeof window !== "undefined" ? new SupabaseFileStore(getSupabase()) : new IndexedDbFileStore()));
@@ -58,6 +67,7 @@ export function WeddingProvider({ children }: { children: ReactNode }) {
     const apply = (session: Session | null) => {
       if (session) {
         setAuth({ mode: "cloud", status: "signed_in", email: session.user.email ?? null });
+        store.setActor({ id: session.user.id, name: displayName(session) });
         // Join any weddings this email was invited to, then load.
         void claimInvites(supabase).catch(() => 0).finally(() => void store.init());
       } else setAuth({ mode: "cloud", status: "signed_out" });
@@ -65,8 +75,17 @@ export function WeddingProvider({ children }: { children: ReactNode }) {
     void supabase.auth.getSession().then(({ data }) => apply(data.session));
     const { data } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === "SIGNED_IN" || event === "SIGNED_OUT") apply(session);
+      else if (event === "USER_UPDATED" && session) store.setActor({ id: session.user.id, name: displayName(session) });
     });
-    return () => data.subscription.unsubscribe();
+    // Pick up your partner's changes when you come back to the app.
+    const onVisible = () => {
+      if (document.visibilityState === "visible") void store.refresh();
+    };
+    document.addEventListener("visibilitychange", onVisible);
+    return () => {
+      data.subscription.unsubscribe();
+      document.removeEventListener("visibilitychange", onVisible);
+    };
   }, [store]);
 
   const value = useMemo(() => ({ store, auth, files }), [store, auth, files]);
