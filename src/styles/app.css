@@ -141,6 +141,45 @@ textarea.wos-input { height: auto; min-height: 96px; padding: var(--space-3) var
 
 /* Simulator */
 .sim-scene { min-height: 88dvh; display: grid; align-items: center; }
+
+/* Poruwa scene (components/features/poruwa-scene.tsx) */
+.ps-anim .ps-petal { animation: ps-fall 10s linear infinite; transform-box: fill-box; }
+.ps-anim .ps-flame { animation: ps-flicker 1.4s ease-in-out infinite alternate; transform-box: fill-box; transform-origin: 50% 100%; }
+.ps-anim .ps-twinkle { animation: ps-twinkle 3.2s ease-in-out infinite; }
+.ps-anim .ps-sway { animation: ps-sway 4s ease-in-out infinite alternate; transform-box: fill-box; transform-origin: 50% 0; }
+.ps-anim .ps-breathe { animation: ps-breathe 5s ease-in-out infinite; }
+.ps-anim .ps-thread { animation: ps-thread 2.4s ease-in-out infinite; }
+.ps-enter-left { animation: ps-enter-left 1.6s cubic-bezier(.2,.7,.2,1) both; }
+.ps-enter-right { animation: ps-enter-right 1.6s cubic-bezier(.2,.7,.2,1) .15s both; }
+@keyframes ps-fall {
+  0% { transform: translate(0, 0) rotate(0deg); opacity: 0; }
+  8% { opacity: .9; }
+  50% { transform: translate(28px, 320px) rotate(160deg); }
+  92% { opacity: .8; }
+  100% { transform: translate(-12px, 640px) rotate(320deg); opacity: 0; }
+}
+@keyframes ps-flicker { from { transform: scale(1, 1); opacity: .95; } to { transform: scale(.86, 1.18); opacity: .75; } }
+@keyframes ps-twinkle { 0%, 100% { opacity: .55; } 50% { opacity: 1; } }
+@keyframes ps-sway { from { transform: rotate(-2.5deg); } to { transform: rotate(2.5deg); } }
+@keyframes ps-breathe { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-1.2px); } }
+@keyframes ps-thread { 0%, 100% { opacity: .55; } 50% { opacity: 1; } }
+@keyframes ps-enter-left { from { transform: translateX(-150px); opacity: 0; } to { transform: none; opacity: 1; } }
+@keyframes ps-enter-right { from { transform: translateX(150px); opacity: 0; } to { transform: none; opacity: 1; } }
+.loader-dots { display: inline-flex; gap: 6px; }
+.loader-dots i { width: 7px; height: 7px; border-radius: 50%; background: var(--wine-600); animation: ps-twinkle 1.2s ease-in-out infinite; }
+.loader-dots i:nth-child(2) { animation-delay: .2s; }
+.loader-dots i:nth-child(3) { animation-delay: .4s; }
+/* Sign-in: the Poruwa sits behind the form like a watermark. */
+.login-scene { position: absolute; inset: 0; display: grid; place-items: start center; pointer-events: none; }
+.login-scene svg { width: min(620px, 118vw); height: auto; margin-top: -4vw; opacity: .6; mask-image: linear-gradient(#000 60%, transparent 92%); }
+@media (min-width: 1024px) {
+  .login-scene { place-items: center end; padding-right: 2vw; }
+  .login-scene svg { width: min(900px, 62vw); margin-top: 0; opacity: .9; mask-image: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ps-anim .ps-petal { display: none; }
+  .ps-anim :is(.ps-flame, .ps-twinkle, .ps-sway, .ps-breathe, .ps-thread), .ps-enter-left, .ps-enter-right, .loader-dots i { animation: none; }
+}
 }
 
 /* Print / Save as PDF: just the document, no app chrome. */

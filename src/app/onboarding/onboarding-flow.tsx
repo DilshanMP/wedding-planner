@@ -10,6 +10,7 @@ import { useClock } from "@/lib/hooks/use-clock";
 import { BUDGET_CATEGORIES, STYLE_LABEL } from "@/lib/domain/catalog";
 import { createWeddingData, type WeddingSetup } from "@/lib/domain/factory";
 import { createSampleWedding } from "@/lib/domain/sample-data";
+import { sampleActivity } from "@/lib/domain/activity";
 import { addDays, daysBetween, formatLongDate } from "@/lib/domain/dates";
 import { fieldErrors, setupSchema } from "@/lib/domain/schemas";
 import { formatLKR } from "@/lib/domain/money";
@@ -103,7 +104,10 @@ export function OnboardingFlow() {
     if (!clock) return;
     setBusy(true);
     try {
-      await store.createWedding(createSampleWedding(clock.today, nowISO()));
+      const sample = createSampleWedding(clock.today, nowISO());
+      // On a device without accounts, give the sample a history to show in the activity feed.
+      if (store.repo.mode === "local") await store.repo.logActivity(sampleActivity(sample, new Date()));
+      await store.createWedding(sample);
       router.push("/dashboard");
     } catch (e) {
       setFailure(e instanceof Error ? e.message : "Couldn't load the sample wedding.");

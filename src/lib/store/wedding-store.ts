@@ -1,5 +1,6 @@
 import { rescheduleTasks } from "@/lib/domain/tasks";
-import { nowISO } from "@/lib/domain/ids";
+import { newId, nowISO } from "@/lib/domain/ids";
+import { describeRemove, describeUpsert, describeWedding, type ActivityDraft, type ActivityEntry } from "@/lib/domain/activity";
 import type { CollectionItem, CollectionKey, Wedding, WeddingData } from "@/lib/domain/types";
 import type { WeddingRepository, WeddingSummary } from "@/lib/data/repository";
 import { toSummary } from "@/lib/data/repository";
@@ -24,6 +25,7 @@ export class WeddingStore {
   private listeners = new Set<Listener>();
   private queue: Promise<void> = Promise.resolve();
   private pending = 0;
+  private actor: { id: string | null; name: string } = { id: null, name: "You" };
 
   constructor(
     readonly repo: WeddingRepository,
@@ -31,6 +33,36 @@ export class WeddingStore {
   ) {}
 
   getState = (): StoreState => this.state;
+
+  /** Who is making changes on this device, for the activity feed. */
+  setActor(actor: { id: string | null; name: string }) {
+    this.actor = actor;
+  }
+
+  /** Record what happened. Never blocks or fails a save. */
+  private async log(weddingId: string, drafts: ActivityDraft[], actor: { id: string | null; name: string }) {
+    if (drafts.length === 0) return;
+    const at = nowISO();
+    const entries: ActivityEntry[] = drafts.map((d) => ({ ...d, id: newId(), weddingId, at, actorId: actor.id, actorName: actor.name }));
+    try {
+      await this.repo.logActivity(entries);
+    } catch {
+      // The feed is a convenience; the change itself is already saved.
+    }
+  }
+
+  /**
+   * Reload the open wedding to pick up changes made on other devices
+   * (e.g. by your partner). Skipped while this device has unsaved writes.
+   */
+  async refresh(): Promise<void> {
+    const s = this.state;
+    if (s.status !== "ready" || this.pending > 0) return;
+    const fresh = await this.repo.loadWedding(s.data.wedding.id).catch(() => null);
+    const now = this.state;
+    if (!fresh || now.status !== "ready" || this.pending > 0 || now.data !== s.data) return;
+    this.set({ ...now, data: fresh });
+  }
 
   subscribe = (fn: Listener): (() => void) => {
     this.listeners.add(fn);
@@ -122,9 +154,11 @@ export class WeddingStore {
     }
     const weddings = s.weddings.map((w) => (w.id === wedding.id ? toSummary(wedding) : w));
     this.set({ ...s, data, weddings });
+    const actor = this.actor;
     return this.persist(async () => {
       await this.repo.saveWedding(wedding);
       if (movedTasks.length) await this.repo.upsert(wedding.id, "tasks", movedTasks);
+      await this.log(wedding.id, describeWedding(old, wedding), actor);
     });
   }
 
@@ -140,13 +174,20 @@ export class WeddingStore {
     }
     this.set({ ...s, data: { ...s.data, [key]: current } });
     const weddingId = s.data.wedding.id;
-    return this.persist(() => this.repo.upsert(weddingId, key, list));
+    const drafts = describeUpsert(key, list, s.data);
+    const actor = this.actor;
+    return this.persist(async () => {
+      await this.repo.upsert(weddingId, key, list);
+      await this.log(weddingId, drafts, actor);
+    });
   }
 
   remove(key: CollectionKey, ids: string | string[]) {
     const s = this.ready;
     const drop = new Set(Array.isArray(ids) ? ids : [ids]);
     const { data, touched, removed } = cascadeRemove(s.data, key, drop);
+    const drafts = describeRemove(key, [...drop], s.data);
+    const actor = this.actor;
     this.set({ ...s, data });
     const weddingId = s.data.wedding.id;
     return this.persist(async () => {
@@ -154,6 +195,7 @@ export class WeddingStore {
       for (const [k, items] of touched) await this.repo.upsert(weddingId, k, items as never);
       for (const [k, removedIds] of removed) await this.repo.remove(weddingId, k, removedIds);
       await this.repo.remove(weddingId, key, [...drop]);
+      await this.log(weddingId, drafts, actor);
     });
   }
 }

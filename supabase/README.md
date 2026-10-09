@@ -5,6 +5,7 @@
 1. Create a Supabase project.
 2. Set up the database: open **SQL Editor → New query**, paste the whole of [`setup.sql`](setup.sql) and press **Run** (it is the migrations combined, in order). With the Supabase CLI you can run `supabase db push` instead.
 3. In *Authentication → URL configuration*, add your site URL (and `http://localhost:3000` for development) to the redirect URLs, so magic links return to `/dashboard`.
+   **Already set up an earlier version?** Run only the new migration files you haven't run yet, e.g. [`migrations/20261010000000_activity.sql`](migrations/20261010000000_activity.sql) for the activity feed. Each migration is safe to run more than once.
 4. Copy the project URL and the anon (publishable) key into `.env.local` (see `.env.example`) or your Vercel project settings.
 
 The browser only ever uses the anon key; Row Level Security restricts every row to members of its wedding. Never put the service-role key in a `NEXT_PUBLIC_` variable.

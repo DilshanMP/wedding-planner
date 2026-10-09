@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Cloud, Download, HardDrive, Plus, Upload } from "lucide-react";
 import { usePage } from "@/lib/hooks/use-page";
 import { useAuth, useFileStore, useStore, useStoreState } from "@/lib/store/provider";
@@ -181,6 +181,7 @@ function AccountAndData({ data }: { data: WeddingData }) {
               <Cloud className="wos-icon mt-1 text-champagne-700" aria-hidden="true" />
               <p className="m-0 text-[14px] text-ink-muted">Signed in{auth.status === "signed_in" && auth.email ? ` as ${auth.email}` : ""}. Your plan syncs securely to the cloud.</p>
             </div>
+            <DisplayNameForm />
             <button type="button" className="wos-btn wos-btn--secondary self-start" onClick={async () => { await getSupabase().auth.signOut(); router.replace("/login"); }}>Sign Out</button>
           </div>
         )}
@@ -228,5 +229,35 @@ function AccountAndData({ data }: { data: WeddingData }) {
         danger
       />
     </div>
+  );
+}
+
+/** How you appear in the activity feed to your partner and family. */
+function DisplayNameForm() {
+  const toast = useToast();
+  const [name, setName] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+  useEffect(() => {
+    let live = true;
+    void getSupabase().auth.getUser().then(({ data }) => {
+      const meta = data.user?.user_metadata as { name?: unknown } | undefined;
+      if (live) setName(typeof meta?.name === "string" ? meta.name : "");
+    });
+    return () => {
+      live = false;
+    };
+  }, []);
+  if (name === null) return null;
+  const save = async () => {
+    setBusy(true);
+    const { error } = await getSupabase().auth.updateUser({ data: { name: name.trim().slice(0, 120) } });
+    setBusy(false);
+    toast(error ? "Couldn't save your name. Try again." : "Saved. Your family will see this name in Activity.", error ? "danger" : "success");
+  };
+  return (
+    <form className="flex items-end gap-2" onSubmit={(e) => { e.preventDefault(); void save(); }}>
+      <TextField label="Your name" help="Shown to your partner and family in Activity." value={name} onChange={setName} autoComplete="name" className="flex-1" />
+      <button type="submit" className="wos-btn wos-btn--secondary" disabled={busy}>Save</button>
+    </form>
   );
 }

@@ -62,3 +62,39 @@ describe("WeddingStore with local persistence", () => {
     expect(r.data.budgetItems.some((b) => b.vendorId === vendor.id)).toBe(false);
   });
 });
+
+describe("Activity log", () => {
+  it("records who made each change, newest first", async () => {
+    const { store } = makeStore();
+    await store.createWedding(createSampleWedding("2026-10-08", "2026-10-08T00:00:00Z"));
+    const s = store.getState();
+    if (s.status !== "ready") throw new Error("not ready");
+    store.setActor({ id: "u1", name: "Nethmi" });
+    const task = s.data.tasks.find((t) => t.status !== "completed")!;
+    store.upsert("tasks", { ...task, status: "completed" });
+    store.setActor({ id: "u2", name: "Kasun" });
+    store.remove("guests", s.data.guests[0].id);
+    await store.flush();
+    const log = await store.repo.listActivity(s.data.wedding.id, 10);
+    expect(log.map((e) => [e.actorName, e.kind])).toEqual([["Kasun", "guests"], ["Nethmi", "tasks"]]);
+    expect(log[1].summary).toBe(`completed “${task.title}”`);
+  });
+
+  it("refresh picks up changes saved by another device", async () => {
+    const { store, storage } = makeStore();
+    await store.createWedding(createSampleWedding("2026-10-08", "2026-10-08T00:00:00Z"));
+    const other = new WeddingStore(new LocalRepository(storage), { get: () => null, set: () => {} });
+    await other.init();
+    const o = other.getState();
+    if (o.status !== "ready") throw new Error("not ready");
+    other.upsert("guests", { ...o.data.guests[0], rsvp: "no" });
+    await other.flush();
+    // Local storage repositories cache per instance; a cloud repository always reads fresh.
+    const fresh = new WeddingStore(new LocalRepository(storage), { get: () => null, set: () => {} });
+    await fresh.init();
+    await fresh.refresh();
+    const f = fresh.getState();
+    if (f.status !== "ready") throw new Error("not ready");
+    expect(f.data.guests[0].rsvp).toBe("no");
+  });
+});

@@ -44,7 +44,9 @@ Deploy on Vercel as a standard Next.js app; add the variables in the project set
 | `/vendors` | Vendors and quote comparison with Value Score |
 | `/timeline` | Wedding-day schedule and planning timeline |
 | `/wedding-day` | Wedding Day Mode (Ivory / Evening) |
-| `/simulator` | Experience Your Wedding |
+| `/simulator` | Experience Your Wedding: walk through the day scene by scene |
+| `/studio` | Poruwa Studio: the couple on an illustrated Poruwa — outfits, hall themes, your own photos (kept on the device), download or share as a picture |
+| `/activity` | Who did what: every change by you, your partner and family, filterable by person |
 | `/documents` | Document vault: contracts, quotations, receipts, linked to vendors, budget lines and tasks |
 | `/reports` | Budget, guest, vendor, task, payment and readiness reports — PDF (print) and Excel |
 | `/assistant` | Ask about your wedding |

@@ -1,3 +1,4 @@
+import type { ActivityEntry } from "@/lib/domain/activity";
 import type { CollectionItem, CollectionKey, Wedding, WeddingData } from "@/lib/domain/types";
 
 export interface WeddingSummary {
@@ -24,6 +25,10 @@ export interface WeddingRepository {
   upsert<K extends CollectionKey>(weddingId: string, key: K, items: CollectionItem<K>[]): Promise<void>;
   remove(weddingId: string, key: CollectionKey, ids: string[]): Promise<void>;
   deleteWedding(id: string): Promise<void>;
+  /** Who did what. Logging is best effort: a failure never blocks a save. */
+  logActivity(entries: ActivityEntry[]): Promise<void>;
+  /** Newest first. */
+  listActivity(weddingId: string, limit: number): Promise<ActivityEntry[]>;
 }
 
 export function toSummary(w: Wedding): WeddingSummary {
