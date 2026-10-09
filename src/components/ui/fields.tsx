@@ -28,7 +28,7 @@ function Shell({ id, label, error, help, className, children }: Base & { id: str
 export function TextField({ label, error, help, className, value, onChange, type = "text", ...rest }: Base & {
   value: string;
   onChange: (v: string) => void;
-  type?: "text" | "email" | "tel" | "date" | "time" | "search";
+  type?: "text" | "email" | "tel" | "date" | "time" | "search" | "password";
   placeholder?: string;
   required?: boolean;
   autoFocus?: boolean;

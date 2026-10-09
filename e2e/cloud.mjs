@@ -37,7 +37,7 @@ const anon = await contextFor(null);
 await step("signed-out visitors are sent to sign-in", async () => {
   await anon.page.goto(B + "/dashboard");
   await anon.page.waitForURL("**/login");
-  await anon.page.getByRole("button", { name: "Email Me a Link" }).waitFor();
+  await anon.page.getByRole("button", { name: "Sign In", exact: true }).waitFor();
 });
 
 const owner = await contextFor(users.owner);
