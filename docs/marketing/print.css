@@ -1,0 +1,69 @@
+/* Shared styles for the printed catalog and leaflet. Colours and type match
+   the app's design system (src/styles/wos.css). */
+:root {
+  --surface: #fbf8f2;
+  --raised: #fffdf9;
+  --sunken: #f3ede2;
+  --champagne-100: #f4ead8;
+  --champagne-300: #dcc7a0;
+  --champagne-500: #b8955c;
+  --champagne-700: #7a5a2b;
+  --wine-50: #f7eaea;
+  --wine-600: #7b1e2b;
+  --wine-700: #621622;
+  --wine-800: #4e111b;
+  --on-wine: #fffaf3;
+  --ink: #2a1f1c;
+  --muted: #6b5c53;
+  --line: #e7dccb;
+  --sage-600: #4a6a4c;
+  --serif: "Cormorant Garamond", Georgia, serif;
+  --sans: "Manrope", system-ui, sans-serif;
+  --sinhala: "Noto Sans Sinhala", "Iskoola Pota", "Nirmala UI", FreeSerif, sans-serif;
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; background: #d9d2c6; }
+body { font-family: var(--sans); color: var(--ink); -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+
+.page {
+  position: relative;
+  overflow: hidden;
+  background: var(--surface);
+  margin: 0 auto 24px;
+  break-after: page;
+}
+.page:last-child { break-after: auto; }
+@media print {
+  html, body { background: none; }
+  .page { margin: 0; }
+}
+
+.serif { font-family: var(--serif); }
+.si { font-family: var(--sinhala); }
+.eyebrow { font: 700 11px/1.4 var(--sans); letter-spacing: 0.16em; text-transform: uppercase; color: var(--champagne-700); margin: 0; }
+.wine { background: var(--wine-600); color: var(--on-wine); }
+.wine .eyebrow { color: var(--champagne-300); }
+.muted { color: var(--muted); }
+
+h1, h2, h3 { font-family: var(--serif); font-weight: 500; margin: 0; letter-spacing: -0.01em; }
+p { margin: 0; }
+
+.lotus { fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+
+/* Screenshots framed like a browser window or a phone. */
+.shot { border-radius: 14px; overflow: hidden; border: 1px solid var(--line); box-shadow: 0 18px 40px -18px rgba(66, 22, 28, 0.35); background: var(--raised); }
+.shot__bar { height: 22px; background: var(--sunken); display: flex; gap: 5px; align-items: center; padding: 0 10px; border-bottom: 1px solid var(--line); }
+.shot__bar i { width: 7px; height: 7px; border-radius: 50%; background: var(--champagne-300); display: block; }
+.shot img { display: block; width: 100%; }
+.phone { border-radius: 30px; padding: 7px; background: #241a18; box-shadow: 0 24px 50px -20px rgba(40, 10, 14, 0.55); }
+.phone img { display: block; width: 100%; border-radius: 24px; }
+
+.check { list-style: none; padding: 0; margin: 0; display: grid; gap: 7px; }
+.check li { position: relative; padding-left: 20px; font-size: 12.5px; line-height: 1.5; }
+.check li::before { content: ""; position: absolute; left: 2px; top: 6px; width: 9px; height: 5px; border-left: 1.8px solid var(--wine-600); border-bottom: 1.8px solid var(--wine-600); transform: rotate(-45deg); }
+.wine .check li::before { border-color: var(--champagne-300); }
+
+.pill { display: inline-block; border: 1px solid var(--champagne-300); border-radius: 999px; padding: 4px 12px; font-size: 11px; font-weight: 600; color: var(--champagne-700); background: var(--champagne-100); }
+.qr { background: var(--raised); border-radius: 14px; padding: 10px; display: inline-block; }
+.qr svg { display: block; }
