@@ -385,14 +385,25 @@ create policy "wedding_members: owner manages" on public.wedding_members
     exists (select 1 from public.weddings w where w.id = wedding_id and w.owner_id = auth.uid())
   );
 
--- Every wedding-scoped table: members read, editors write.
+-- Every wedding-scoped table: RLS on (written out so dashboards can see it),
+-- then members read, editors write.
+alter table public.participants enable row level security;
+alter table public.vendors enable row level security;
+alter table public.budget_items enable row level security;
+alter table public.vendor_quotes enable row level security;
+alter table public.payments enable row level security;
+alter table public.tasks enable row level security;
+alter table public.guests enable row level security;
+alter table public.timeline_events enable row level security;
+alter table public.documents enable row level security;
+alter table public.notifications enable row level security;
+
 do $$
 declare t text;
 begin
   foreach t in array array['participants', 'vendors', 'budget_items', 'vendor_quotes', 'payments', 'tasks',
                            'guests', 'timeline_events', 'documents', 'notifications']
   loop
-    execute format('alter table public.%I enable row level security', t);
     execute format('create policy %I on public.%I for select using (public.is_wedding_member(wedding_id))',
                    t || ': members read', t);
     execute format('create policy %I on public.%I for insert with check (public.can_edit_wedding(wedding_id))',
