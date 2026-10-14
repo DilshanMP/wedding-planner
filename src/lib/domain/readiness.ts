@@ -48,9 +48,13 @@ export function computeReadiness(data: WeddingData): Readiness {
         .map((i) => i.categoryId),
     ),
   ];
-  const bookedCategories = new Set(
-    vendors.filter((v) => v.status === "booked" || v.status === "completed").map((v) => v.categoryId),
-  );
+  const bookedVendors = vendors.filter((v) => v.status === "booked" || v.status === "completed");
+  const bookedIds = new Set(bookedVendors.map((v) => v.id));
+  const bookedCategories = new Set([
+    ...bookedVendors.map((v) => v.categoryId),
+    // A booked vendor can cover other categories too (e.g. the hotel's catering and decor).
+    ...budgetItems.filter((i) => i.vendorId && bookedIds.has(i.vendorId) && ["booked", "partially_paid", "paid"].includes(i.status)).map((i) => i.categoryId),
+  ]);
   const bookedNeeded = neededCategories.filter((c) => bookedCategories.has(c)).length;
   const vendorScore = percent(bookedNeeded, neededCategories.length);
 

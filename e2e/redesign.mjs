@@ -124,6 +124,16 @@ await step("shareable checklist ticks a task", async () => {
   await page.locator(".checklist-item.is-done", { hasText: text.split("\n")[0] }).first().waitFor();
 });
 
+await step("hotel package covers decor and ticks the booking task", async () => {
+  await page.goto(B + "/vendors");
+  await page.getByRole("button", { name: "Hotel Package" }).click();
+  const decor = page.getByRole("radiogroup", { name: "Decoration" });
+  await decor.getByRole("radio", { name: "Hotel, extra charge" }).click();
+  await page.getByRole("button", { name: "Save Package" }).click();
+  await page.getByText(/now covers/).waitFor();
+  await page.getByText(/Also provides: .*Decoration/).first().waitFor();
+});
+
 await step("activity shows the creative changes", async () => {
   await page.goto(B + "/activity");
   await page.getByText(/changed the wedding colours/).first().waitFor();

@@ -15,6 +15,7 @@ import { Notice, PageHeader, cx } from "@/components/ui/primitives";
 import { PageSkeleton } from "@/components/shell/wedding-gate";
 import { useToast } from "@/components/shell/toast";
 import { Dialog } from "@/components/ui/dialog";
+import { VenuePackageButton } from "@/components/features/venue-package";
 
 export function MenuView() {
   const page = usePage();
@@ -84,6 +85,7 @@ function Menu({ data }: { data: WeddingData }) {
           lead={menu.venue || "Choose your dishes course by course."}
           actions={
             <>
+              <VenuePackageButton data={data} />
               <button type="button" className="wos-btn wos-btn--secondary" onClick={() => setEditing((v) => !v)}><Pencil className="wos-icon" aria-hidden="true" />{editing ? "Done Editing" : "Edit Menu"}</button>
               <button type="button" className="wos-btn wos-btn--primary" onClick={() => window.print()}><Printer className="wos-icon" aria-hidden="true" />Print</button>
             </>

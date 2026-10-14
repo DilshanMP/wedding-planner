@@ -15,6 +15,7 @@ import type { BudgetCategoryId, Payment, WeddingData } from "@/lib/domain/types"
 import { downloadCSV } from "@/lib/export";
 import { Badge, Card, EmptyState, Money, Notice, PageHeader, Stat, cx } from "@/components/ui/primitives";
 import { BudgetSheet } from "@/components/features/sheets";
+import { VenuePackageButton } from "@/components/features/venue-package";
 import { PageSkeleton } from "@/components/shell/wedding-gate";
 import { BudgetBar, CategoryBars } from "@/components/features/budget-bits";
 import { BudgetItemForm, PaymentForm } from "@/components/features/money-forms";
@@ -53,6 +54,7 @@ export function BudgetView() {
         title="Wedding Investment"
         actions={
           <>
+            <VenuePackageButton data={data} />
             <button type="button" className="wos-btn wos-btn--secondary" onClick={exportCSV}><Download className="wos-icon" aria-hidden="true" />Export</button>
             <button type="button" className="wos-btn wos-btn--primary" onClick={() => q.set({ tab: "payments", newPayment: "1" })}>Record Payment</button>
           </>

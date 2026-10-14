@@ -5,6 +5,8 @@ import { usePage } from "@/lib/hooks/use-page";
 import { useQueryState } from "@/lib/hooks/use-query-state";
 import { useStore } from "@/lib/store/provider";
 import { compareAdvice } from "@/lib/domain/advisor";
+import { alsoProvides } from "@/lib/domain/venue-package";
+import { VenuePackageButton } from "@/components/features/venue-package";
 import { BUDGET_CATEGORIES, VENDOR_STATUS_LABEL, VENDOR_STATUS_TONE, budgetCategory, budgetCategoryLabel } from "@/lib/domain/catalog";
 import { vendorBalance } from "@/lib/domain/budget";
 import { scoreQuotes, QUOTE_LABEL, VALUE_WEIGHTS } from "@/lib/domain/quotes";
@@ -36,6 +38,7 @@ export function VendorsView() {
         lead={data.vendors.length ? `${booked} booked of ${data.vendors.filter((v) => v.status !== "cancelled").length} · ${data.quotes.length} quotes to compare.` : undefined}
         actions={
           <>
+            <VenuePackageButton data={data} />
             <button type="button" className="wos-btn wos-btn--secondary" onClick={() => q.set({ tab: "compare", newQuote: "1" })}>Add Quote</button>
             <button type="button" className="wos-btn wos-btn--primary" onClick={() => q.set({ new: "1" })}><Plus className="wos-icon" aria-hidden="true" />Add Vendor</button>
           </>
@@ -95,6 +98,7 @@ function VendorCard({ vendor, data }: { vendor: Vendor; data: WeddingData }) {
         <div className="flex min-w-0 flex-col gap-1">
           <h3 className="wos-vendor__name">{vendor.name}</h3>
           <span className="wos-vendor__cat">{budgetCategoryLabel(vendor.categoryId)}{vendor.location ? ` · ${vendor.location}` : ""}</span>
+          {alsoProvides(data, vendor).length > 0 && <span className="text-[12px] font-semibold text-wine-600">Also provides: {alsoProvides(data, vendor).map(budgetCategoryLabel).join(", ")}</span>}
         </div>
         <Badge tone={VENDOR_STATUS_TONE[vendor.status]}>{VENDOR_STATUS_LABEL[vendor.status]}</Badge>
       </div>
