@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Cormorant_Garamond, Manrope } from "next/font/google";
 import { WeddingProvider } from "@/lib/store/provider";
 import { ServiceWorker } from "@/components/shell/service-worker";
+import { WeddingTheme } from "@/components/shell/wedding-theme";
 import "./globals.css";
 
 const display = Cormorant_Garamond({
@@ -37,7 +38,10 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="en-LK" data-scroll-behavior="smooth" className={`${display.variable} ${sans.variable}`}>
       <body>
-        <WeddingProvider>{children}</WeddingProvider>
+        <WeddingProvider>
+          <WeddingTheme />
+          {children}
+        </WeddingProvider>
         <ServiceWorker />
       </body>
     </html>

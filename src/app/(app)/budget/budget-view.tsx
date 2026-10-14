@@ -14,12 +14,13 @@ import { formatAmount, formatLKR, formatLKRExact, roundEstimate } from "@/lib/do
 import type { BudgetCategoryId, Payment, WeddingData } from "@/lib/domain/types";
 import { downloadCSV } from "@/lib/export";
 import { Badge, Card, EmptyState, Money, Notice, PageHeader, Stat, cx } from "@/components/ui/primitives";
+import { BudgetSheet } from "@/components/features/sheets";
 import { PageSkeleton } from "@/components/shell/wedding-gate";
 import { BudgetBar, CategoryBars } from "@/components/features/budget-bits";
 import { BudgetItemForm, PaymentForm } from "@/components/features/money-forms";
 import { MoneyField } from "@/components/ui/fields";
 
-type Tab = "overview" | "categories" | "payments" | "planner";
+type Tab = "overview" | "sheet" | "categories" | "payments" | "planner";
 
 export function BudgetView() {
   const page = usePage();
@@ -60,6 +61,7 @@ export function BudgetView() {
       <div className="wos-tabs" role="tablist" aria-label="Investment views">
         {([
           ["overview", "Overview", null],
+          ["sheet", "Spreadsheet", null],
           ["categories", "Categories", data.budgetItems.length],
           ["payments", "Payments", dueCount || null],
           ["planner", "Planner vs self-plan", null],
@@ -87,6 +89,7 @@ export function BudgetView() {
       </section>
 
       {tab === "overview" && <Overview data={data} onCategory={() => q.set({ tab: "categories" })} />}
+      {tab === "sheet" && <BudgetSheet data={data} />}
       {tab === "categories" && <Categories data={data} />}
       {tab === "payments" && <Payments data={data} today={today} />}
       {tab === "planner" && <PlannerComparison data={data} />}

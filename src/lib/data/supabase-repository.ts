@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { ActivityEntry } from "@/lib/domain/activity";
+import type { PlannerData, PlannerKey } from "@/lib/domain/planner";
 import type { CollectionItem, CollectionKey, Wedding, WeddingData } from "@/lib/domain/types";
 import { normalizeWeddingData } from "@/lib/domain/normalize";
 import { fromRow, TABLES, toRow } from "./mapping";
@@ -12,6 +13,23 @@ import type { WeddingRepository, WeddingSummary } from "./repository";
  */
 
 /** Insert order respects foreign keys (vendors before budget items before payments …). */
+/** Each part of the creative plan has its own jsonb column on `weddings`. */
+const PLANNER_COLUMNS: Record<PlannerKey, string> = { theme: "theme", menu: "menu_plan", seating: "seating_plan", stationery: "stationery", vision: "vision_board" };
+
+function splitPlanner(row: Record<string, unknown>): { row: Record<string, unknown>; planner: Partial<PlannerData> } {
+  const rest = { ...row };
+  const planner: Record<string, unknown> = {};
+  for (const [key, col] of Object.entries(PLANNER_COLUMNS)) {
+    if (col in rest) {
+      // Empty objects mean "not set yet"; normalisation fills defaults.
+      const v = rest[col];
+      if (v && typeof v === "object" && Object.keys(v).length > 0) planner[key] = v;
+      delete rest[col];
+    }
+  }
+  return { row: rest, planner: planner as Partial<PlannerData> };
+}
+
 const INSERT_ORDER: CollectionKey[] = ["people", "vendors", "budgetItems", "quotes", "payments", "tasks", "guests", "timeline", "documents"];
 
 export class SupabaseRepository implements WeddingRepository {
@@ -37,10 +55,11 @@ export class SupabaseRepository implements WeddingRepository {
     const { data: weddingRow, error } = await this.client.from("weddings").select("*").eq("id", id).is("deleted_at", null).maybeSingle();
     this.fail("load the wedding", error);
     if (!weddingRow) return null;
+    const { row, planner } = splitPlanner(weddingRow);
     // weddings.owner_id is the account that owns the wedding; it isn't part of the domain model.
-    const { ownerId, ...wedding } = fromRow<Wedding & { ownerId?: string }>(weddingRow);
+    const { ownerId, ...wedding } = fromRow<Wedding & { ownerId?: string }>(row);
     void ownerId;
-    const result = { wedding } as WeddingData;
+    const result = { wedding, planner } as unknown as WeddingData;
     await Promise.all(
       INSERT_ORDER.map(async (key) => {
         const { data, error: e } = await this.client.from(TABLES[key]).select("*").eq("wedding_id", id);
@@ -52,7 +71,9 @@ export class SupabaseRepository implements WeddingRepository {
   }
 
   async createWedding(data: WeddingData): Promise<void> {
-    const { error } = await this.client.from("weddings").insert(toRow(data.wedding));
+    const row = toRow(data.wedding);
+    for (const [key, col] of Object.entries(PLANNER_COLUMNS)) row[col] = data.planner[key as PlannerKey];
+    const { error } = await this.client.from("weddings").insert(row);
     this.fail("create the wedding", error);
     for (const key of INSERT_ORDER) {
       const items = data[key] as { id: string }[];
@@ -79,6 +100,14 @@ export class SupabaseRepository implements WeddingRepository {
     if (ids.length === 0) return;
     const { error } = await this.client.from(TABLES[key]).delete().eq("wedding_id", weddingId).in("id", ids);
     this.fail("delete", error);
+  }
+
+  async savePlanner<K extends PlannerKey>(weddingId: string, key: K, value: PlannerData[K]): Promise<void> {
+    const { error } = await this.client.from("weddings").update({ [PLANNER_COLUMNS[key]]: value }).eq("id", weddingId);
+    if (error && /column|schema cache/i.test(error.message)) {
+      throw new Error("This needs a one-time database update: run supabase/migrations/20261014000000_planner.sql in the Supabase SQL Editor.");
+    }
+    this.fail("save your changes", error);
   }
 
   async deleteWedding(id: string): Promise<void> {

@@ -1,9 +1,10 @@
 "use client";
 
-import { Check, Minus, Plus, Star } from "lucide-react";
+import { Check, Minus, Plus, Star, Lightbulb } from "lucide-react";
 import { usePage } from "@/lib/hooks/use-page";
 import { useQueryState } from "@/lib/hooks/use-query-state";
 import { useStore } from "@/lib/store/provider";
+import { compareAdvice } from "@/lib/domain/advisor";
 import { BUDGET_CATEGORIES, VENDOR_STATUS_LABEL, VENDOR_STATUS_TONE, budgetCategory, budgetCategoryLabel } from "@/lib/domain/catalog";
 import { vendorBalance } from "@/lib/domain/budget";
 import { scoreQuotes, QUOTE_LABEL, VALUE_WEIGHTS } from "@/lib/domain/quotes";
@@ -158,6 +159,14 @@ function Compare({ data, category }: { data: WeddingData; category: BudgetCatego
               <button key={c.id} type="button" role="tab" className="wos-tab" aria-selected={c.id === active} onClick={() => q.set({ category: c.id })}>{c.label}</button>
             ))}
           </div>
+          {active && scored.length > 0 && (
+            <section className="wos-card flex flex-col gap-2 !bg-champagne-100 !border-champagne-300" aria-labelledby="h-advisor">
+              <h2 id="h-advisor" className="wos-card__title flex items-center gap-2"><Lightbulb className="wos-icon text-champagne-700" aria-hidden="true" />Advisor</h2>
+              <ul className="m-0 flex list-disc flex-col gap-1 pl-5 text-[14px] leading-5">
+                {compareAdvice(scored, data.budgetItems.filter((i) => i.categoryId === active && i.status !== "cancelled").reduce((n, i) => n + i.planned, 0) || null, Object.fromEntries(features.map((f) => [f.key, f.label]))).map((t) => <li key={t}>{t}</li>)}
+              </ul>
+            </section>
+          )}
           <div className="grid gap-5 pt-3 [grid-template-columns:repeat(auto-fill,minmax(280px,1fr))]">
             {scored.map((s) => {
               const picked = s.quote.selected;

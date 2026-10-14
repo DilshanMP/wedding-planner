@@ -4,6 +4,10 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useMemo, useRef, useState, type ReactNode } from "react";
 import {
+  Armchair,
+  LayoutGrid,
+  Mail,
+  UtensilsCrossed,
   Bell,
   CalendarClock,
   CreditCard,
@@ -49,6 +53,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const clock = useClock();
   const pathname = usePathname();
   const [addOpen, setAddOpen] = useState(false);
+  const [moreOpen, setMoreOpen] = useState(false);
   const { wedding } = data;
 
   const stats = useMemo(() => {
@@ -67,9 +72,9 @@ export function AppShell({ children }: { children: ReactNode }) {
     {
       title: "Plan",
       items: [
-        { href: "/dashboard", label: "Dashboard", icon: Home },
+        { href: "/dashboard", label: "Home", icon: Home },
         { href: "/tasks", label: "Checklist", icon: ListChecks, count: stats?.tasks.open },
-        { href: "/timeline", label: "Timeline", icon: CalendarClock },
+        { href: "/timeline", label: "Day plan", icon: CalendarClock },
       ],
     },
     {
@@ -81,22 +86,31 @@ export function AppShell({ children }: { children: ReactNode }) {
           icon: Users,
           count: stats && stats.guests.pending > 0 ? <span className="wos-badge wos-badge--warning wos-badge--plain" style={{ height: 20, padding: "0 8px" }}>{stats.guests.pending}</span> : undefined,
         },
-        { href: "/vendors", label: "Vendors", icon: Store },
+        { href: "/tables", label: "Tables", icon: Armchair },
       ],
     },
     {
-      title: "Money",
+      title: "Money & food",
       items: [
-        { href: "/budget", label: "Investment", icon: Wallet },
-        { href: "/budget?tab=payments", label: "Payments", icon: CreditCard, count: dueSoon ? `${dueSoon} due` : undefined },
+        { href: "/budget", label: "Budget", icon: Wallet, count: dueSoon ? `${dueSoon} due` : undefined },
+        { href: "/vendors", label: "Vendors", icon: Store },
+        { href: "/menu", label: "Menu", icon: UtensilsCrossed },
+      ],
+    },
+    {
+      title: "Create",
+      items: [
+        { href: "/design", label: "Our look", icon: Palette },
+        { href: "/cards", label: "Cards & boxes", icon: Mail },
+        { href: "/simulator", label: "Simulator", icon: Sparkles },
       ],
     },
     {
       title: "Records",
       items: [
-        { href: "/documents", label: "Documents", icon: FolderClosed, count: data.documents.length || undefined },
-        { href: "/reports", label: "Reports", icon: FileBarChart },
+        { href: "/documents", label: "Photos & files", icon: FolderClosed, count: data.documents.length || undefined },
         { href: "/activity", label: "Activity", icon: History },
+        { href: "/reports", label: "Reports", icon: FileBarChart },
       ],
     },
   ];
@@ -148,14 +162,6 @@ export function AppShell({ children }: { children: ReactNode }) {
             <MessageCircleQuestion className="wos-icon" aria-hidden="true" />
             <span className="nav-label">Ask</span>
           </Link>
-          <Link href="/simulator" aria-current={isActive("/simulator") ? "page" : undefined} title="Experience your wedding">
-            <Sparkles className="wos-icon" aria-hidden="true" />
-            <span className="nav-label">Simulator</span>
-          </Link>
-          <Link href="/studio" aria-current={isActive("/studio") ? "page" : undefined} title="Poruwa Studio">
-            <Palette className="wos-icon" aria-hidden="true" />
-            <span className="nav-label">Poruwa Studio</span>
-          </Link>
           <Link href="/settings" aria-current={isActive("/settings") ? "page" : undefined} title="Settings">
             <Settings className="wos-icon" aria-hidden="true" />
             <span className="nav-label">Settings</span>
@@ -195,10 +201,20 @@ export function AppShell({ children }: { children: ReactNode }) {
           <Plus className="wos-icon" style={{ width: 24, height: 24 }} aria-hidden="true" />
         </button>
         <Link href="/guests" aria-current={isActive("/guests") ? "page" : undefined}><Users className="wos-icon" style={{ width: 24, height: 24 }} aria-hidden="true" />Guests</Link>
-        <Link href="/budget" aria-current={isActive("/budget") ? "page" : undefined}><Wallet className="wos-icon" style={{ width: 24, height: 24 }} aria-hidden="true" />Budget</Link>
+        <button type="button" onClick={() => setMoreOpen(true)} className="wos-bottomnav__more"><LayoutGrid className="wos-icon" style={{ width: 24, height: 24 }} aria-hidden="true" />More</button>
       </nav>
 
       <QuickAdd open={addOpen} onClose={() => setAddOpen(false)} />
+      <Dialog open={moreOpen} onClose={() => setMoreOpen(false)} title="Everything">
+        <div className="grid grid-cols-3 gap-2">
+          {[...sections.flatMap((x) => x.items), { href: "/assistant", label: "Ask", icon: MessageCircleQuestion }, { href: "/wedding-day", label: "Wedding day", icon: SunMedium }, { href: "/settings", label: "Settings", icon: Settings }].map((item) => (
+            <Link key={item.href} href={item.href} onClick={() => setMoreOpen(false)} className="flex flex-col items-center gap-2 rounded-2xl border border-line bg-surface-raised px-2 py-4 text-center text-[13px] leading-4 font-semibold text-ink no-underline">
+              <span className="grid size-10 place-items-center rounded-xl bg-wine-50 text-wine-600"><item.icon className="wos-icon" aria-hidden="true" /></span>
+              {item.label}
+            </Link>
+          ))}
+        </div>
+      </Dialog>
     </div>
   );
 }

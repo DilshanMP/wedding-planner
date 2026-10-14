@@ -1,5 +1,6 @@
 import { newId } from "./ids";
 import type { WeddingData } from "./types";
+import { normalizePlanner } from "./planner";
 
 /**
  * Bring stored data up to the current model. Fills fields added after a
@@ -16,6 +17,7 @@ export function normalizeWeddingData(raw: WeddingData): WeddingData {
   data.payments ??= [];
   data.timeline ??= [];
   data.documents ??= [];
+  data.planner = normalizePlanner(data.planner, newId);
   data.wedding = {
     ...data.wedding,
     rsvpEnabled: data.wedding.rsvpEnabled ?? false,

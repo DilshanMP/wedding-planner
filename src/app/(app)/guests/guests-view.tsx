@@ -5,6 +5,7 @@ import { Download, Mail, Plus, Send } from "lucide-react";
 import { usePage } from "@/lib/hooks/use-page";
 import { useQueryState } from "@/lib/hooks/use-query-state";
 import { useStore } from "@/lib/store/provider";
+import { GuestSheet } from "@/components/features/sheets";
 import { GUEST_GROUP_LABEL, guestGroup, guestMetrics, partySize, type GuestGroupId } from "@/lib/domain/guests";
 import { INVITATION_LABEL, INVITATION_TONE, MEAL_LABEL, PARTY_LABEL, RSVP_LABEL, RSVP_TONE } from "@/lib/domain/catalog";
 import { INVITATION_STATUSES, RSVP_STATUSES, type Guest, type InvitationStatus, type RsvpStatus } from "@/lib/domain/types";
@@ -31,6 +32,7 @@ export function GuestsView() {
   const search = q.get("q") ?? "";
   const editingId = q.get("guest");
   const creating = q.get("new") === "1";
+  const sheet = q.get("view") === "sheet";
 
   const filtered = useMemo(() => {
     if (!page) return [];
@@ -143,7 +145,14 @@ export function GuestsView() {
             </div>
           </div>
 
-          {filtered.length === 0 ? (
+          <div className="wos-tabs self-start" role="tablist" aria-label="Layout">
+            <button type="button" role="tab" className="wos-tab" aria-selected={!sheet} onClick={() => q.set({ view: null })}>List</button>
+            <button type="button" role="tab" className="wos-tab" aria-selected={sheet} onClick={() => q.set({ view: "sheet" })}>Spreadsheet</button>
+          </div>
+
+          {sheet && filtered.length > 0 ? (
+            <GuestSheet guests={filtered} />
+          ) : filtered.length === 0 ? (
             <EmptyState title="No guests match." action={<button type="button" className="wos-btn wos-btn--secondary" onClick={() => q.set({ side: null, group: null, invitation: null, rsvp: null, q: null })}>Clear Filters</button>}>
               {invitation === "not_sent" ? "Every invitation has gone out." : "Try a different filter or search."}
             </EmptyState>

@@ -58,6 +58,20 @@ export function WeddingProvider({ children }: { children: ReactNode }) {
   const [files] = useState<FileStore>(() => (cloudEnabled && typeof window !== "undefined" ? new SupabaseFileStore(getSupabase()) : new IndexedDbFileStore()));
   const [auth, setAuth] = useState<AuthState>(cloudEnabled ? { mode: "cloud", status: "loading" } : { mode: "local" });
 
+  // Save edits that are still waiting (debounced) before the page goes away.
+  useEffect(() => {
+    const save = () => void store.flush();
+    const onHide = () => {
+      if (document.visibilityState === "hidden") save();
+    };
+    window.addEventListener("pagehide", save);
+    document.addEventListener("visibilitychange", onHide);
+    return () => {
+      window.removeEventListener("pagehide", save);
+      document.removeEventListener("visibilitychange", onHide);
+    };
+  }, [store]);
+
   useEffect(() => {
     if (!cloudEnabled) {
       void store.init();

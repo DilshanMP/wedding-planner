@@ -1,7 +1,8 @@
 "use client";
 
+import Link from "next/link";
 import { useMemo } from "react";
-import { Plus } from "lucide-react";
+import { Plus, Share2 } from "lucide-react";
 import { usePage } from "@/lib/hooks/use-page";
 import { useQueryState } from "@/lib/hooks/use-query-state";
 import { JOURNEY_STAGES, taskCategory, type JourneyStageId } from "@/lib/domain/catalog";
@@ -76,7 +77,7 @@ export function TasksView() {
         overline="Master checklist"
         title="Everything, A to Z"
         lead={`${m.completed} of ${m.total} done${m.overdue ? ` · ${m.overdue} overdue` : ""}${m.dueThisWeek ? ` · ${m.dueThisWeek} due this week` : ""}.`}
-        actions={<button type="button" className="wos-btn wos-btn--primary" onClick={() => q.set({ new: "1" })}><Plus className="wos-icon" aria-hidden="true" />Add Task</button>}
+        actions={<><Link href="/checklist" className="wos-btn wos-btn--secondary"><Share2 className="wos-icon" aria-hidden="true" />Printable &amp; Share</Link><button type="button" className="wos-btn wos-btn--primary" onClick={() => q.set({ new: "1" })}><Plus className="wos-icon" aria-hidden="true" />Add Task</button></>}
       />
       <ProgressBar value={m.completionPct} label="Checklist progress" detail={`${m.completionPct}%`} tone="sage" />
 

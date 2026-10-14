@@ -98,3 +98,22 @@ describe("Activity log", () => {
     expect(f.data.guests[0].rsvp).toBe("no");
   });
 });
+
+describe("Planner parts", () => {
+  it("saves one part after a pause and logs it once", async () => {
+    const { store, storage } = makeStore();
+    await store.createWedding(createSampleWedding("2026-10-08", "2026-10-08T00:00:00Z"));
+    const s = store.getState();
+    if (s.status !== "ready") throw new Error("not ready");
+    store.setActor({ id: "u1", name: "Nethmi" });
+    for (const c of ["#111111", "#222222", "#3d5a80"]) store.updatePlanner("theme", { ...s.data.planner.theme, name: "Ours", colors: [c, "#a9bcd0"] });
+    await store.flush();
+    const reopened = new WeddingStore(new LocalRepository(storage), { get: () => null, set: () => {} });
+    await reopened.init();
+    const r = reopened.getState();
+    if (r.status !== "ready") throw new Error("not ready");
+    expect(r.data.planner.theme.colors[0]).toBe("#3d5a80");
+    const log = await store.repo.listActivity(s.data.wedding.id, 10);
+    expect(log.filter((e) => e.summary.includes("wedding colours"))).toHaveLength(1);
+  });
+});
