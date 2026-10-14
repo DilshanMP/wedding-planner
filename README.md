@@ -37,11 +37,16 @@ Deploy on Vercel as a standard Next.js app; add the variables in the project set
 | --- | --- |
 | `/` | Landing page |
 | `/onboarding` | Wedding setup (or load the sample wedding) |
-| `/dashboard` | Countdown, readiness, needs-attention, investment, guests, payments, vendors, journey |
+| `/dashboard` | Home: your venue photo and colours, countdown, next steps, plan-at-a-glance tiles, activity |
 | `/tasks` | Master A–Z checklist |
-| `/guests` | Guests, invitations and RSVPs |
-| `/budget` | Wedding Investment: overview, categories, payments, planner vs self-plan |
-| `/vendors` | Vendors and quote comparison with Value Score |
+| `/checklist` | One-page checklist of the main points — tick off, print / PDF, share on WhatsApp |
+| `/guests` | Guests, invitations and RSVPs (list or spreadsheet view) |
+| `/tables` | Table planner: hall layout, drag tables, seat guest parties, 3D walk-in view, print |
+| `/budget` | Budget: overview, spreadsheet (edit like Excel), categories, payments, planner vs self-plan |
+| `/menu` | Menu planner: venue menu (Paradise Inn “Crystal Glow” 2027 included), choose dishes per course, cost per plate, add to budget, share |
+| `/vendors` | Vendors and quote comparison with Value Score and an advisor |
+| `/design` | Our look: wedding colours (recolour the app), vision board, real-photo preview in your venue, outfits with a style advisor |
+| `/cards` | Cards & boxes: invitation (cover + inside), envelope, cake-box lid and band, table cards, thank-you card — print or 300 dpi PNG |
 | `/timeline` | Wedding-day schedule and planning timeline |
 | `/wedding-day` | Wedding Day Mode (Ivory / Evening) |
 | `/simulator` | Experience Your Wedding: walk through the day scene by scene |

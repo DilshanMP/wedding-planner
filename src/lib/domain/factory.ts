@@ -1,3 +1,4 @@
+import { defaultPlanner } from "./planner";
 import { suggestAllocation } from "./budget";
 import { budgetCategory } from "./catalog";
 import { categoriesMentioned } from "./insights";
@@ -123,6 +124,7 @@ export function createWeddingData(setup: WeddingSetup, today: ISODate, now: stri
   const tasks: Task[] = generateTasks({ weddingDate: setup.weddingDate, today, people, now });
   return {
     wedding,
+    planner: defaultPlanner(newId),
     people,
     tasks,
     guests: [] as Guest[],

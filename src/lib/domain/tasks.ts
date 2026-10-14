@@ -126,3 +126,52 @@ export function upcomingTasks(tasks: Task[], limit = 5): Task[] {
     })
     .slice(0, limit);
 }
+
+/* ------------------------------------------------------------------ */
+/* Shareable checklist                                                 */
+/* ------------------------------------------------------------------ */
+
+export interface ChecklistPhase {
+  id: string;
+  title: string;
+  tasks: Task[];
+  done: number;
+}
+
+const PHASES: { id: string; title: string; minDays: number }[] = [
+  { id: "12m", title: "A year or more before", minDays: 300 },
+  { id: "9m", title: "9 – 12 months before", minDays: 240 },
+  { id: "6m", title: "6 – 9 months before", minDays: 150 },
+  { id: "3m", title: "3 – 6 months before", minDays: 75 },
+  { id: "1m", title: "1 – 3 months before", minDays: 28 },
+  { id: "final", title: "The last month", minDays: 7 },
+  { id: "week", title: "Wedding week", minDays: 0 },
+  { id: "after", title: "After the wedding", minDays: -Infinity },
+];
+
+/**
+ * The checklist grouped by how long before the wedding each task is due.
+ * `mainOnly` keeps the high and medium priority tasks — the main points.
+ */
+export function checklistPhases(tasks: Task[], weddingDate: ISODate, mainOnly: boolean): ChecklistPhase[] {
+  const live = tasks.filter((t) => t.status !== "cancelled" && (!mainOnly || t.priority !== "low"));
+  const days = (t: Task) => (t.dueDate ? daysBetween(t.dueDate, weddingDate) : 400);
+  return PHASES.map((p, i) => {
+    const upper = i === 0 ? Infinity : PHASES[i - 1].minDays;
+    const list = live
+      .filter((t) => days(t) >= p.minDays && days(t) < upper)
+      .sort((a, b) => (a.dueDate ?? "").localeCompare(b.dueDate ?? "") || a.title.localeCompare(b.title));
+    return { id: p.id, title: p.title, tasks: list, done: list.filter((t) => t.status === "completed").length };
+  }).filter((p) => p.tasks.length > 0);
+}
+
+/** WhatsApp-friendly checklist text. */
+export function checklistText(phases: ChecklistPhase[], title: string): string {
+  const out = [`*${title}*`, ""];
+  for (const p of phases) {
+    out.push(`*${p.title}* (${p.done}/${p.tasks.length})`);
+    for (const t of p.tasks) out.push(`${t.status === "completed" ? "✅" : "⬜"} ${t.title}`);
+    out.push("");
+  }
+  return out.join("\n").trim();
+}

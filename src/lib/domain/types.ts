@@ -5,6 +5,8 @@
  * strings (local calendar dates, no time zone), times are `HH:mm` (24h).
  */
 
+import type { PlannerData } from "./planner";
+
 export type ID = string;
 export type ISODate = string; // YYYY-MM-DD
 export type ISODateTime = string;
@@ -334,6 +336,8 @@ export interface WeddingDocument extends Timestamps {
 
 export interface WeddingData {
   wedding: Wedding;
+  /** Colours, menu, tables, cards and vision board (see planner.ts). */
+  planner: PlannerData;
   people: Person[];
   tasks: Task[];
   guests: Guest[];
@@ -346,5 +350,5 @@ export interface WeddingData {
 }
 
 /** Collections that are edited item by item. */
-export type CollectionKey = Exclude<keyof WeddingData, "wedding">;
+export type CollectionKey = Exclude<keyof WeddingData, "wedding" | "planner">;
 export type CollectionItem<K extends CollectionKey> = WeddingData[K][number];

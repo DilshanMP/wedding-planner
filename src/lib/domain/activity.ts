@@ -2,6 +2,7 @@ import { RSVP_LABEL, TASK_STATUS_LABEL, VENDOR_STATUS_LABEL } from "./catalog";
 import { formatLongDate } from "./dates";
 import { formatLKR } from "./money";
 import type { CollectionItem, CollectionKey, ID, ISODateTime, Wedding, WeddingData } from "./types";
+import { PLANNER_LABEL, type PlannerData, type PlannerKey } from "./planner";
 
 /** One line in the "who did what" feed. */
 export interface ActivityEntry {
@@ -152,4 +153,30 @@ export function sampleActivity(data: WeddingData, now: Date): ActivityEntry[] {
       summary,
     }))
     .reverse();
+}
+
+/** What a change to the creative plan means in the feed. `minor` lines are throttled. */
+export function describePlanner<K extends PlannerKey>(key: K, before: PlannerData[K], after: PlannerData[K]): { summary: string; minor: boolean } {
+  if (key === "theme") {
+    const [b, a] = [before as PlannerData["theme"], after as PlannerData["theme"]];
+    const parts: string[] = [];
+    if (a.colors.join() !== b.colors.join()) parts.push(`changed the wedding colours${a.name ? ` to ${q(a.name)}` : ""}`);
+    if (a.heroDocumentId !== b.heroDocumentId) parts.push(parts.length ? "the home photo" : "changed the home photo");
+    if (parts.length) return { summary: parts.join(" and "), minor: false };
+  }
+  if (key === "menu") {
+    const [b, a] = [before as PlannerData["menu"], after as PlannerData["menu"]];
+    if (a.finalizedAt && !b.finalizedAt) return { summary: "marked the menu as final", minor: false };
+    if (a.menuName !== b.menuName && a.menuName) return { summary: `started the ${q(a.menuName)} menu`, minor: false };
+    return { summary: "updated the menu choices", minor: true };
+  }
+  if (key === "vision") {
+    const [b, a] = [before as PlannerData["vision"], after as PlannerData["vision"]];
+    const added = a.items.length - b.items.length;
+    if (added > 0) return { summary: added === 1 ? "added a photo to the vision board" : `added ${added} photos to the vision board`, minor: false };
+    return { summary: "updated the vision board", minor: true };
+  }
+  if (key === "seating") return { summary: "arranged the tables", minor: true };
+  if (key === "stationery") return { summary: "edited the wedding cards", minor: true };
+  return { summary: `updated ${PLANNER_LABEL[key]}`, minor: true };
 }

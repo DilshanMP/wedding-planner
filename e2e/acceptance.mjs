@@ -93,7 +93,7 @@ await step("12 compare quotes", async () => {
   }
   await page.goto(B + "/vendors?tab=compare");
   await page.getByText("Lowest Cost").waitFor();
-  await page.getByText("Best Value").waitFor();
+  await page.getByText("Best Value", { exact: true }).waitFor();
   await page.getByRole("button", { name: "Choose This Option" }).first().click();
   await page.getByText("Your choice").waitFor();
 });
@@ -124,7 +124,7 @@ await step("delete with confirmation", async () => {
 });
 await step("15 readiness", async () => {
   await page.goto(B + "/dashboard");
-  await page.getByRole("button", { name: /How readiness is calculated/ }).click();
+  await page.getByRole("button", { name: /Wedding readiness \d+ percent/ }).click();
   await dlg().getByText("Wedding readiness").waitFor();
   await page.keyboard.press("Escape");
 });

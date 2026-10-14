@@ -1,5 +1,6 @@
 import type { CollectionItem, CollectionKey, Wedding, WeddingData } from "@/lib/domain/types";
 import type { ActivityEntry } from "@/lib/domain/activity";
+import type { PlannerData, PlannerKey } from "@/lib/domain/planner";
 import { normalizeWeddingData } from "@/lib/domain/normalize";
 import { toSummary, type WeddingRepository, type WeddingSummary } from "./repository";
 
@@ -97,6 +98,12 @@ export class LocalRepository implements WeddingRepository {
     const data = this.wedding(weddingId);
     const drop = new Set(ids);
     (data as unknown as Record<string, { id: string }[]>)[key] = (data[key] as { id: string }[]).filter((x) => !drop.has(x.id));
+    this.write();
+  }
+
+  async savePlanner<K extends PlannerKey>(weddingId: string, key: K, value: PlannerData[K]): Promise<void> {
+    const data = this.wedding(weddingId);
+    data.planner = { ...data.planner, [key]: structuredClone(value) };
     this.write();
   }
 

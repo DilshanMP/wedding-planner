@@ -12,6 +12,7 @@ import type { WeddingData } from "@/lib/domain/types";
 import { Badge, Card, EmptyState, PageHeader, cx } from "@/components/ui/primitives";
 import { PageSkeleton } from "@/components/shell/wedding-gate";
 import { EventForm } from "@/components/features/event-form";
+import { EveningTemplateButton } from "@/components/features/evening-template";
 
 export function TimelineView() {
   const page = usePage();
@@ -31,6 +32,7 @@ export function TimelineView() {
         actions={
           tab === "day" ? (
             <>
+              <EveningTemplateButton data={data} />
               <Link href="/simulator" className="wos-btn wos-btn--secondary"><Sparkles className="wos-icon" aria-hidden="true" />Preview in Simulator</Link>
               <button type="button" className="wos-btn wos-btn--primary" onClick={() => q.set({ new: "1" })}><Plus className="wos-icon" aria-hidden="true" />Add Moment</button>
             </>
