@@ -221,6 +221,7 @@ textarea.wos-input { height: auto; min-height: 96px; padding: var(--space-3) var
 .print-only { display: none; }
 
 /* Tables */
+.floor-plan { display: block; width: 100%; height: auto; border-radius: 20px; background: var(--surface-sunken); touch-action: none; user-select: none; }
 
 /* Cards & boxes */
 .card-preview { overflow: hidden; border-radius: 6px; box-shadow: 0 1px 2px rgba(0,0,0,.06), 0 18px 40px -18px rgba(42,31,28,.35); background: #fff; }
