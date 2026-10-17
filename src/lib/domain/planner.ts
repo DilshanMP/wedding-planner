@@ -63,6 +63,21 @@ export interface MenuPlan {
 
 const s = (id: string, title: string, pick: number, items: string[]): MenuSection => ({ id, title, pick, items });
 
+/** Mutton course offered in place of pork. */
+export const MUTTON_SECTION: MenuSection = s("mutton", "Mutton", 1, ["Sri Lankan mutton curry", "Devilled mutton", "Mutton black pepper", "Mutton rogan josh", "Mutton korma", "Mutton chili garlic", "Mutton stew"]);
+
+/** Swap a pork course for mutton, keeping its place on the menu. Returns null if there's no pork course. */
+export function porkToMutton(menu: MenuPlan): MenuPlan | null {
+  const i = menu.sections.findIndex((x) => /pork/i.test(x.title) || x.id === "pork");
+  if (i < 0) return null;
+  const old = menu.sections[i];
+  const sections = [...menu.sections];
+  sections[i] = { ...MUTTON_SECTION, items: [...MUTTON_SECTION.items], pick: old.pick || 1 };
+  const chosen = { ...menu.chosen };
+  delete chosen[old.id];
+  return { ...menu, sections, chosen, finalizedAt: null };
+}
+
 /** Paradise Inn, Bolgoda — "Crystal Glow" wedding menu (2027 card). */
 export const CRYSTAL_GLOW_2027: Omit<MenuPlan, "chosen" | "notes" | "finalizedAt"> = {
   venue: "Paradise Inn, Bolgoda — Crystal Atrium",
@@ -79,7 +94,8 @@ export const CRYSTAL_GLOW_2027: Omit<MenuPlan, "chosen" | "notes" | "finalizedAt
     s("prawns", "Prawns", 1, ["Batter fried prawns with hot garlic", "Sweet & sour prawns", "Batter fried prawns – mayonnaise / soya / sweet & sour sauce", "Devilled chili garlic prawns", "Stir fried prawns with bell pepper", "Prawns badum", "Kankun fried prawns", "Szechuan chili prawns"]),
     s("seafood", "Seafood", 1, ["Baked fish with orange sauce", "Fish stew with turmeric & mustard", "Thai fish green curry", "Fried cuttlefish rings with tartar sauce", "Fried cuttlefish in hot garlic", "Five spiced seafood with spring onions", "Szechuan chili cuttlefish", "Fish tikka masala / fish tikka", "Szechuan mixed seafood"]),
     s("chicken", "Chicken", 1, ["Chicken & mushroom lasagna", "Chicken korma, Indian style", "Asian spicy roasted chicken", "Chicken tikka masala", "Tandoori roasted chicken", "Thai green chicken curry", "Crumbed fried chicken with tartar sauce", "Butter chicken masala"]),
-    s("pork", "Pork", 1, ["Pork badum \"Paradise\"", "Pork black pepper", "Pork stew", "Red pork curry", "Szechuan chili pork", "Pork chili garlic", "Thai style sesame pork with red chili"]),
+    // The hotel serves mutton in place of the card's pork course for this wedding.
+    MUTTON_SECTION,
     s("vegetables", "Vegetables", 4, ["Cashew with green peas", "Paneer tikka masala", "Vegetable kebab", "Stir fried vegetables", "Brinjal moju / brinjal phai", "Garlic butter beans", "Thai green or red mixed vegetable curry", "Tempered mushroom", "Traditional Sri Lankan mixed vegetable curry", "Vegetable lasagna", "Hot butter mushroom", "Vegetable pakora"]),
     s("rice", "Rice & noodles (+ steamed rice)", 3, ["Indonesian nasi goreng", "Thai fried rice", "Traditional ghee rice", "Spicy fried rice with prawns & cuttlefish", "Yong chow fried rice", "Spicy Szechuan noodles", "Vegetable tossed egg noodles", "Vegetable fried egg noodles"]),
     s("condiments", "Condiments", 0, ["Village achcharu / home-made fruit chutney"]),

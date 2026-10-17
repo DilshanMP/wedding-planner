@@ -284,3 +284,54 @@ export function TagInput({ label, values, onChange, placeholder, help }: {
     </div>
   );
 }
+
+/**
+ * Drag to set an amount, or type it. Quick picks (e.g. 25 %, 50 %, Full)
+ * cover the usual advances.
+ */
+export function MoneySlider({ label, value, onChange, max, min = 0, step, picks, help, className }: {
+  label: string;
+  value: number;
+  onChange: (v: number) => void;
+  max: number;
+  min?: number;
+  step?: number;
+  picks?: { label: string; value: number }[];
+  help?: ReactNode;
+  className?: string;
+}) {
+  const id = useId();
+  const top = Math.max(max, value, min + 1);
+  const s = step ?? (top > 2_000_000 ? 25_000 : top > 200_000 ? 5_000 : top > 20_000 ? 500 : 100);
+  const pct = Math.round(((value - min) / (top - min)) * 100);
+  return (
+    <div className={cx("wos-field money-slider", className)}>
+      <div className="flex items-baseline justify-between gap-3">
+        <label htmlFor={id}>{label}</label>
+        <span className="wos-num font-display text-[24px] leading-[28px] font-medium"><small className="mr-1 font-sans text-[12px] font-semibold text-ink-muted">LKR</small>{formatAmount(value)}</span>
+      </div>
+      <input
+        id={id}
+        type="range"
+        min={min}
+        max={top}
+        step={s}
+        value={value}
+        onChange={(e) => onChange(Number(e.target.value))}
+        className="money-slider__range"
+        style={{ "--pct": `${pct}%` } as React.CSSProperties}
+        aria-valuetext={`LKR ${formatAmount(value)}`}
+      />
+      <div className="flex flex-wrap items-center gap-2">
+        {picks?.map((p) => (
+          <button key={p.label} type="button" className="wos-chip !h-8" aria-pressed={value === p.value} onClick={() => onChange(p.value)}>{p.label}</button>
+        ))}
+        <div className="wos-input wos-input--prefix ml-auto !w-[170px]">
+          <span aria-hidden="true">LKR</span>
+          <input aria-label={`${label} (type an amount)`} inputMode="numeric" value={formatAmount(value)} onChange={(e) => onChange(parseLKR(e.target.value) ?? 0)} />
+        </div>
+      </div>
+      {help && <span className="wos-field__help">{help}</span>}
+    </div>
+  );
+}

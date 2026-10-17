@@ -15,6 +15,8 @@ export interface PackageChoice {
   /** included = part of the plate / hall price; extra = the hotel charges separately. */
   coverage: Coverage;
   amount: LKR | null;
+  /** The hotel hasn't given a price yet: `amount` is our estimate (kept as the planned figure, not a quote). */
+  estimate?: boolean;
 }
 
 /** Categories hotels commonly provide, in the order couples think about them. */
@@ -40,7 +42,8 @@ export function currentPackage(data: WeddingData, venueId: ID | null): PackageCh
     const line = venueId ? data.budgetItems.find((i) => i.categoryId === categoryId && i.vendorId === venueId && i.status !== "cancelled") : undefined;
     if (!line) return { categoryId, coverage: "no", amount: null };
     const included = categoryId !== "catering" && line.planned === 0 && (line.quoted ?? 0) === 0;
-    return { categoryId, coverage: included ? "included" : "extra", amount: included ? null : line.quoted ?? line.planned };
+    const estimate = !included && line.quoted === null && line.final === null;
+    return { categoryId, coverage: included ? "included" : "extra", amount: included ? null : line.final ?? line.quoted ?? line.planned, estimate };
   });
 }
 
@@ -68,7 +71,13 @@ export function applyPackage(data: WeddingData, venue: Vendor, choices: PackageC
     // Catering is the plate price itself, so it keeps its amount either way.
     const included = c.coverage === "included" && c.categoryId !== "catering";
     const amount = included ? 0 : c.amount;
-    if (line) {
+    const tbc = "Price to be confirmed by the hotel";
+    if (c.estimate && !included) {
+      const notes = withNote(line?.notes.includes(tbc) ? line.notes : [line?.notes, tbc].filter(Boolean).join("\n"));
+      budgetItems.push(line
+        ? { ...line, vendorId: venue.id, planned: amount ?? line.planned, notes, updatedAt: now }
+        : { id: newId(), categoryId: c.categoryId, name: `${budgetCategoryLabel(c.categoryId)} — ${venue.name}`, planned: amount ?? 0, quoted: null, final: null, vendorId: venue.id, status: "planned", notes, createdAt: now, updatedAt: now });
+    } else if (line) {
       budgetItems.push({
         ...line,
         vendorId: venue.id,

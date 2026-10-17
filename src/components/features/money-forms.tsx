@@ -9,7 +9,8 @@ import { formatLKR } from "@/lib/domain/money";
 import { paidForItem, expectedCost } from "@/lib/domain/budget";
 import { BUDGET_ITEM_STATUSES, type BudgetCategoryId, type BudgetItem, type BudgetItemStatus, type Payment } from "@/lib/domain/types";
 import { ConfirmDialog, Dialog } from "@/components/ui/dialog";
-import { MoneyField, SelectField, TextArea, TextField } from "@/components/ui/fields";
+import { MoneyField, MoneySlider, SelectField, TextArea, TextField } from "@/components/ui/fields";
+import { PaidByField } from "./payment-tracker";
 import { useToast } from "@/components/shell/toast";
 
 /* ------------------------------------------------------------------ */
@@ -18,16 +19,16 @@ import { useToast } from "@/components/shell/toast";
 
 type ItemDraft = Omit<BudgetItem, "id" | "createdAt" | "updatedAt">;
 
-export function BudgetItemForm({ open, item, onClose, defaultCategory }: { open: boolean; item?: BudgetItem; onClose: () => void; defaultCategory?: BudgetCategoryId }) {
-  return <ItemInner key={`${item?.id ?? "new"}-${open}`} open={open} item={item} onClose={onClose} defaultCategory={defaultCategory} />;
+export function BudgetItemForm({ open, item, onClose, defaultCategory, defaultName }: { open: boolean; item?: BudgetItem; onClose: () => void; defaultCategory?: BudgetCategoryId; defaultName?: string }) {
+  return <ItemInner key={`${item?.id ?? "new"}-${open}-${defaultName ?? ""}`} open={open} item={item} onClose={onClose} defaultCategory={defaultCategory} defaultName={defaultName} />;
 }
 
-function ItemInner({ open, item, onClose, defaultCategory }: { open: boolean; item?: BudgetItem; onClose: () => void; defaultCategory?: BudgetCategoryId }) {
+function ItemInner({ open, item, onClose, defaultCategory, defaultName }: { open: boolean; item?: BudgetItem; onClose: () => void; defaultCategory?: BudgetCategoryId; defaultName?: string }) {
   const store = useStore();
   const data = useWeddingData();
   const toast = useToast();
   const [draft, setDraft] = useState<ItemDraft>(() =>
-    item ? { ...item } : { categoryId: defaultCategory ?? "venue", name: "", planned: 0, quoted: null, final: null, vendorId: null, status: "planned", notes: "" },
+    item ? { ...item } : { categoryId: defaultCategory ?? "venue", name: defaultName ?? "", planned: 0, quoted: null, final: null, vendorId: null, status: "planned", notes: "" },
   );
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [confirmDelete, setConfirmDelete] = useState(false);
@@ -65,7 +66,9 @@ function ItemInner({ open, item, onClose, defaultCategory }: { open: boolean; it
           <SelectField<BudgetCategoryId> label="Category" value={draft.categoryId} onChange={(v) => set("categoryId", v)} options={BUDGET_CATEGORIES.map((c) => ({ value: c.id, label: c.label }))} />
           <SelectField<BudgetItemStatus> label="Status" value={draft.status} onChange={(v) => set("status", v)} options={BUDGET_ITEM_STATUSES.map((s) => ({ value: s, label: BUDGET_STATUS_LABEL[s] }))} />
           <TextField className="full" label="Item" value={draft.name} onChange={(v) => set("name", v)} error={errors.name} placeholder="Hall and entrance decoration" />
-          <MoneyField label="Planned" value={draft.planned} onChange={(v) => set("planned", v ?? 0)} error={errors.planned} />
+          <MoneySlider className="full" label="Planned — slide or type" value={draft.planned} onChange={(v) => set("planned", v)}
+            max={Math.round(Math.max(500_000, draft.planned * 2, data.wedding.budget * 0.4) / 50_000) * 50_000}
+            picks={[50_000, 100_000, 250_000, 500_000].map((v) => ({ label: `${v / 1000}k`, value: v }))} help={errors.planned} />
           <MoneyField label="Quoted" value={draft.quoted} onChange={(v) => set("quoted", v)} optional error={errors.quoted} />
           <MoneyField label="Final (agreed)" value={draft.final} onChange={(v) => set("final", v)} optional error={errors.final} />
           <SelectField label="Vendor" value={draft.vendorId ?? ""} onChange={(v) => set("vendorId", v || null)} options={[{ value: "", label: "None yet" }, ...vendors.map((v) => ({ value: v.id, label: v.name }))]} />
@@ -153,6 +156,7 @@ function PayInner({ open, payment, onClose, today, markPaid }: { open: boolean; 
           <TextField label="Due date" type="date" value={draft.dueDate} onChange={(v) => set("dueDate", v)} error={errors.dueDate} />
           <SelectField<"scheduled" | "paid"> label="Status" value={draft.status} onChange={(v) => set("status", v)} options={[{ value: "scheduled", label: "Scheduled" }, { value: "paid", label: "Paid" }]} />
           {draft.status === "paid" && <TextField label="Paid on" type="date" value={draft.paidDate || today} onChange={(v) => set("paidDate", v)} error={errors.paidDate} />}
+          <PaidByField value={draft.paidBy} onChange={(v) => set("paidBy", v)} label={draft.status === "paid" ? "Who paid?" : "Who will pay?"} />
           {draft.status === "paid" && <TextField label="Method" value={draft.method} onChange={(v) => set("method", v)} placeholder="Bank transfer, cash, card" />}
           {draft.status === "paid" && <TextField label="Reference" value={draft.reference} onChange={(v) => set("reference", v)} placeholder="Receipt or transfer number" />}
         </form>

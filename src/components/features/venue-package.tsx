@@ -8,7 +8,7 @@ import { applyPackage, currentPackage, PACKAGE_CATEGORIES, type Coverage, type P
 import type { Vendor, WeddingData } from "@/lib/domain/types";
 import { useStore } from "@/lib/store/provider";
 import { Dialog } from "@/components/ui/dialog";
-import { MoneyField } from "@/components/ui/fields";
+import { MoneyField, MoneySlider } from "@/components/ui/fields";
 import { useToast } from "@/components/shell/toast";
 import { cx } from "@/components/ui/primitives";
 
@@ -34,8 +34,13 @@ function suggested(data: WeddingData, venueId: string | null): PackageChoice[] {
   if (now.some((c) => c.coverage !== "no")) return now;
   // A sensible start for a hotel wedding: hall and food from the hotel, lights charged separately.
   const paradise = /paradise/i.test(`${data.planner.menu.venue} ${data.wedding.venue}`);
+  // Paradise Inn: buffet is in the LKR 11,000 plate, light operation is LKR 120,000 extra,
+  // and decor is charged separately with the price given around December.
   return now.map((c) =>
-    c.categoryId === "venue" || c.categoryId === "catering" ? { ...c, coverage: "included" } : c.categoryId === "lighting" && paradise ? { ...c, coverage: "extra", amount: 120_000 } : c,
+    c.categoryId === "venue" || c.categoryId === "catering" ? { ...c, coverage: "included" }
+      : c.categoryId === "lighting" && paradise ? { ...c, coverage: "extra", amount: 120_000, estimate: false }
+        : c.categoryId === "decoration" && paradise ? { ...c, coverage: "extra", amount: 500_000, estimate: true }
+          : c,
   );
 }
 
@@ -92,7 +97,20 @@ function VenuePackageDialog({ data, onClose }: { data: WeddingData; onClose: () 
                     ))}
                   </div>
                 </div>
-                {c.coverage === "extra" && <MoneyField label="Hotel's charge" value={c.amount} onChange={(v) => set(id, { amount: v })} optional />}
+                {c.coverage === "extra" && id !== "catering" && (
+                  <label className="flex items-center gap-2 text-[14px]">
+                    <input type="checkbox" className="wos-check" checked={Boolean(c.estimate)} onChange={(e) => set(id, { estimate: e.target.checked })} />
+                    Price not confirmed yet — use our estimate
+                  </label>
+                )}
+                {c.coverage === "extra" && (c.estimate ? (
+                  <MoneySlider label="Our estimate until the hotel confirms" value={c.amount ?? 0} onChange={(v) => set(id, { amount: v })}
+                    max={id === "decoration" ? 1_500_000 : 500_000}
+                    picks={id === "decoration" ? [175_000, 500_000, 1_000_000, 1_500_000].map((v) => ({ label: v >= 1_000_000 ? `${v / 1_000_000}M` : `${v / 1000}k`, value: v })) : undefined}
+                    help={id === "decoration" ? "Paradise Inn decor packages run about LKR 175,000 – 1,500,000. Slide to see how it changes your total." : undefined} />
+                ) : (
+                  <MoneyField label="Hotel's charge" value={c.amount} onChange={(v) => set(id, { amount: v })} optional />
+                ))}
               </li>
             );
           })}

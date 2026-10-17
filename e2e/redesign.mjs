@@ -139,6 +139,27 @@ await step("activity shows the creative changes", async () => {
   await page.getByText(/changed the wedding colours/).first().waitFor();
 });
 
+await step("pay an advance with who paid, and see the balance", async () => {
+  await page.goto(B + "/budget?tab=payments");
+  await page.getByRole("heading", { name: "Every bill" }).waitFor();
+  await page.getByRole("button", { name: /Pay advance|Add payment/ }).first().click();
+  const dlg = page.locator("dialog[open]");
+  await dlg.getByRole("button", { name: "Full balance" }).click();
+  await dlg.getByRole("button", { name: "Both of us" }).click();
+  await dlg.getByRole("button", { name: "Record Payment" }).click();
+  await page.getByText(/fully paid/).first().waitFor();
+  await page.getByText("Both of us").first().waitFor();
+});
+
+await step("menu swaps pork for mutton and deletes a dish", async () => {
+  await page.goto(B + "/menu");
+  await page.getByRole("button", { name: "Add / Delete Dishes" }).click();
+  await page.getByRole("button", { name: "Delete Apple", exact: true }).click();
+  await page.getByRole("button", { name: "Done Editing" }).click();
+  if (await page.getByRole("button", { name: "Delete Apple" }).count()) throw new Error("dish not deleted");
+  await page.getByRole("heading", { name: "Mutton" }).waitFor();
+});
+
 await step("digital invitation opens, counts down and takes a reply", async () => {
   await page.goto(B + "/invitations");
   await page.getByRole("button", { name: /Piano/ }).click();

@@ -291,3 +291,43 @@ textarea.wos-input { height: auto; min-height: 96px; padding: var(--space-3) var
   .wos-table tr { break-inside: avoid; }
   .wos-table thead { display: table-header-group; }
 }
+
+@layer components {
+/* Money slider: a thick track that fills as you drag. */
+.money-slider__range { -webkit-appearance: none; appearance: none; width: 100%; height: 28px; background: transparent; cursor: pointer; }
+.money-slider__range::-webkit-slider-runnable-track { height: 10px; border-radius: 999px; background: linear-gradient(90deg, var(--wine-600) var(--pct, 0%), var(--surface-sunken) var(--pct, 0%)); box-shadow: inset 0 0 0 1px var(--line); }
+.money-slider__range::-moz-range-track { height: 10px; border-radius: 999px; background: var(--surface-sunken); box-shadow: inset 0 0 0 1px var(--line); }
+.money-slider__range::-moz-range-progress { height: 10px; border-radius: 999px; background: var(--wine-600); }
+.money-slider__range::-webkit-slider-thumb { -webkit-appearance: none; width: 26px; height: 26px; margin-top: -8px; border-radius: 50%; background: #fff; border: 3px solid var(--wine-600); box-shadow: 0 2px 8px rgb(0 0 0 / .18); transition: transform .15s; }
+.money-slider__range::-moz-range-thumb { width: 22px; height: 22px; border-radius: 50%; background: #fff; border: 3px solid var(--wine-600); box-shadow: 0 2px 8px rgb(0 0 0 / .18); }
+.money-slider__range:active::-webkit-slider-thumb { transform: scale(1.15); }
+.money-slider__range:focus-visible { outline: none; }
+.money-slider__range:focus-visible::-webkit-slider-thumb { outline: 2px solid var(--focus); outline-offset: 2px; }
+
+/* Bills board */
+.bill { display: flex; flex-direction: column; gap: 12px; }
+.bill-bar { position: relative; height: 12px; border-radius: 999px; background: var(--surface-sunken); overflow: hidden; box-shadow: inset 0 0 0 1px var(--line); }
+.bill-bar > i { position: absolute; inset: 0 auto 0 0; border-radius: inherit; background: linear-gradient(90deg, var(--sage-600, #4f7a5a), color-mix(in srgb, var(--sage-600, #4f7a5a) 70%, #fff)); transition: width .8s var(--ease-silk); }
+.bill-bar > b { position: absolute; top: 0; bottom: 0; background: repeating-linear-gradient(-45deg, color-mix(in srgb, var(--champagne-500) 55%, transparent) 0 6px, transparent 6px 12px); }
+.bill-figs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.bill-figs > div { display: flex; flex-direction: column; }
+.bill-figs span { font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-muted); }
+.bill-figs strong { font: 500 18px/24px var(--wos-display); font-variant-numeric: tabular-nums; }
+.bill-pays { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
+.bill-pays li { display: grid; grid-template-columns: 22px 1fr auto; gap: 8px; align-items: center; padding: 6px 4px; border-radius: 8px; font-size: 14px; }
+.bill-pays li:hover { background: var(--surface-sunken); }
+.payer-row { display: grid; grid-template-columns: 40px minmax(0, 1fr) auto; gap: 12px; align-items: center; }
+.payer-avatar { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 50%; font: 700 15px/1 var(--wos-sans); color: #fff; }
+}
+
+@layer components {
+.confetti-layer { position: fixed; inset: 0; pointer-events: none; z-index: 200; overflow: hidden; }
+.confetti-bit { position: fixed; width: 9px; height: 7px; margin: -4px 0 0 -4px; border-radius: 80% 0 80% 0; animation: confetti-pop 1.6s cubic-bezier(.15, .7, .3, 1) forwards; box-shadow: 0 0 0 .5px rgb(0 0 0 / .06); }
+.confetti-bit--1 { width: 5px; height: 11px; border-radius: 2px; }
+.confetti-bit--2 { width: 7px; height: 7px; border-radius: 50%; }
+@keyframes confetti-pop {
+  0% { transform: translate(0, 0) rotate(0) scale(.3); opacity: 1; }
+  70% { opacity: 1; }
+  100% { transform: translate(var(--dx), calc(var(--dy) + 160px)) rotate(var(--rot)) scale(1); opacity: 0; }
+}
+}

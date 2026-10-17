@@ -36,4 +36,16 @@ describe("hotel package", () => {
     expect(alsoProvides(merged, hotel)).toEqual(expect.arrayContaining(["decoration", "poruwa", "lighting"]));
     expect(currentPackage(merged, hotel.id).find((c) => c.categoryId === "poruwa")?.coverage).toBe("included");
   });
+
+  it("keeps an unconfirmed hotel price as an estimate, not a quote", () => {
+    const data = createSampleWedding("2026-10-14", now);
+    const hotel = data.vendors.find((v) => v.categoryId === "venue")!;
+    data.budgetItems = data.budgetItems.filter((i) => i.categoryId !== "decoration");
+    const res = applyPackage(data, hotel, [{ categoryId: "decoration", coverage: "extra", amount: 500_000, estimate: true }], now, id);
+    const decor = res.budgetItems[0];
+    expect(decor).toMatchObject({ planned: 500_000, quoted: null, status: "planned", vendorId: hotel.id });
+    expect(decor.notes).toContain("Price to be confirmed by the hotel");
+    data.budgetItems.push(decor);
+    expect(currentPackage(data, hotel.id).find((c) => c.categoryId === "decoration")).toMatchObject({ coverage: "extra", amount: 500_000, estimate: true });
+  });
 });
