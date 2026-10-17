@@ -266,7 +266,7 @@ export function seatsUsed(table: SeatTable, partySize: (guestId: string) => numb
 /* Cards and boxes                                                     */
 /* ------------------------------------------------------------------ */
 
-export type CardTemplate = "kandyan" | "floral" | "modern" | "lotus";
+export type CardTemplate = "blush" | "arch" | "seal" | "kandyan" | "floral" | "modern" | "lotus";
 
 export interface InvitationText {
   /** Opening line, e.g. a blessing. */
@@ -289,6 +289,10 @@ export interface StationeryPlan {
   template: CardTemplate;
   /** Use the wedding colours; otherwise the template's own. */
   useTheme: boolean;
+  /** Names in calligraphy or in the classic serif. */
+  nameFont: "script" | "serif";
+  /** Couple photo shown on the arch design (a document id). */
+  photoId: string | null;
   text: InvitationText;
   /** Text on the cake boxes. */
   boxLine: string;
@@ -323,8 +327,10 @@ export function defaultInvite(): InviteSettings {
 
 export function defaultStationery(): StationeryPlan {
   return {
-    template: "kandyan",
-    useTheme: true,
+    template: "blush",
+    useTheme: false,
+    nameFont: "script",
+    photoId: null,
     text: {
       blessing: "With the blessings of the Noble Triple Gem",
       hosts: "Mr. & Mrs. ________ and Mr. & Mrs. ________",

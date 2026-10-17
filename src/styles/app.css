@@ -343,7 +343,7 @@ textarea.wos-input { height: auto; min-height: 96px; padding: var(--space-3) var
 @keyframes greport-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
 .greport-table-head { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
 .greport-table-head h2 { margin: 0; font: 600 16px/22px var(--wos-sans); }
-.greport-table-head span { font-size: 13px; color: var(--ink-muted); }
+.greport-table-head div > span { font-size: 13px; color: var(--ink-muted); }
 .greport-badge { flex: none; display: grid; place-items: center; min-width: 46px; height: 46px; padding: 0 6px; border-radius: 50%; background: radial-gradient(circle at 35% 30%, color-mix(in srgb, var(--wine-600) 60%, #fff), var(--wine-600)); color: var(--on-wine); font: 500 20px/1 var(--wos-display); box-shadow: 0 4px 10px color-mix(in srgb, var(--wine-600) 25%, transparent); overflow: hidden; }
 .greport-table ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
 .greport-table li { display: flex; align-items: center; gap: 8px; padding: 5px 4px; font-size: 14px; border-bottom: 1px dotted var(--line); }

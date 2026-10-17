@@ -1,5 +1,6 @@
 "use client";
 
+import { celebrate } from "@/lib/confetti";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { Download, Mail, Plus, Send, Sparkles } from "lucide-react";
@@ -57,7 +58,10 @@ export function GuestsView() {
     // Confirming an RSVP implies the invitation reached them.
     const next = { ...g, ...changes };
     if (changes.rsvp && changes.rsvp !== "pending" && (g.invitation === "not_sent" || g.invitation === "sent" || g.invitation === "delivered" || g.invitation === "opened")) next.invitation = "confirmed";
-    if (changes.rsvp === "yes") setBloom(g.id);
+    if (changes.rsvp === "yes") {
+      setBloom(g.id);
+      celebrate(document.activeElement, 26);
+    }
     store.upsert("guests", next);
   };
 

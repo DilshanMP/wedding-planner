@@ -91,7 +91,7 @@ function Report({ data }: { data: WeddingData }) {
                   <span className="greport-badge">{t.label.replace(/^table\s*/i, "") || t.label}</span>
                   <div className="min-w-0">
                     <h2>{t.label}</h2>
-                    <span className={cx(t.seats !== null && t.people > t.seats && "text-danger")}>{t.people}{t.seats ? ` of ${t.seats} seats` : " people"}</span>
+                    <span className={cx(t.seats !== null && t.people > t.seats && "text-danger")}>{t.seats ? `${t.people} of ${t.seats} seats` : `${t.people} ${t.people === 1 ? "person" : "people"}`}</span>
                   </div>
                 </div>
                 <ul>

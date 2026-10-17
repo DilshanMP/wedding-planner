@@ -1,5 +1,6 @@
 "use client";
 
+import { celebrate } from "@/lib/confetti";
 import { useState } from "react";
 import { useStore, useWeddingData } from "@/lib/store/provider";
 import { formatShortDate, relativeDue, compareISO } from "@/lib/domain/dates";
@@ -36,14 +37,17 @@ export function TaskRow({ task, today, onOpen, showStatus }: { task: Task; today
   const blockers = done ? [] : blockedBy(task, data.tasks);
   const id = `task-${task.id}`;
 
-  const toggle = (checked: boolean) => {
-    if (checked) setPetal((p) => p + 1);
+  const toggle = (checked: boolean, el?: Element) => {
+    if (checked) {
+      setPetal((p) => p + 1);
+      celebrate(el, 22);
+    }
     store.upsert("tasks", { ...task, status: checked ? "completed" : "in_progress", completedAt: checked ? nowISO() : null });
   };
 
   return (
     <li style={{ padding: "14px 0" }} className="relative">
-      <input className="wos-check" type="checkbox" id={id} checked={done} onChange={(e) => toggle(e.target.checked)} aria-describedby={`${id}-meta`} />
+      <input className="wos-check" type="checkbox" id={id} checked={done} onChange={(e) => toggle(e.target.checked, e.currentTarget)} aria-describedby={`${id}-meta`} />
       {petal > 0 && <span key={petal} className="wos-petal" style={{ left: 6, top: 10 }} aria-hidden="true" />}
       <div className="flex min-w-0 flex-1 flex-col">
         <label htmlFor={id} className={cx("text-[14px] leading-5 font-semibold cursor-pointer", done && "line-through opacity-60")}>

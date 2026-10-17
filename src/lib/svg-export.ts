@@ -32,7 +32,7 @@ function embeddedFonts(): Promise<string> {
         if (!(rule instanceof CSSFontFaceRule)) continue;
         const family = rule.style.getPropertyValue("font-family");
         const range = rule.style.getPropertyValue("unicode-range");
-        if (!/Cormorant|Manrope/i.test(family) || (range && !/U\+0000/i.test(range))) continue;
+        if (!/Cormorant|Manrope|Great Vibes/i.test(family) || (range && !/U\+0000/i.test(range))) continue;
         const src = /url\(["']?([^"')]+)["']?\)/.exec(rule.style.getPropertyValue("src"))?.[1];
         if (!src) continue;
         try {
@@ -48,20 +48,42 @@ function embeddedFonts(): Promise<string> {
   return fontCss;
 }
 
-export async function svgToPng(svg: SVGSVGElement, widthPx: number): Promise<Blob> {
-  const vb = svg.viewBox.baseVal;
-  const heightPx = Math.round(widthPx * (vb.height / vb.width));
+/** A standalone copy: fonts and photos inlined, so it opens anywhere (Canva, Illustrator, a printer). */
+async function standalone(svg: SVGSVGElement, width: string, height: string): Promise<string> {
   const clone = svg.cloneNode(true) as SVGSVGElement;
-  clone.setAttribute("width", String(widthPx));
-  clone.setAttribute("height", String(heightPx));
+  clone.setAttribute("width", width);
+  clone.setAttribute("height", height);
   clone.removeAttribute("class");
+  for (const img of [...clone.querySelectorAll("image")]) {
+    const href = img.getAttribute("href") ?? img.getAttributeNS("http://www.w3.org/1999/xlink", "href");
+    if (href && !href.startsWith("data:")) {
+      try {
+        img.setAttribute("href", await toDataUrl(href));
+      } catch {
+        img.remove();
+      }
+    }
+  }
   const css = await embeddedFonts();
   if (css) {
     const style = document.createElementNS("http://www.w3.org/2000/svg", "style");
     style.textContent = css;
     clone.insertBefore(style, clone.firstChild);
   }
-  const xml = new XMLSerializer().serializeToString(clone);
+  return new XMLSerializer().serializeToString(clone);
+}
+
+/** Vector file at real size (mm), for Canva or a print shop. */
+export async function svgToFile(svg: SVGSVGElement): Promise<Blob> {
+  const vb = svg.viewBox.baseVal;
+  const xml = await standalone(svg, `${vb.width / 10}mm`, `${vb.height / 10}mm`);
+  return new Blob([`<?xml version="1.0" encoding="UTF-8"?>\n${xml}`], { type: "image/svg+xml" });
+}
+
+export async function svgToPng(svg: SVGSVGElement, widthPx: number): Promise<Blob> {
+  const vb = svg.viewBox.baseVal;
+  const heightPx = Math.round(widthPx * (vb.height / vb.width));
+  const xml = await standalone(svg, String(widthPx), String(heightPx));
   const url = URL.createObjectURL(new Blob([xml], { type: "image/svg+xml;charset=utf-8" }));
   try {
     const img = await new Promise<HTMLImageElement>((resolve, reject) => {
