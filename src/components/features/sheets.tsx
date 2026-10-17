@@ -134,7 +134,7 @@ export function GuestSheet({ guests }: { guests: Guest[] }) {
   const add = () => {
     const now = nowISO();
     store.upsert("guests", {
-      id: newId(), name: "New guest", phone: "", email: "", side: "bride", relation: "family", vip: false, partyType: "single", adults: 1, children: 0,
+      id: newId(), name: "New guest", phone: "", email: "", side: "bride", category: "", relation: "family", vip: false, partyType: "single", adults: 1, children: 0,
       invitation: "not_sent", rsvp: "pending", meal: "unknown", vegCount: 0, table: "", needsTransport: false, needsAccommodation: false, notes: "", rsvpToken: newId(), createdAt: now, updatedAt: now,
     });
   };

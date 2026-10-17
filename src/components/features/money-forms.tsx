@@ -107,7 +107,7 @@ function PayInner({ open, payment, onClose, today, markPaid }: { open: boolean; 
   const [draft, setDraft] = useState<PayDraft>(() =>
     payment
       ? { ...payment, paidDate: payment.paidDate ?? (markPaid ? today : ""), status: markPaid ? "paid" : payment.status }
-      : { vendorId: null, budgetItemId: null, label: "", amount: 0, dueDate: today, paidDate: "", status: "scheduled", method: "", reference: "" },
+      : { vendorId: null, budgetItemId: null, label: "", amount: 0, dueDate: today, paidDate: "", status: "scheduled", method: "", reference: "", paidBy: "" },
   );
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [confirmDelete, setConfirmDelete] = useState(false);

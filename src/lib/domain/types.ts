@@ -127,7 +127,8 @@ export type TaskCategoryId = string;
 /* Guests                                                              */
 /* ------------------------------------------------------------------ */
 
-export type Side = "bride" | "groom";
+/** Whose guest: the bride's side, the groom's side, or both / shared (crew, brand team…). */
+export type Side = "bride" | "groom" | "both";
 export type Relation = "family" | "friend" | "colleague" | "other";
 export type PartyType = "single" | "couple" | "family" | "group";
 export const INVITATION_STATUSES = ["not_sent", "sent", "delivered", "opened", "confirmed"] as const;
@@ -143,6 +144,8 @@ export interface Guest extends Timestamps {
   phone: string;
   email: string;
   side: Side;
+  /** The couple's own grouping, e.g. "Brand team", "Photography crew", "Office". */
+  category: string;
   relation: Relation;
   vip: boolean;
   partyType: PartyType;
@@ -186,6 +189,8 @@ export type BudgetCategoryId =
   | "gifts"
   | "album"
   | "miscellaneous"
+  | "beauty"
+  | "personal"
   | "emergency";
 
 export const BUDGET_ITEM_STATUSES = [
@@ -273,6 +278,8 @@ export interface Payment extends Timestamps {
   status: PaymentStatus;
   method: string;
   reference: string;
+  /** Who paid (or will pay): e.g. Groom, Bride, Bride's family. */
+  paidBy: string;
 }
 
 /* ------------------------------------------------------------------ */

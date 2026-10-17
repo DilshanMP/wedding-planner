@@ -33,6 +33,8 @@ const KEYWORDS: Record<BudgetCategoryId, string[]> = {
   decoration: ["decor", "decoration"],
   flowers: ["flower", "jasmine", "lotus", "rose"],
   poruwa: ["poruwa"],
+  beauty: ["salon", "facial", "treatment", "spa", "skin"],
+  personal: ["earphone", "hearing", "personal", "glasses"],
   attire: ["saree", "attire", "dress", "suit"],
   jewelry: ["jewel", "ring"],
   makeup: ["makeup", "hair"],

@@ -73,7 +73,7 @@ export function guestMetrics(guests: Guest[], wedding: Pick<Wedding, "pendingAtt
     invitationCoverage: 0,
     rsvpCompletion: 0,
     expectedAttendance: 0,
-    bySide: { bride: { total: 0, confirmed: 0, pending: 0 }, groom: { total: 0, confirmed: 0, pending: 0 } },
+    bySide: { bride: { total: 0, confirmed: 0, pending: 0 }, groom: { total: 0, confirmed: 0, pending: 0 }, both: { total: 0, confirmed: 0, pending: 0 } },
     meals: { veg: 0, nonVeg: 0, unknown: 0 },
     tablesAssigned: 0,
     needsTransport: 0,

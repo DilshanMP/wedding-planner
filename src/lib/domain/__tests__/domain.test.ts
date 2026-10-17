@@ -139,7 +139,7 @@ describe("budget", () => {
 
 describe("guests", () => {
   const g = (over: Partial<Guest>): Guest => ({
-    id: "x", name: "Test", phone: "", email: "", side: "bride", relation: "family", vip: false, partyType: "single",
+    id: "x", name: "Test", phone: "", email: "", side: "bride", category: "", relation: "family", vip: false, partyType: "single",
     adults: 1, children: 0, invitation: "sent", rsvp: "pending", meal: "unknown", vegCount: 0, table: "",
     needsTransport: false, needsAccommodation: false, notes: "", rsvpToken: "t", createdAt: NOW, updatedAt: NOW, ...over,
   });
