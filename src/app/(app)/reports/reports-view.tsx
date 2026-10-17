@@ -8,6 +8,7 @@ import { formatAmount } from "@/lib/domain/money";
 import { downloadXlsx, type Sheet } from "@/lib/xlsx";
 import { PageHeader } from "@/components/ui/primitives";
 import { PageSkeleton } from "@/components/shell/wedding-gate";
+import { WorkbookCard } from "@/components/features/workbook-card";
 
 function toSheets(report: Report): Sheet[] {
   return report.tables.map((t) => ({
@@ -51,6 +52,7 @@ export function ReportsView() {
           }
         />
       </div>
+      <WorkbookCard data={data} />
       <div className="wos-tabs no-print" role="tablist" aria-label="Report">
         {REPORT_IDS.map((id) => (
           <button key={id} type="button" role="tab" className="wos-tab" aria-selected={selected === id} onClick={() => q.set({ r: id })}>{REPORT_TITLES[id].replace(/ report$/, "").replace("Wedding readiness", "Readiness")}</button>

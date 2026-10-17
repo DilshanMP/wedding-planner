@@ -181,6 +181,15 @@ await step("guest report shows tables", async () => {
   await page.locator(".greport-alpha li").first().waitFor();
 });
 
+await step("excel: export everything and import it back", async () => {
+  await page.goto(B + "/reports");
+  const [dl] = await Promise.all([page.waitForEvent("download"), page.getByRole("button", { name: "Export Everything" }).click()]);
+  const file = await dl.path();
+  await page.getByLabel("Choose an Excel file to import").setInputFiles({ name: "plan.xlsx", mimeType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", buffer: fs.readFileSync(file) });
+  await page.getByText("Nothing has changed.").waitFor();
+  await page.getByRole("button", { name: "Cancel" }).click();
+});
+
 await step("digital invitation opens, counts down and takes a reply", async () => {
   await page.goto(B + "/invitations");
   await page.getByRole("button", { name: /Piano/ }).click();
