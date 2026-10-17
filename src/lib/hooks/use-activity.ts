@@ -4,7 +4,14 @@ import { useCallback, useEffect, useState } from "react";
 import type { ActivityEntry } from "@/lib/domain/activity";
 import { useStore, useStoreState } from "@/lib/store/provider";
 
-export type ActivityState = { status: "loading" } | { status: "ready"; entries: ActivityEntry[] } | { status: "unavailable" };
+export type ActivityState = ({ status: "loading" } | { status: "ready"; entries: ActivityEntry[] } | { status: "unavailable" }) & {
+  /** Check now (also pulls in the latest plan). */
+  reload: () => void;
+  checkedAt: Date | null;
+  checking: boolean;
+};
+
+type Result = { status: "loading" } | { status: "ready"; entries: ActivityEntry[] } | { status: "unavailable" };
 
 const POLL_MS = 30_000;
 
@@ -18,7 +25,9 @@ export function useActivity(limit: number): ActivityState {
   const state = useStoreState();
   const weddingId = state.status === "ready" ? state.data.wedding.id : null;
   const saving = state.status === "ready" && state.saving;
-  const [result, setResult] = useState<ActivityState>({ status: "loading" });
+  const [result, setResult] = useState<Result>({ status: "loading" });
+  const [checkedAt, setCheckedAt] = useState<Date | null>(null);
+  const [checking, setChecking] = useState(false);
 
   const load = useCallback(async () => {
     if (!weddingId) return;
@@ -29,7 +38,13 @@ export function useActivity(limit: number): ActivityState {
       // Most likely the activity table hasn't been created in this project yet.
       setResult((r) => (r.status === "ready" ? r : { status: "unavailable" }));
     }
+    setCheckedAt(new Date());
   }, [store, weddingId, limit]);
+
+  const reload = useCallback(() => {
+    setChecking(true);
+    void Promise.all([store.refresh(), load()]).finally(() => setChecking(false));
+  }, [store, load]);
 
   useEffect(() => {
     if (saving) return;
@@ -41,12 +56,14 @@ export function useActivity(limit: number): ActivityState {
       if (document.visibilityState === "visible") void load();
     };
     document.addEventListener("visibilitychange", onVisible);
+    window.addEventListener("focus", onVisible);
     return () => {
       clearTimeout(first);
       clearInterval(timer);
       document.removeEventListener("visibilitychange", onVisible);
+      window.removeEventListener("focus", onVisible);
     };
   }, [load, saving]);
 
-  return result;
+  return { ...result, reload, checkedAt, checking };
 }

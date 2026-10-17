@@ -177,7 +177,7 @@ export class WeddingStore {
       const latest = now.data.planner[key];
       const { summary, minor } = describePlanner(key, base, latest);
       const last = this.plannerLogged.get(key) ?? 0;
-      const quiet = minor && Date.now() - last < 15 * 60_000;
+      const quiet = minor && Date.now() - last < 5 * 60_000;
       if (!quiet) this.plannerLogged.set(key, Date.now());
       void this.persist(async () => {
         await this.repo.savePlanner(weddingId, key, latest);

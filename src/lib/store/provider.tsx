@@ -91,14 +91,21 @@ export function WeddingProvider({ children }: { children: ReactNode }) {
       if (event === "SIGNED_IN" || event === "SIGNED_OUT") apply(session);
       else if (event === "USER_UPDATED" && session) store.setActor({ id: session.user.id, name: displayName(session) });
     });
-    // Pick up your partner's changes when you come back to the app.
+    // Pick up your partner's changes: when you come back to the app, when the
+    // connection returns, and every 45 seconds while it's open on screen.
     const onVisible = () => {
       if (document.visibilityState === "visible") void store.refresh();
     };
+    const timer = setInterval(onVisible, 45_000);
     document.addEventListener("visibilitychange", onVisible);
+    window.addEventListener("focus", onVisible);
+    window.addEventListener("online", onVisible);
     return () => {
       data.subscription.unsubscribe();
+      clearInterval(timer);
       document.removeEventListener("visibilitychange", onVisible);
+      window.removeEventListener("focus", onVisible);
+      window.removeEventListener("online", onVisible);
     };
   }, [store]);
 
