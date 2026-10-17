@@ -56,7 +56,8 @@ export const guestSchema = z
     name: name("Guest name"),
     phone: z.string().trim().max(40),
     email: z.union([z.literal(""), z.email("Enter a valid email address.")]),
-    side: z.enum(["bride", "groom"]),
+    side: z.enum(["bride", "groom", "both"]),
+    category: z.string().trim().max(60),
     relation: z.enum(["family", "friend", "colleague", "other"]),
     vip: z.boolean(),
     partyType: z.enum(["single", "couple", "family", "group"]),
@@ -121,6 +122,7 @@ export const paymentSchema = z.object({
   status: z.enum(["scheduled", "paid"]),
   method: z.string().max(60),
   reference: z.string().max(120),
+  paidBy: z.string().trim().max(60),
 });
 
 export const timelineEventSchema = z.object({

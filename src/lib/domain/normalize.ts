@@ -10,11 +10,11 @@ export function normalizeWeddingData(raw: WeddingData): WeddingData {
   const data = { ...raw } as WeddingData;
   data.people = (data.people ?? []).map((p) => ({ ...p, phone: p.phone ?? "" }));
   data.tasks ??= [];
-  data.guests = (data.guests ?? []).map((g) => (g.rsvpToken ? g : { ...g, rsvpToken: newId() }));
+  data.guests = (data.guests ?? []).map((g) => ({ ...g, category: g.category ?? "", rsvpToken: g.rsvpToken || newId() }));
   data.budgetItems ??= [];
   data.vendors ??= [];
   data.quotes ??= [];
-  data.payments ??= [];
+  data.payments = (data.payments ?? []).map((p) => ({ ...p, paidBy: p.paidBy ?? "" }));
   data.timeline ??= [];
   data.documents ??= [];
   data.planner = normalizePlanner(data.planner, newId);

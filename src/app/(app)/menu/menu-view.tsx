@@ -8,13 +8,14 @@ import { useStore } from "@/lib/store/provider";
 import { newId, nowISO } from "@/lib/domain/ids";
 import { guestMetrics } from "@/lib/domain/guests";
 import { formatLKR } from "@/lib/domain/money";
-import { CRYSTAL_GLOW_2027, emptyMenu, menuFromTemplate, menuProgress, menuText, toggleDish, venueBudgetLines, type MenuPlan } from "@/lib/domain/planner";
+import { CRYSTAL_GLOW_2027, emptyMenu, menuFromTemplate, menuProgress, menuText, porkToMutton, toggleDish, venueBudgetLines, type MenuPlan } from "@/lib/domain/planner";
 import type { WeddingData } from "@/lib/domain/types";
 import { MoneyField, NumberField, TextArea } from "@/components/ui/fields";
 import { Notice, PageHeader, cx } from "@/components/ui/primitives";
 import { PageSkeleton } from "@/components/shell/wedding-gate";
 import { useToast } from "@/components/shell/toast";
 import { Dialog } from "@/components/ui/dialog";
+import { VenuePackageButton } from "@/components/features/venue-package";
 
 export function MenuView() {
   const page = usePage();
@@ -38,7 +39,7 @@ function Menu({ data }: { data: WeddingData }) {
           <button type="button" className="plan-tile !gap-3 text-left" onClick={() => setMenu(menuFromTemplate(CRYSTAL_GLOW_2027))}>
             <span className="grid size-12 place-items-center rounded-2xl bg-wine-50 text-wine-600"><UtensilsCrossed className="wos-icon" aria-hidden="true" /></span>
             <span className="font-display text-[26px] leading-8">Paradise Inn — Crystal Glow</span>
-            <span className="text-[14px] text-ink-muted">Bolgoda · Crystal Atrium · 2027 menu card. Welcome drink, 3 appetizers, 4 salads, soup, prawns, seafood, chicken, pork, 4 vegetables, 3 rice &amp; noodles, 5 desserts.</span>
+            <span className="text-[14px] text-ink-muted">Bolgoda · Crystal Atrium · 2027 menu card. Welcome drink, 3 appetizers, 4 salads, soup, prawns, seafood, chicken, mutton, 4 vegetables, 3 rice &amp; noodles, 5 desserts.</span>
             <span className="font-semibold text-wine-600">LKR 11,000 per plate</span>
           </button>
           <button type="button" className="plan-tile !gap-3 text-left" onClick={() => { setMenu({ ...emptyMenu(), menuName: "Our menu", sections: [{ id: newId(), title: "Mains", pick: 2, items: [] }] }); setEditing(true); }}>
@@ -84,7 +85,8 @@ function Menu({ data }: { data: WeddingData }) {
           lead={menu.venue || "Choose your dishes course by course."}
           actions={
             <>
-              <button type="button" className="wos-btn wos-btn--secondary" onClick={() => setEditing((v) => !v)}><Pencil className="wos-icon" aria-hidden="true" />{editing ? "Done Editing" : "Edit Menu"}</button>
+              <VenuePackageButton data={data} />
+              <button type="button" className="wos-btn wos-btn--secondary" onClick={() => setEditing((v) => !v)}><Pencil className="wos-icon" aria-hidden="true" />{editing ? "Done Editing" : "Add / Delete Dishes"}</button>
               <button type="button" className="wos-btn wos-btn--primary" onClick={() => window.print()}><Printer className="wos-icon" aria-hidden="true" />Print</button>
             </>
           }
@@ -113,6 +115,14 @@ function Menu({ data }: { data: WeddingData }) {
           <div className="plan-tile__bar !mt-0"><i style={{ width: `${progress.total ? (progress.done / progress.total) * 100 : 0}%` }} /></div>
         </div>
       </section>
+
+      {porkToMutton(menu) && (
+        <Notice tone="info" icon={<UtensilsCrossed className="wos-icon" />} title="Mutton instead of pork?"
+          action={<button type="button" className="wos-btn wos-btn--secondary wos-btn--sm" onClick={() => { const next = porkToMutton(menu); if (next) { setMenu(next); toast("Pork course swapped for mutton."); } }}>Swap to Mutton</button>}>
+          If the hotel serves mutton in place of the pork course, swap it in one tap. You can edit the mutton dishes after.
+        </Notice>
+      )}
+      {editing && <p className="m-0 text-[14px] text-ink-muted no-print">Tap 🗑 next to a dish to delete it, type to add one, or rename a course. Changes save as you go.</p>}
 
       {menu.finalizedAt ? (
         <Notice tone="success" icon={<Lock className="wos-icon" />} title="Menu is final." action={<button type="button" className="wos-btn wos-btn--secondary wos-btn--sm" onClick={() => setMenu({ ...menu, finalizedAt: null })}>Reopen</button>}>
@@ -161,7 +171,7 @@ function Menu({ data }: { data: WeddingData }) {
                       {editing ? (
                         <span className="dish-chip">
                           {dish}
-                          <button type="button" className="ml-1 border-0 bg-transparent p-0 text-ink-muted" aria-label={`Remove ${dish}`} onClick={() => setMenu(editSection(menu, sec.id, { items: sec.items.filter((d) => d !== dish) }))}><Trash2 style={{ width: 14, height: 14 }} /></button>
+                          <button type="button" className="ml-1 grid size-6 place-items-center rounded-full border-0 bg-danger-50 p-0 text-danger" aria-label={`Delete ${dish}`} onClick={() => setMenu(editSection(menu, sec.id, { items: sec.items.filter((d) => d !== dish) }))}><Trash2 style={{ width: 14, height: 14 }} /></button>
                         </span>
                       ) : sec.pick === 0 ? (
                         <span className="dish-chip dish-chip--included">{dish}</span>

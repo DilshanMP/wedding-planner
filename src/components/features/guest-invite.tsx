@@ -2,7 +2,7 @@
 
 import { Link2, MessageCircle } from "lucide-react";
 import { useAuth, useStore } from "@/lib/store/provider";
-import { invitationMessage, rsvpUrl, whatsAppLink } from "@/lib/domain/invitations";
+import { invitationMessage, inviteUrl, whatsAppLink } from "@/lib/domain/invitations";
 import type { Guest, Wedding } from "@/lib/domain/types";
 import { Toggle } from "@/components/ui/fields";
 import { useToast } from "@/components/shell/toast";
@@ -13,7 +13,7 @@ export function GuestInviteActions({ guest, wedding }: { guest: Guest; wedding: 
   const auth = useAuth();
   const toast = useToast();
   const online = auth.mode === "cloud" && wedding.rsvpEnabled;
-  const link = online && typeof window !== "undefined" ? rsvpUrl(window.location.origin, guest) : null;
+  const link = online && typeof window !== "undefined" ? inviteUrl(window.location.origin, guest) : null;
   const wa = whatsAppLink(guest, invitationMessage(wedding, guest, link));
 
   return (
@@ -37,12 +37,12 @@ export function GuestInviteActions({ guest, wedding }: { guest: Guest; wedding: 
         <button
           type="button"
           className="wos-btn wos-btn--ghost wos-btn--sm !px-2.5"
-          aria-label={`Copy RSVP link for ${guest.name}`}
-          title="Copy RSVP link"
+          aria-label={`Copy invitation link for ${guest.name}`}
+          title="Copy invitation link"
           onClick={async () => {
             try {
               await navigator.clipboard.writeText(link);
-              toast(`RSVP link for ${guest.name} copied.`);
+              toast(`Invitation link for ${guest.name} copied.`);
             } catch {
               toast("Couldn't copy. Long-press the link to copy it instead.", "danger");
             }

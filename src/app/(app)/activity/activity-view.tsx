@@ -1,11 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { AlertTriangle } from "lucide-react";
+import { AlertTriangle, RefreshCw } from "lucide-react";
 import { usePage } from "@/lib/hooks/use-page";
 import { useActivity } from "@/lib/hooks/use-activity";
 import { useAuth } from "@/lib/store/provider";
 import { formatLongDate } from "@/lib/domain/dates";
+import { timeAgo } from "@/lib/domain/activity";
 import type { ActivityEntry } from "@/lib/domain/activity";
 import { EmptyState, Notice, PageHeader, Skeleton } from "@/components/ui/primitives";
 import { PageSkeleton } from "@/components/shell/wedding-gate";
@@ -40,7 +41,13 @@ export function ActivityView() {
         overline="Records"
         title="Activity"
         lead={auth.mode === "cloud" ? "Everything you, your partner and your family have done in the plan — newest first." : "Everything that's changed in your plan on this device — newest first."}
+        actions={
+          <button type="button" className="wos-btn wos-btn--secondary" onClick={activity.reload} disabled={activity.checking}>
+            <RefreshCw className={`wos-icon ${activity.checking ? "animate-spin" : ""}`} aria-hidden="true" />{activity.checking ? "Checking…" : "Refresh"}
+          </button>
+        }
       />
+      {activity.checkedAt && now && <p className="m-0 -mt-2 text-[13px] text-ink-muted" aria-live="polite">Updated {timeAgo(activity.checkedAt.toISOString(), now)} · checks again every 30 seconds while this page is open.</p>}
 
       {activity.status === "loading" ? (
         <div className="flex flex-col gap-3">{[0, 1, 2, 3].map((i) => <Skeleton key={i} style={{ height: 56 }} />)}</div>

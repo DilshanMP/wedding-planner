@@ -94,7 +94,7 @@ await step("owner turns on online RSVP", async () => {
   const { rows } = await db.query("select g.rsvp_token, g.name from guests g join weddings w on w.id=g.wedding_id where w.id = $1 and w.rsvp_enabled and g.adults + g.children >= 2 and g.rsvp='pending' limit 1", [weddingId]);
   if (!rows[0]) throw new Error("rsvp not enabled");
   token = rows[0];
-  await owner.page.getByRole("button", { name: /Copy RSVP link for/ }).first().waitFor();
+  await owner.page.getByRole("button", { name: /Copy invitation link for/ }).first().waitFor();
 });
 await step("a guest replies through their link without signing in", async () => {
   await anon.page.goto(`${B}/rsvp/${token.rsvp_token}`);

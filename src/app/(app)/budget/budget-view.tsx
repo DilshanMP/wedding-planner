@@ -15,9 +15,11 @@ import type { BudgetCategoryId, Payment, WeddingData } from "@/lib/domain/types"
 import { downloadCSV } from "@/lib/export";
 import { Badge, Card, EmptyState, Money, Notice, PageHeader, Stat, cx } from "@/components/ui/primitives";
 import { BudgetSheet } from "@/components/features/sheets";
+import { VenuePackageButton } from "@/components/features/venue-package";
 import { PageSkeleton } from "@/components/shell/wedding-gate";
 import { BudgetBar, CategoryBars } from "@/components/features/budget-bits";
 import { BudgetItemForm, PaymentForm } from "@/components/features/money-forms";
+import { BillsBoard } from "@/components/features/payment-tracker";
 import { MoneyField } from "@/components/ui/fields";
 
 type Tab = "overview" | "sheet" | "categories" | "payments" | "planner";
@@ -53,6 +55,7 @@ export function BudgetView() {
         title="Wedding Investment"
         actions={
           <>
+            <VenuePackageButton data={data} />
             <button type="button" className="wos-btn wos-btn--secondary" onClick={exportCSV}><Download className="wos-icon" aria-hidden="true" />Export</button>
             <button type="button" className="wos-btn wos-btn--primary" onClick={() => q.set({ tab: "payments", newPayment: "1" })}>Record Payment</button>
           </>
@@ -73,7 +76,7 @@ export function BudgetView() {
         <Link href="/vendors?tab=compare" className="wos-tab">Quotes <span>{data.quotes.length}</span></Link>
       </div>
 
-      <section className="wos-card wos-card--hero flex flex-col gap-6 max-sm:!p-5" aria-label="Investment summary">
+      {tab !== "payments" && <section className="wos-card wos-card--hero flex flex-col gap-6 max-sm:!p-5" aria-label="Investment summary">
         <div className="grid gap-6 [grid-template-columns:repeat(auto-fit,minmax(170px,1fr))]">
           <Stat overline="Original plan" value={<Money value={summary.original} />} label={`${formatLKR(summary.unallocated)} not yet allocated`.replace("LKR 0 not yet allocated", "Fully allocated")} />
           <Stat overline="Committed" keyFigure value={<Money value={summary.committed} animated />} label={`${summary.committedPct}% of plan`} />
@@ -86,7 +89,7 @@ export function BudgetView() {
         <p className="m-0 text-[13px] leading-[18px] text-ink-muted">
           Projected uses the final amount where agreed, else the quote, else your plan. Committed counts booked lines only. Remaining is your original plan minus what&apos;s committed.
         </p>
-      </section>
+      </section>}
 
       {tab === "overview" && <Overview data={data} onCategory={() => q.set({ tab: "categories" })} />}
       {tab === "sheet" && <BudgetSheet data={data} />}
@@ -141,6 +144,15 @@ function Overview({ data, onCategory }: { data: WeddingData; onCategory: () => v
   );
 }
 
+const QUICK_ADD: [BudgetCategoryId, string][] = [
+  ["personal", "Earphone repair (hearing backup)"],
+  ["beauty", "Salon treatments before the wedding"],
+  ["beauty", "Facials & skin care"],
+  ["makeup", "Bridal hair & make-up trial"],
+  ["jewelry", "Wedding rings"],
+  ["attire", "Going-away outfits"],
+];
+
 function Categories({ data }: { data: WeddingData }) {
   const q = useQueryState();
   const editing = data.budgetItems.find((i) => i.id === q.get("item"));
@@ -149,9 +161,20 @@ function Categories({ data }: { data: WeddingData }) {
   const cancelled = data.budgetItems.filter((i) => i.status === "cancelled");
   return (
     <>
-      <div className="flex justify-end">
-        <button type="button" className="wos-btn wos-btn--primary" onClick={() => q.set({ newItem: "1" })}><Plus className="wos-icon" aria-hidden="true" />Add Expense</button>
-      </div>
+      <section className="wos-card flex flex-col gap-3" aria-labelledby="h-quick">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h2 id="h-quick" className="wos-card__title">Quick add</h2>
+          <button type="button" className="wos-btn wos-btn--primary" onClick={() => q.set({ newItem: "1" })}><Plus className="wos-icon" aria-hidden="true" />Add Expense</button>
+        </div>
+        <p className="m-0 text-[14px] text-ink-muted">Personal costs get their own lines so they don&apos;t mix with vendor bills.</p>
+        <div className="wos-chips">
+          {QUICK_ADD.map(([category, name]) => (
+            <button key={name} type="button" className="wos-chip" onClick={() => q.set({ newItem: "1", category, name })}>
+              <Plus className="size-3.5" aria-hidden="true" />{name}
+            </button>
+          ))}
+        </div>
+      </section>
       {rows.map((r) => {
         const items = data.budgetItems.filter((i) => i.categoryId === r.categoryId && i.status !== "cancelled");
         return (
@@ -197,7 +220,7 @@ function Categories({ data }: { data: WeddingData }) {
           ))}
         </p>
       )}
-      <BudgetItemForm open={creating || Boolean(editing)} item={editing} onClose={() => q.set({ item: null, newItem: null })} defaultCategory={(q.get("category") as BudgetCategoryId) ?? undefined} />
+      <BudgetItemForm open={creating || Boolean(editing)} item={editing} onClose={() => q.set({ item: null, newItem: null, category: null, name: null })} defaultCategory={(q.get("category") as BudgetCategoryId) ?? undefined} defaultName={q.get("name") ?? undefined} />
     </>
   );
 }
@@ -218,6 +241,7 @@ function Payments({ data, today }: { data: WeddingData; today: string }) {
 
   return (
     <>
+      <BillsBoard data={data} today={today} onEditPayment={(id) => q.set({ payment: id })} />
       <section aria-label="Payments due" className="grid gap-4 [grid-template-columns:repeat(auto-fit,minmax(160px,1fr))]">
         {([
           ["Overdue", b.overdue, "danger"],
@@ -252,7 +276,7 @@ function Payments({ data, today }: { data: WeddingData; today: string }) {
         ) : (
           <div className="wos-table-wrap">
             <table className="wos-table">
-              <thead><tr><th>Vendor</th><th>Category</th><th>Due</th><th className="num">Amount</th><th>Status</th><th><span className="sr-only">Actions</span></th></tr></thead>
+              <thead><tr><th>Vendor</th><th>Category</th><th>Due</th><th className="num">Amount</th><th>Paid by</th><th>Status</th><th><span className="sr-only">Actions</span></th></tr></thead>
               <tbody>
                 {list.map((p) => {
                   const tone = paymentDueTone(p, today);
@@ -264,6 +288,7 @@ function Payments({ data, today }: { data: WeddingData; today: string }) {
                       <td>{item ? budgetCategoryLabel(item.categoryId) : "—"}</td>
                       <td>{formatDate(p.status === "paid" && p.paidDate ? p.paidDate : p.dueDate)}</td>
                       <td className="num">{p.status === "paid" ? formatLKRExact(p.amount) : formatLKR(p.amount)}</td>
+                      <td>{p.paidBy || <span className="text-ink-muted">—</span>}</td>
                       <td>
                         {p.status === "paid" ? <Badge tone="success">Paid</Badge>
                           : <Badge tone={tone === "neutral" ? "neutral" : tone}>{d < 0 || d <= 7 ? (d === 0 ? "Due today" : relativeDue(p.dueDate, today).replace(/^In/, "Due in")) : "Scheduled"}</Badge>}

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { CalendarClock, CreditCard, FileText, Heart, ListChecks, Quote, Store, Users, Wallet, type LucideIcon } from "lucide-react";
+import { CalendarClock, CreditCard, FileText, Heart, ListChecks, Quote, Store, Users, Wallet, type LucideIcon, RefreshCw } from "lucide-react";
 import { timeAgo, type ActivityEntry } from "@/lib/domain/activity";
 import type { Wedding } from "@/lib/domain/types";
 import { useActivity } from "@/lib/hooks/use-activity";
@@ -75,7 +75,18 @@ export function RecentActivityCard({ wedding }: { wedding: Wedding }) {
   const now = useNow();
   const auth = useAuth();
   return (
-    <Card title="Recent activity" action={<Link className="wos-link" href="/activity">See all</Link>} className="!gap-3">
+    <Card
+      title="Recent activity"
+      action={
+        <span className="flex items-center gap-2">
+          <button type="button" className="wos-iconbtn !size-8" onClick={activity.reload} aria-label="Check for new activity" title="Refresh">
+            <RefreshCw className={`size-4 ${activity.checking ? "animate-spin" : ""}`} aria-hidden="true" />
+          </button>
+          <Link className="wos-link" href="/activity">See all</Link>
+        </span>
+      }
+      className="!gap-3"
+    >
       {activity.status === "loading" ? (
         <div className="flex flex-col gap-3">{[0, 1, 2].map((i) => <Skeleton key={i} style={{ height: 40 }} />)}</div>
       ) : activity.status === "unavailable" ? (

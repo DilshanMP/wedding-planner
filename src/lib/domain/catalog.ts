@@ -78,6 +78,8 @@ export const BUDGET_CATEGORIES: BudgetCategory[] = [
   { id: "gifts", label: "Gifts & favours", defaultShare: 1, vendorBacked: false, compareFeatures: [] },
   { id: "album", label: "Album", defaultShare: 1, vendorBacked: true, compareFeatures: [] },
   { id: "miscellaneous", label: "Miscellaneous", defaultShare: 1, vendorBacked: false, compareFeatures: [] },
+  { id: "beauty", label: "Salon & treatments", defaultShare: 0, vendorBacked: false, compareFeatures: [] },
+  { id: "personal", label: "Personal items", defaultShare: 0, vendorBacked: false, compareFeatures: [] },
   { id: "emergency", label: "Contingency", defaultShare: 5, vendorBacked: false, compareFeatures: [] },
 ];
 

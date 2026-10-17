@@ -92,12 +92,11 @@ await step("menu: choose dishes, limit enforced, budget", async () => {
   await page.getByText("Budget updated.").waitFor();
 });
 
-await step("tables: layout, seat everyone, walk-in view", async () => {
+await step("tables: layout, seat everyone", async () => {
   await page.goto(B + "/tables");
   await page.getByRole("button", { name: "Create Layout" }).click();
   await page.getByRole("button", { name: "Seat Everyone" }).click();
-  await page.getByRole("tab", { name: /Walk-in view/ }).click();
-  await page.locator(".walk-floor svg").waitFor();
+  await page.getByText(/Guests seated by side/).waitFor();
 });
 
 await step("cards: invitation PNG at 300 dpi", async () => {
@@ -124,9 +123,84 @@ await step("shareable checklist ticks a task", async () => {
   await page.locator(".checklist-item.is-done", { hasText: text.split("\n")[0] }).first().waitFor();
 });
 
+await step("hotel package covers decor and ticks the booking task", async () => {
+  await page.goto(B + "/vendors");
+  await page.getByRole("button", { name: "Hotel Package" }).click();
+  const decor = page.getByRole("radiogroup", { name: "Decoration" });
+  await decor.getByRole("radio", { name: "Hotel, extra charge" }).click();
+  await page.getByRole("button", { name: "Save Package" }).click();
+  await page.getByText(/now covers/).waitFor();
+  await page.getByText(/Also provides: .*Decoration/).first().waitFor();
+});
+
 await step("activity shows the creative changes", async () => {
   await page.goto(B + "/activity");
   await page.getByText(/changed the wedding colours/).first().waitFor();
+});
+
+await step("pay an advance with who paid, and see the balance", async () => {
+  await page.goto(B + "/budget?tab=payments");
+  await page.getByRole("heading", { name: "Every bill" }).waitFor();
+  await page.getByRole("button", { name: /Pay advance|Add payment/ }).first().click();
+  const dlg = page.locator("dialog[open]");
+  await dlg.getByRole("button", { name: "Full balance" }).click();
+  await dlg.getByRole("button", { name: "Both of us" }).click();
+  await dlg.getByRole("button", { name: "Record Payment" }).click();
+  await page.getByText(/fully paid/).first().waitFor();
+  await page.getByText("Both of us").first().waitFor();
+});
+
+await step("menu swaps pork for mutton and deletes a dish", async () => {
+  await page.goto(B + "/menu");
+  await page.getByRole("button", { name: "Add / Delete Dishes" }).click();
+  await page.getByRole("button", { name: "Delete Apple", exact: true }).click();
+  await page.getByRole("button", { name: "Done Editing" }).click();
+  if (await page.getByRole("button", { name: "Delete Apple" }).count()) throw new Error("dish not deleted");
+  await page.getByRole("heading", { name: "Mutton" }).waitFor();
+});
+
+await step("venue designer: turn a table, decor outdoors, 3D view", async () => {
+  await page.goto(B + "/tables");
+  await page.getByRole("button", { name: /^Table 2,/ }).click();
+  await page.getByRole("tab", { name: "Long" }).click();
+  await page.getByRole("button", { name: "90°" }).click();
+  const before = await page.locator(".vd-item.is-selected").first().getAttribute("transform");
+  if (!before) throw new Error("no selected table");
+  await page.getByRole("button", { name: /Flower stand/ }).click();
+  await page.getByRole("button", { name: "Move outdoors" }).click();
+  await page.getByText(/Moved outside/).waitFor();
+  await page.getByRole("tab", { name: "3D view" }).click();
+  await page.locator(".venue-3d canvas, .venue-3d").first().waitFor();
+  await page.getByRole("tab", { name: "Floor plan" }).click();
+});
+
+await step("guest report shows tables", async () => {
+  await page.goto(B + "/guests/report");
+  await page.getByRole("heading", { name: /Table/ }).first().waitFor();
+  await page.getByRole("tab", { name: /A–Z/ }).click();
+  await page.locator(".greport-alpha li").first().waitFor();
+});
+
+await step("excel: export everything and import it back", async () => {
+  await page.goto(B + "/reports");
+  const [dl] = await Promise.all([page.waitForEvent("download"), page.getByRole("button", { name: "Export Everything" }).click()]);
+  const file = await dl.path();
+  await page.getByLabel("Choose an Excel file to import").setInputFiles({ name: "plan.xlsx", mimeType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", buffer: fs.readFileSync(file) });
+  await page.getByText("Nothing has changed.").waitFor();
+  await page.getByRole("button", { name: "Cancel" }).click();
+});
+
+await step("digital invitation opens, counts down and takes a reply", async () => {
+  await page.goto(B + "/invitations");
+  await page.getByRole("radio", { name: /piano/i }).click();
+  await page.getByRole("button", { name: "Full screen" }).click();
+  const inv = page.locator(".inv-full");
+  await inv.getByRole("button", { name: /Break the seal/ }).click({ force: true });
+  await inv.getByRole("timer").waitFor();
+  await inv.getByText("Joyfully attending").click();
+  await inv.getByRole("button", { name: "Send my reply" }).click();
+  await inv.getByText("See you there!").waitFor();
+  await page.getByRole("button", { name: "Close preview" }).click();
 });
 
 console.log(errors.length ? `console errors:\n${errors.join("\n")}` : "no console errors");

@@ -91,3 +91,17 @@ describe("advisor", () => {
     expect(tips.length).toBeGreaterThanOrEqual(4);
   });
 });
+
+describe("pork to mutton", () => {
+  it("swaps the pork course in place and clears its choice", async () => {
+    const { porkToMutton, menuFromTemplate, CRYSTAL_GLOW_2027 } = await import("../planner");
+    const m = menuFromTemplate(CRYSTAL_GLOW_2027);
+    expect(m.sections.some((x) => x.id === "mutton")).toBe(true);
+    expect(porkToMutton(m)).toBeNull();
+    const old = { ...m, sections: m.sections.map((x) => (x.id === "mutton" ? { id: "pork", title: "Pork", pick: 1, items: ["Pork stew"] } : x)), chosen: { pork: ["Pork stew"] } };
+    const next = porkToMutton(old)!;
+    const i = old.sections.findIndex((x) => x.id === "pork");
+    expect(next.sections[i].title).toBe("Mutton");
+    expect(next.chosen.pork).toBeUndefined();
+  });
+});

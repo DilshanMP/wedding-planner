@@ -21,6 +21,8 @@ export interface ThemePlan {
 }
 
 export const PALETTES: { name: string; colors: string[] }[] = [
+  { name: "Ivory, champagne & dusty pink", colors: ["#b9787f", "#dcc6a2", "#fbf7f0", "#a8875a"] },
+  { name: "Blush, lavender & sage", colors: ["#a77b8c", "#c5b8dc", "#faf7f4", "#8fa58a"] },
   { name: "Kandyan maroon & gold", colors: ["#7b1e2b", "#c9a24a", "#f6efe3", "#2f5d50"] },
   { name: "Dusty blue & silver", colors: ["#3d5a80", "#a9bcd0", "#f4f1ea", "#8d99ae"] },
   { name: "Blush & ivory", colors: ["#b5546a", "#f2c4ce", "#fbf6ef", "#c9a24a"] },
@@ -31,7 +33,7 @@ export const PALETTES: { name: string; colors: string[] }[] = [
   { name: "Ivory & white gold", colors: ["#8a6d3b", "#e8dcc4", "#fffdf8", "#5c4a3a"] },
 ];
 
-export const DEFAULT_THEME: ThemePlan = { name: "Kandyan maroon & gold", colors: PALETTES[0].colors, applyToApp: false, heroDocumentId: null };
+export const DEFAULT_THEME: ThemePlan = { name: PALETTES[0].name, colors: PALETTES[0].colors, applyToApp: false, heroDocumentId: null };
 
 /* ------------------------------------------------------------------ */
 /* Menu                                                                */
@@ -61,6 +63,21 @@ export interface MenuPlan {
 
 const s = (id: string, title: string, pick: number, items: string[]): MenuSection => ({ id, title, pick, items });
 
+/** Mutton course offered in place of pork. */
+export const MUTTON_SECTION: MenuSection = s("mutton", "Mutton", 1, ["Sri Lankan mutton curry", "Devilled mutton", "Mutton black pepper", "Mutton rogan josh", "Mutton korma", "Mutton chili garlic", "Mutton stew"]);
+
+/** Swap a pork course for mutton, keeping its place on the menu. Returns null if there's no pork course. */
+export function porkToMutton(menu: MenuPlan): MenuPlan | null {
+  const i = menu.sections.findIndex((x) => /pork/i.test(x.title) || x.id === "pork");
+  if (i < 0) return null;
+  const old = menu.sections[i];
+  const sections = [...menu.sections];
+  sections[i] = { ...MUTTON_SECTION, items: [...MUTTON_SECTION.items], pick: old.pick || 1 };
+  const chosen = { ...menu.chosen };
+  delete chosen[old.id];
+  return { ...menu, sections, chosen, finalizedAt: null };
+}
+
 /** Paradise Inn, Bolgoda — "Crystal Glow" wedding menu (2027 card). */
 export const CRYSTAL_GLOW_2027: Omit<MenuPlan, "chosen" | "notes" | "finalizedAt"> = {
   venue: "Paradise Inn, Bolgoda — Crystal Atrium",
@@ -77,7 +94,8 @@ export const CRYSTAL_GLOW_2027: Omit<MenuPlan, "chosen" | "notes" | "finalizedAt
     s("prawns", "Prawns", 1, ["Batter fried prawns with hot garlic", "Sweet & sour prawns", "Batter fried prawns – mayonnaise / soya / sweet & sour sauce", "Devilled chili garlic prawns", "Stir fried prawns with bell pepper", "Prawns badum", "Kankun fried prawns", "Szechuan chili prawns"]),
     s("seafood", "Seafood", 1, ["Baked fish with orange sauce", "Fish stew with turmeric & mustard", "Thai fish green curry", "Fried cuttlefish rings with tartar sauce", "Fried cuttlefish in hot garlic", "Five spiced seafood with spring onions", "Szechuan chili cuttlefish", "Fish tikka masala / fish tikka", "Szechuan mixed seafood"]),
     s("chicken", "Chicken", 1, ["Chicken & mushroom lasagna", "Chicken korma, Indian style", "Asian spicy roasted chicken", "Chicken tikka masala", "Tandoori roasted chicken", "Thai green chicken curry", "Crumbed fried chicken with tartar sauce", "Butter chicken masala"]),
-    s("pork", "Pork", 1, ["Pork badum \"Paradise\"", "Pork black pepper", "Pork stew", "Red pork curry", "Szechuan chili pork", "Pork chili garlic", "Thai style sesame pork with red chili"]),
+    // The hotel serves mutton in place of the card's pork course for this wedding.
+    MUTTON_SECTION,
     s("vegetables", "Vegetables", 4, ["Cashew with green peas", "Paneer tikka masala", "Vegetable kebab", "Stir fried vegetables", "Brinjal moju / brinjal phai", "Garlic butter beans", "Thai green or red mixed vegetable curry", "Tempered mushroom", "Traditional Sri Lankan mixed vegetable curry", "Vegetable lasagna", "Hot butter mushroom", "Vegetable pakora"]),
     s("rice", "Rice & noodles (+ steamed rice)", 3, ["Indonesian nasi goreng", "Thai fried rice", "Traditional ghee rice", "Spicy fried rice with prawns & cuttlefish", "Yong chow fried rice", "Spicy Szechuan noodles", "Vegetable tossed egg noodles", "Vegetable fried egg noodles"]),
     s("condiments", "Condiments", 0, ["Village achcharu / home-made fruit chutney"]),
@@ -135,7 +153,9 @@ export function menuText(menu: MenuPlan, title: string): string {
 /* Tables                                                              */
 /* ------------------------------------------------------------------ */
 
-export type FixtureKind = "poruwa" | "head" | "dance" | "buffet" | "bar" | "band" | "cake" | "entrance" | "photo";
+export type FixtureKind =
+  | "poruwa" | "head" | "dance" | "buffet" | "bar" | "band" | "cake" | "entrance" | "photo"
+  | "arch" | "flowers" | "lamp" | "lounge" | "gift" | "kids" | "screen" | "pillar";
 
 export interface Fixture {
   id: ID;
@@ -146,6 +166,8 @@ export interface Fixture {
   y: number;
   w: number;
   h: number;
+  /** Degrees clockwise. */
+  rotation?: number;
 }
 
 export interface SeatTable {
@@ -154,7 +176,9 @@ export interface SeatTable {
   x: number;
   y: number;
   seats: number;
-  shape: "round" | "long";
+  shape: "round" | "long" | "square";
+  /** Degrees clockwise (long tables). */
+  rotation?: number;
   /** Guest parties seated here. */
   guestIds: ID[];
 }
@@ -166,6 +190,9 @@ export interface SeatingPlan {
   depth: number;
   tables: SeatTable[];
   fixtures: Fixture[];
+  /** An open-air area beyond the far wall (garden, lake deck) in metres; 0 = none. */
+  outdoorDepth?: number;
+  outdoorLabel?: string;
 }
 
 export const FIXTURE_LABEL: Record<FixtureKind, string> = {
@@ -178,6 +205,20 @@ export const FIXTURE_LABEL: Record<FixtureKind, string> = {
   cake: "Cake table",
   entrance: "Entrance",
   photo: "Photo corner",
+  arch: "Flower arch",
+  flowers: "Flower stand",
+  lamp: "Oil lamp (Pol thel pahana)",
+  lounge: "Lounge sofas",
+  gift: "Gift table",
+  kids: "Kids' corner",
+  screen: "LED screen",
+  pillar: "Pillar",
+};
+
+/** Default size (metres) when an area is added. */
+export const FIXTURE_SIZE: Record<FixtureKind, [number, number]> = {
+  poruwa: [3.2, 3.2], head: [6, 1.2], dance: [6, 5], buffet: [6, 1.4], bar: [3.5, 1.2], band: [4, 2.5], cake: [1.6, 1.2], entrance: [3, 1], photo: [3, 2],
+  arch: [3, 0.8], flowers: [0.8, 0.8], lamp: [0.7, 0.7], lounge: [3, 1.6], gift: [2, 1], kids: [3, 3], screen: [4, 0.4], pillar: [0.6, 0.6],
 };
 
 export function emptySeating(): SeatingPlan {
@@ -225,7 +266,7 @@ export function seatsUsed(table: SeatTable, partySize: (guestId: string) => numb
 /* Cards and boxes                                                     */
 /* ------------------------------------------------------------------ */
 
-export type CardTemplate = "kandyan" | "floral" | "modern" | "lotus";
+export type CardTemplate = "blush" | "arch" | "seal" | "kandyan" | "floral" | "modern" | "lotus";
 
 export interface InvitationText {
   /** Opening line, e.g. a blessing. */
@@ -248,16 +289,48 @@ export interface StationeryPlan {
   template: CardTemplate;
   /** Use the wedding colours; otherwise the template's own. */
   useTheme: boolean;
+  /** Names in calligraphy or in the classic serif. */
+  nameFont: "script" | "serif";
+  /** Couple photo shown on the arch design (a document id). */
+  photoId: string | null;
   text: InvitationText;
   /** Text on the cake boxes. */
   boxLine: string;
   thankYouLine: string;
+  /** The animated online invitation guests open from their link. */
+  invite: InviteSettings;
+}
+
+export type InviteMusic = "music-box" | "piano" | "none";
+export type InviteEffect = "petals" | "sparkles" | "both";
+
+export interface InviteSettings {
+  /** A palette name from PALETTES, or "theme" for the wedding colours. */
+  palette: string;
+  music: InviteMusic;
+  effect: InviteEffect;
+  /** A short personal note from the couple. */
+  note: string;
+  /** e.g. "Ivory, champagne or dusty pink — if you'd like to match us". */
+  dressCode: string;
+}
+
+export function defaultInvite(): InviteSettings {
+  return {
+    palette: "Ivory, champagne & dusty pink",
+    music: "music-box",
+    effect: "both",
+    note: "Two hearts, one Poruwa, and all of the people we love. We would be so happy to have you there.",
+    dressCode: "Soft ivory, champagne or dusty pink — if you'd like to match our colours.",
+  };
 }
 
 export function defaultStationery(): StationeryPlan {
   return {
-    template: "kandyan",
-    useTheme: true,
+    template: "blush",
+    useTheme: false,
+    nameFont: "script",
+    photoId: null,
     text: {
       blessing: "With the blessings of the Noble Triple Gem",
       hosts: "Mr. & Mrs. ________ and Mr. & Mrs. ________",
@@ -273,6 +346,7 @@ export function defaultStationery(): StationeryPlan {
     },
     boxLine: "Thank you for sharing our special day",
     thankYouLine: "Your love and blessings made our day complete. Thank you!",
+    invite: defaultInvite(),
   };
 }
 
@@ -362,7 +436,7 @@ export function normalizePlanner(raw: Partial<PlannerData> | null | undefined, n
     theme: { ...d.theme, ...(p.theme ?? {}) },
     menu: { ...d.menu, ...(p.menu ?? {}) },
     seating: { ...d.seating, ...(p.seating ?? {}) },
-    stationery: { ...d.stationery, ...st, text: { ...d.stationery.text, ...(st.text ?? {}) } },
+    stationery: { ...d.stationery, ...st, text: { ...d.stationery.text, ...(st.text ?? {}) }, invite: { ...d.stationery.invite, ...(st.invite ?? {}) } },
     vision: { ...d.vision, ...(p.vision ?? {}), preview: { ...d.vision.preview, ...(p.vision?.preview ?? {}) } },
   };
 }

@@ -6,7 +6,9 @@ import { useMemo, useRef, useState, type ReactNode } from "react";
 import {
   Armchair,
   LayoutGrid,
+  BookOpen,
   Mail,
+  MailOpen,
   UtensilsCrossed,
   Bell,
   CalendarClock,
@@ -73,6 +75,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       title: "Plan",
       items: [
         { href: "/dashboard", label: "Home", icon: Home },
+        { href: "/guide", label: "Guide · start here", icon: BookOpen },
         { href: "/tasks", label: "Checklist", icon: ListChecks, count: stats?.tasks.open },
         { href: "/timeline", label: "Day plan", icon: CalendarClock },
       ],
@@ -100,6 +103,7 @@ export function AppShell({ children }: { children: ReactNode }) {
     {
       title: "Create",
       items: [
+        { href: "/invitations", label: "Invitations", icon: MailOpen },
         { href: "/design", label: "Our look", icon: Palette },
         { href: "/cards", label: "Cards & boxes", icon: Mail },
         { href: "/simulator", label: "Simulator", icon: Sparkles },
@@ -286,7 +290,7 @@ function GlobalSearch() {
     const term = q.trim().toLowerCase();
     if (term.length < 2) return [];
     const out: { href: string; label: string; meta: string }[] = [];
-    for (const g of data.guests) if (g.name.toLowerCase().includes(term) || g.phone.includes(term)) out.push({ href: `/guests?guest=${g.id}`, label: g.name, meta: `Guest · ${g.side === "bride" ? "Bride" : "Groom"} side` });
+    for (const g of data.guests) if (g.name.toLowerCase().includes(term) || g.phone.includes(term)) out.push({ href: `/guests?guest=${g.id}`, label: g.name, meta: `Guest · ${g.side === "both" ? "Both sides" : `${g.side === "bride" ? "Bride" : "Groom"} side`}${g.category ? ` · ${g.category}` : ""}` });
     for (const v of data.vendors) if (v.name.toLowerCase().includes(term)) out.push({ href: `/vendors?vendor=${v.id}`, label: v.name, meta: `Vendor · ${budgetCategoryLabel(v.categoryId)}` });
     for (const t of data.tasks) if (t.title.toLowerCase().includes(term)) out.push({ href: `/tasks?task=${t.id}`, label: t.title, meta: "Task" });
     return out.slice(0, 8);

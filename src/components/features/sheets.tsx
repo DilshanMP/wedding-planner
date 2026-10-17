@@ -134,7 +134,7 @@ export function GuestSheet({ guests }: { guests: Guest[] }) {
   const add = () => {
     const now = nowISO();
     store.upsert("guests", {
-      id: newId(), name: "New guest", phone: "", email: "", side: "bride", relation: "family", vip: false, partyType: "single", adults: 1, children: 0,
+      id: newId(), name: "New guest", phone: "", email: "", side: "bride", category: "", relation: "family", vip: false, partyType: "single", adults: 1, children: 0,
       invitation: "not_sent", rsvp: "pending", meal: "unknown", vegCount: 0, table: "", needsTransport: false, needsAccommodation: false, notes: "", rsvpToken: newId(), createdAt: now, updatedAt: now,
     });
   };
@@ -143,13 +143,14 @@ export function GuestSheet({ guests }: { guests: Guest[] }) {
   return (
     <div className="flex flex-col gap-3">
       <Sheet
-        head={<tr><th>Name</th><th>Side</th><th className="text-right">Adults</th><th className="text-right">Kids</th><th>Phone</th><th>RSVP</th><th>Table</th><th>Notes</th><th aria-label="Delete" /></tr>}
-        foot={<tr><td colSpan={2}>{guests.length} invitations</td><td className="text-right wos-num">{adults}</td><td className="text-right wos-num">{children}</td><td colSpan={5}>{adults + children} people</td></tr>}
+        head={<tr><th>Name</th><th>Side</th><th>Category</th><th className="text-right">Adults</th><th className="text-right">Kids</th><th>Phone</th><th>RSVP</th><th>Table</th><th>Notes</th><th aria-label="Delete" /></tr>}
+        foot={<tr><td colSpan={3}>{guests.length} invitations</td><td className="text-right wos-num">{adults}</td><td className="text-right wos-num">{children}</td><td colSpan={5}>{adults + children} people</td></tr>}
       >
         {guests.map((g) => (
           <tr key={g.id}>
             <td><Cell label="Name" value={g.name} onCommit={(v) => v.trim() && save(g, { name: v.trim().slice(0, 120) })} /></td>
-            <td><SelectCell label="Side" value={g.side} options={[["bride", "Bride"], ["groom", "Groom"]]} onChange={(v) => save(g, { side: v })} /></td>
+            <td><SelectCell label="Side" value={g.side} options={[["bride", "Bride"], ["groom", "Groom"], ["both", "Both"]]} onChange={(v) => save(g, { side: v })} /></td>
+            <td><Cell label="Category" value={g.category} placeholder="e.g. Office" onCommit={(v) => save(g, { category: v.trim().slice(0, 60) })} /></td>
             <td><Cell label="Adults" type="number" align="right" value={String(g.adults)} onCommit={(v) => save(g, { adults: Math.min(50, Number(v) || 0) })} /></td>
             <td><Cell label="Children" type="number" align="right" value={String(g.children)} onCommit={(v) => save(g, { children: Math.min(50, Number(v) || 0) })} /></td>
             <td><Cell label="Phone" value={g.phone} onCommit={(v) => save(g, { phone: v.trim().slice(0, 30) })} /></td>

@@ -128,10 +128,10 @@ export function buildReport(id: ReportId, data: WeddingData, today: ISODate): Re
           },
           {
             title: "Guest list",
-            columns: [{ label: "Guest" }, { label: "Side" }, { label: "Group" }, { label: "People", align: "right" }, { label: "Invitation" }, { label: "RSVP" }, { label: "Meal" }, { label: "Table" }, { label: "Phone" }],
+            columns: [{ label: "Guest" }, { label: "Side" }, { label: "Category" }, { label: "Group" }, { label: "People", align: "right" }, { label: "Invitation" }, { label: "RSVP" }, { label: "Meal" }, { label: "Table" }, { label: "Phone" }],
             rows: [...data.guests]
               .sort((a, b) => a.name.localeCompare(b.name))
-              .map((g) => [g.name, g.side === "bride" ? "Bride" : "Groom", GUEST_GROUP_LABEL[guestGroup(g)], partySize(g), INVITATION_LABEL[g.invitation], RSVP_LABEL[g.rsvp], MEAL_LABEL[g.meal], g.table, g.phone]),
+              .map((g) => [g.name, g.side === "both" ? "Both" : g.side === "bride" ? "Bride" : "Groom", g.category, GUEST_GROUP_LABEL[guestGroup(g)], partySize(g), INVITATION_LABEL[g.invitation], RSVP_LABEL[g.rsvp], MEAL_LABEL[g.meal], g.table, g.phone]),
           },
         ],
       };

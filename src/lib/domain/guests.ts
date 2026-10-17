@@ -73,7 +73,7 @@ export function guestMetrics(guests: Guest[], wedding: Pick<Wedding, "pendingAtt
     invitationCoverage: 0,
     rsvpCompletion: 0,
     expectedAttendance: 0,
-    bySide: { bride: { total: 0, confirmed: 0, pending: 0 }, groom: { total: 0, confirmed: 0, pending: 0 } },
+    bySide: { bride: { total: 0, confirmed: 0, pending: 0 }, groom: { total: 0, confirmed: 0, pending: 0 }, both: { total: 0, confirmed: 0, pending: 0 } },
     meals: { veg: 0, nonVeg: 0, unknown: 0 },
     tablesAssigned: 0,
     needsTransport: 0,
@@ -130,4 +130,18 @@ export function guestMetrics(guests: Guest[], wedding: Pick<Wedding, "pendingAtt
 export function tableNames(guests: Guest[]): string[] {
   const set = new Set(guests.map((g) => g.table.trim()).filter(Boolean));
   return [...set].sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
+}
+
+
+export const SIDE_LABEL: Record<Guest["side"], string> = { bride: "Bride", groom: "Groom", both: "Both" };
+
+/** Ideas for the guest category; anything else can be typed. */
+export const GUEST_CATEGORY_SUGGESTIONS = ["Family", "Relatives", "Friends", "Office", "Brand team", "Photography crew", "Videography crew", "Vendors & helpers", "Neighbours", "School friends", "University friends", "VIP"];
+
+/** Categories in use first (most guests first), then the suggestions not used yet. */
+export function guestCategories(guests: Pick<Guest, "category">[]): string[] {
+  const counts = new Map<string, number>();
+  for (const g of guests) if (g.category.trim()) counts.set(g.category.trim(), (counts.get(g.category.trim()) ?? 0) + 1);
+  const used = [...counts.entries()].sort((a, b) => b[1] - a[1]).map(([c]) => c);
+  return [...used, ...GUEST_CATEGORY_SUGGESTIONS.filter((c) => !counts.has(c))];
 }

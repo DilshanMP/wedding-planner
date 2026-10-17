@@ -19,11 +19,11 @@ export function Badge({ tone = "neutral", plain, children, className }: { tone?:
   );
 }
 
-export function SideChip({ side }: { side: "bride" | "groom" }) {
+export function SideChip({ side }: { side: "bride" | "groom" | "both" }) {
   return (
     <span className={`wos-side wos-side--${side}`}>
-      <b aria-hidden="true">{side === "bride" ? "B" : "G"}</b>
-      {side === "bride" ? "Bride" : "Groom"}
+      <b aria-hidden="true">{side === "bride" ? "B" : side === "groom" ? "G" : "&"}</b>
+      {side === "bride" ? "Bride" : side === "groom" ? "Groom" : "Both"}
     </span>
   );
 }

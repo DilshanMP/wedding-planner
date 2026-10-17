@@ -1,5 +1,6 @@
 "use client";
 
+import { celebrate } from "@/lib/confetti";
 import Link from "next/link";
 import { useState } from "react";
 import { Check, ClipboardCopy, Printer, Share2 } from "lucide-react";
@@ -33,6 +34,7 @@ export function ChecklistView() {
     if (!t) return;
     const completed = t.status !== "completed";
     store.upsert("tasks", { ...t, status: completed ? "completed" : "not_started", completedAt: completed ? nowISO() : null });
+    if (completed) celebrate(document.activeElement, 22);
   };
 
   const copy = async () => {

@@ -18,14 +18,19 @@ export function rsvpUrl(origin: string, guest: Guest): string {
   return `${origin}/rsvp/${guest.rsvpToken}`;
 }
 
+/** The animated invitation (which includes the RSVP). */
+export function inviteUrl(origin: string, guest: Guest): string {
+  return `${origin}/invite/${guest.rsvpToken}`;
+}
+
 export function invitationMessage(wedding: Wedding, guest: Guest, link: string | null): string {
   const place = [wedding.venue, wedding.location].filter(Boolean).join(", ");
   const lines = [
-    `Ayubowan ${guest.name},`,
+    `Ayubowan ${guest.name} 🙏`,
     "",
     `${wedding.brideName} & ${wedding.groomName} warmly invite you to celebrate our wedding on ${formatLongDate(wedding.weddingDate)}${place ? ` at ${place}` : ""}.`,
   ];
-  if (link) lines.push("", `Please let us know if you can join us: ${link}`);
+  if (link) lines.push("", `💌 Open your invitation (turn the sound on!) and let us know if you can join us:`, link);
   return lines.join("\n");
 }
 

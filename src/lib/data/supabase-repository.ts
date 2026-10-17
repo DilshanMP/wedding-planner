@@ -32,8 +32,31 @@ function splitPlanner(row: Record<string, unknown>): { row: Record<string, unkno
 
 const INSERT_ORDER: CollectionKey[] = ["people", "vendors", "budgetItems", "quotes", "payments", "tasks", "guests", "timeline", "documents"];
 
+/** "Could not find the 'category' column of 'guests' in the schema cache" → "category". */
+function missingColumn(message: string): string | null {
+  return /Could not find the '([a-z_]+)' column/i.exec(message)?.[1] ?? null;
+}
+
 export class SupabaseRepository implements WeddingRepository {
   readonly mode = "cloud" as const;
+  /** Newer columns the project's database doesn't have yet (a migration wasn't run). */
+  readonly missingColumns = new Set<string>();
+
+  /**
+   * Insert or upsert, leaving out columns the database doesn't know yet, so
+   * a new app version keeps saving before its migration has been applied.
+   */
+  private async write(table: string, rows: Record<string, unknown>[], mode: "insert" | "upsert") {
+    for (let attempt = 0; attempt < 6; attempt++) {
+      const clean = rows.map((r) => Object.fromEntries(Object.entries(r).filter(([k]) => !this.missingColumns.has(`${table}.${k}`))));
+      const q = this.client.from(table);
+      const { error } = mode === "insert" ? await q.insert(clean) : await q.upsert(clean);
+      const col = error ? missingColumn(error.message) : null;
+      if (!col || this.missingColumns.has(`${table}.${col}`)) return error;
+      this.missingColumns.add(`${table}.${col}`);
+    }
+    return null;
+  }
 
   constructor(private readonly client: SupabaseClient) {}
 
@@ -73,12 +96,12 @@ export class SupabaseRepository implements WeddingRepository {
   async createWedding(data: WeddingData): Promise<void> {
     const row = toRow(data.wedding);
     for (const [key, col] of Object.entries(PLANNER_COLUMNS)) row[col] = data.planner[key as PlannerKey];
-    const { error } = await this.client.from("weddings").insert(row);
+    const error = await this.write("weddings", [row], "insert");
     this.fail("create the wedding", error);
     for (const key of INSERT_ORDER) {
       const items = data[key] as { id: string }[];
       if (items.length === 0) continue;
-      const { error: e } = await this.client.from(TABLES[key]).insert(items.map((i) => toRow(i, data.wedding.id)));
+      const e = await this.write(TABLES[key], items.map((i) => toRow(i, data.wedding.id)), "insert");
       this.fail(`save ${TABLES[key].replace("_", " ")}`, e);
     }
   }
@@ -92,7 +115,7 @@ export class SupabaseRepository implements WeddingRepository {
 
   async upsert<K extends CollectionKey>(weddingId: string, key: K, items: CollectionItem<K>[]): Promise<void> {
     if (items.length === 0) return;
-    const { error } = await this.client.from(TABLES[key]).upsert(items.map((i) => toRow(i, weddingId)));
+    const error = await this.write(TABLES[key], items.map((i) => toRow(i, weddingId)), "upsert");
     this.fail("save your changes", error);
   }
 
