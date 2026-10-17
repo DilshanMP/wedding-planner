@@ -93,3 +93,32 @@ export async function rsvpSubmit(
     ),
   );
 }
+
+/* ------------------------------------------------------------------ */
+/* Animated online invitation                                          */
+/* ------------------------------------------------------------------ */
+
+export interface InvitationData extends RsvpInvitation {
+  theme: unknown;
+  stationery: unknown;
+  moments: { time: string; title: string; scene: string; location: string }[];
+}
+
+/** Everything the guest's invitation shows. Falls back to the RSVP lookup if the newer SQL hasn't been run yet. */
+export async function invitationLookup(client: SupabaseClient, token: string): Promise<InvitationData | null> {
+  const res = await client.rpc("invitation_lookup", { token });
+  if (res.error && /invitation_lookup|function|schema cache/i.test(res.error.message)) {
+    const basic = await rsvpLookup(client, token);
+    return basic ? { ...basic, theme: null, stationery: null, moments: [] } : null;
+  }
+  return (check("open the invitation", res) as InvitationData | null) ?? null;
+}
+
+/** Let the couple see the invitation was opened. Best effort: never blocks the guest. */
+export async function invitationOpened(client: SupabaseClient, token: string): Promise<void> {
+  try {
+    await client.rpc("invitation_opened", { token });
+  } catch {
+    // Older databases without the function: nothing to record.
+  }
+}

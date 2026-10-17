@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Cormorant_Garamond, Manrope } from "next/font/google";
+import { Cormorant_Garamond, Great_Vibes, Manrope } from "next/font/google";
 import { WeddingProvider } from "@/lib/store/provider";
 import { ServiceWorker } from "@/components/shell/service-worker";
 import { WeddingTheme } from "@/components/shell/wedding-theme";
@@ -10,6 +10,14 @@ const display = Cormorant_Garamond({
   subsets: ["latin"],
   weight: ["300", "400", "500", "600"],
   style: ["normal", "italic"],
+  display: "swap",
+});
+
+/** Calligraphy for names on invitations. */
+const script = Great_Vibes({
+  variable: "--font-script",
+  subsets: ["latin"],
+  weight: "400",
   display: "swap",
 });
 
@@ -36,7 +44,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en-LK" data-scroll-behavior="smooth" className={`${display.variable} ${sans.variable}`}>
+    <html lang="en-LK" data-scroll-behavior="smooth" className={`${display.variable} ${sans.variable} ${script.variable}`}>
       <body>
         <WeddingProvider>
           <WeddingTheme />

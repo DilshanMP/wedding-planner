@@ -55,4 +55,19 @@ $$;
 revoke all on function public.invitation_lookup(uuid) from public;
 grant execute on function public.invitation_lookup(uuid) to anon, authenticated;
 
+-- Mark that a guest opened their animated invitation (shown to the couple as "Opened").
+create or replace function public.invitation_opened(token uuid)
+returns void
+language sql
+security definer
+set search_path = public
+as $$
+  update public.guests g set invitation = 'opened'
+  from public.weddings w
+  where g.rsvp_token = token and w.id = g.wedding_id and w.rsvp_enabled and w.deleted_at is null
+    and g.invitation in ('not_sent', 'sent', 'delivered');
+$$;
+revoke all on function public.invitation_opened(uuid) from public;
+grant execute on function public.invitation_opened(uuid) to anon, authenticated;
+
 notify pgrst, 'reload schema';

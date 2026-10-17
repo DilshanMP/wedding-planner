@@ -7,6 +7,7 @@ import {
   Armchair,
   LayoutGrid,
   Mail,
+  MailOpen,
   UtensilsCrossed,
   Bell,
   CalendarClock,
@@ -100,6 +101,7 @@ export function AppShell({ children }: { children: ReactNode }) {
     {
       title: "Create",
       items: [
+        { href: "/invitations", label: "Invitations", icon: MailOpen },
         { href: "/design", label: "Our look", icon: Palette },
         { href: "/cards", label: "Cards & boxes", icon: Mail },
         { href: "/simulator", label: "Simulator", icon: Sparkles },

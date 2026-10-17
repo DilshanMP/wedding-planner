@@ -21,6 +21,8 @@ export interface ThemePlan {
 }
 
 export const PALETTES: { name: string; colors: string[] }[] = [
+  { name: "Ivory, champagne & dusty pink", colors: ["#b9787f", "#dcc6a2", "#fbf7f0", "#a8875a"] },
+  { name: "Blush, lavender & sage", colors: ["#a77b8c", "#c5b8dc", "#faf7f4", "#8fa58a"] },
   { name: "Kandyan maroon & gold", colors: ["#7b1e2b", "#c9a24a", "#f6efe3", "#2f5d50"] },
   { name: "Dusty blue & silver", colors: ["#3d5a80", "#a9bcd0", "#f4f1ea", "#8d99ae"] },
   { name: "Blush & ivory", colors: ["#b5546a", "#f2c4ce", "#fbf6ef", "#c9a24a"] },
@@ -31,7 +33,7 @@ export const PALETTES: { name: string; colors: string[] }[] = [
   { name: "Ivory & white gold", colors: ["#8a6d3b", "#e8dcc4", "#fffdf8", "#5c4a3a"] },
 ];
 
-export const DEFAULT_THEME: ThemePlan = { name: "Kandyan maroon & gold", colors: PALETTES[0].colors, applyToApp: false, heroDocumentId: null };
+export const DEFAULT_THEME: ThemePlan = { name: PALETTES[0].name, colors: PALETTES[0].colors, applyToApp: false, heroDocumentId: null };
 
 /* ------------------------------------------------------------------ */
 /* Menu                                                                */
@@ -252,6 +254,32 @@ export interface StationeryPlan {
   /** Text on the cake boxes. */
   boxLine: string;
   thankYouLine: string;
+  /** The animated online invitation guests open from their link. */
+  invite: InviteSettings;
+}
+
+export type InviteMusic = "music-box" | "piano" | "none";
+export type InviteEffect = "petals" | "sparkles" | "both";
+
+export interface InviteSettings {
+  /** A palette name from PALETTES, or "theme" for the wedding colours. */
+  palette: string;
+  music: InviteMusic;
+  effect: InviteEffect;
+  /** A short personal note from the couple. */
+  note: string;
+  /** e.g. "Ivory, champagne or dusty pink — if you'd like to match us". */
+  dressCode: string;
+}
+
+export function defaultInvite(): InviteSettings {
+  return {
+    palette: "Ivory, champagne & dusty pink",
+    music: "music-box",
+    effect: "both",
+    note: "Two hearts, one Poruwa, and all of the people we love. We would be so happy to have you there.",
+    dressCode: "Soft ivory, champagne or dusty pink — if you'd like to match our colours.",
+  };
 }
 
 export function defaultStationery(): StationeryPlan {
@@ -273,6 +301,7 @@ export function defaultStationery(): StationeryPlan {
     },
     boxLine: "Thank you for sharing our special day",
     thankYouLine: "Your love and blessings made our day complete. Thank you!",
+    invite: defaultInvite(),
   };
 }
 
@@ -362,7 +391,7 @@ export function normalizePlanner(raw: Partial<PlannerData> | null | undefined, n
     theme: { ...d.theme, ...(p.theme ?? {}) },
     menu: { ...d.menu, ...(p.menu ?? {}) },
     seating: { ...d.seating, ...(p.seating ?? {}) },
-    stationery: { ...d.stationery, ...st, text: { ...d.stationery.text, ...(st.text ?? {}) } },
+    stationery: { ...d.stationery, ...st, text: { ...d.stationery.text, ...(st.text ?? {}) }, invite: { ...d.stationery.invite, ...(st.invite ?? {}) } },
     vision: { ...d.vision, ...(p.vision ?? {}), preview: { ...d.vision.preview, ...(p.vision?.preview ?? {}) } },
   };
 }

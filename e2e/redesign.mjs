@@ -139,6 +139,19 @@ await step("activity shows the creative changes", async () => {
   await page.getByText(/changed the wedding colours/).first().waitFor();
 });
 
+await step("digital invitation opens, counts down and takes a reply", async () => {
+  await page.goto(B + "/invitations");
+  await page.getByRole("button", { name: /Piano/ }).click();
+  await page.getByRole("button", { name: "Full screen" }).click();
+  const inv = page.locator(".inv-full");
+  await inv.getByRole("button", { name: /Break the seal/ }).click({ force: true });
+  await inv.getByRole("timer").waitFor();
+  await inv.getByText("Joyfully attending").click();
+  await inv.getByRole("button", { name: "Send my reply" }).click();
+  await inv.getByText("See you there!").waitFor();
+  await page.getByRole("button", { name: "Close preview" }).click();
+});
+
 console.log(errors.length ? `console errors:\n${errors.join("\n")}` : "no console errors");
 await b.close();
 process.exit(failed || errors.length ? 1 : 0);
