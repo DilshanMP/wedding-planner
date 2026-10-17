@@ -5,6 +5,7 @@ import type { CollectionItem, CollectionKey, Wedding, WeddingData } from "@/lib/
 import { normalizeWeddingData } from "@/lib/domain/normalize";
 import { fromRow, TABLES, toRow } from "./mapping";
 import type { WeddingRepository, WeddingSummary } from "./repository";
+import { CloudPublished } from "./published";
 
 /**
  * Cloud persistence on Supabase. Authorisation is enforced by Row Level
@@ -14,7 +15,7 @@ import type { WeddingRepository, WeddingSummary } from "./repository";
 
 /** Insert order respects foreign keys (vendors before budget items before payments …). */
 /** Each part of the creative plan has its own jsonb column on `weddings`. */
-const PLANNER_COLUMNS: Record<PlannerKey, string> = { theme: "theme", menu: "menu_plan", seating: "seating_plan", stationery: "stationery", vision: "vision_board" };
+const PLANNER_COLUMNS: Record<PlannerKey, string> = { theme: "theme", menu: "menu_plan", seating: "seating_plan", stationery: "stationery", vision: "vision_board", invites: "invite_projects" };
 
 function splitPlanner(row: Record<string, unknown>): { row: Record<string, unknown>; planner: Partial<PlannerData> } {
   const rest = { ...row };
@@ -58,7 +59,11 @@ export class SupabaseRepository implements WeddingRepository {
     return null;
   }
 
-  constructor(private readonly client: SupabaseClient) {}
+  readonly published: CloudPublished;
+
+  constructor(private readonly client: SupabaseClient) {
+    this.published = new CloudPublished(client);
+  }
 
   private fail(action: string, error: { message: string } | null): void {
     if (error) throw new Error(`Couldn't ${action}: ${error.message}`);
@@ -128,7 +133,9 @@ export class SupabaseRepository implements WeddingRepository {
   async savePlanner<K extends PlannerKey>(weddingId: string, key: K, value: PlannerData[K]): Promise<void> {
     const { error } = await this.client.from("weddings").update({ [PLANNER_COLUMNS[key]]: value }).eq("id", weddingId);
     if (error && /column|schema cache/i.test(error.message)) {
-      throw new Error("This needs a one-time database update: run supabase/migrations/20261014000000_planner.sql in the Supabase SQL Editor.");
+      throw new Error(key === "invites"
+        ? "This needs a one-time database update: run supabase/migrations/20261020000000_invitation_studio.sql in the Supabase SQL Editor."
+        : "This needs a one-time database update: run supabase/migrations/20261014000000_planner.sql in the Supabase SQL Editor.");
     }
     this.fail("save your changes", error);
   }

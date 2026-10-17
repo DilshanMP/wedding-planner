@@ -1,5 +1,6 @@
 import type { ActivityEntry } from "@/lib/domain/activity";
 import type { PlannerData, PlannerKey } from "@/lib/domain/planner";
+import type { PublishedStore } from "./published";
 import type { CollectionItem, CollectionKey, Wedding, WeddingData } from "@/lib/domain/types";
 
 export interface WeddingSummary {
@@ -32,6 +33,8 @@ export interface WeddingRepository {
   logActivity(entries: ActivityEntry[]): Promise<void>;
   /** Newest first. */
   listActivity(weddingId: string, limit: number): Promise<ActivityEntry[]>;
+  /** Published invitations and the replies to them. */
+  readonly published: PublishedStore;
 }
 
 export function toSummary(w: Wedding): WeddingSummary {

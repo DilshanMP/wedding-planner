@@ -177,6 +177,13 @@ export function describePlanner<K extends PlannerKey>(key: K, before: PlannerDat
     return { summary: "updated the vision board", minor: true };
   }
   if (key === "seating") return { summary: "arranged the tables", minor: true };
+  if (key === "invites") {
+    const [b, a] = [before as PlannerData["invites"], after as PlannerData["invites"]];
+    const published = a.projects.find((p) => p.publishedAt && p.publishedAt !== b.projects.find((x) => x.id === p.id)?.publishedAt);
+    if (published) return { summary: `published the invitation ${q(published.name)}`, minor: false };
+    if (a.projects.length > b.projects.length) return { summary: `started a new invitation design`, minor: false };
+    return { summary: "edited the invitation design", minor: true };
+  }
   if (key === "stationery") return { summary: "edited the wedding cards", minor: true };
   return { summary: `updated ${PLANNER_LABEL[key]}`, minor: true };
 }
