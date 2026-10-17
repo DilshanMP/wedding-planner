@@ -288,7 +288,7 @@ function GlobalSearch() {
     const term = q.trim().toLowerCase();
     if (term.length < 2) return [];
     const out: { href: string; label: string; meta: string }[] = [];
-    for (const g of data.guests) if (g.name.toLowerCase().includes(term) || g.phone.includes(term)) out.push({ href: `/guests?guest=${g.id}`, label: g.name, meta: `Guest · ${g.side === "bride" ? "Bride" : "Groom"} side` });
+    for (const g of data.guests) if (g.name.toLowerCase().includes(term) || g.phone.includes(term)) out.push({ href: `/guests?guest=${g.id}`, label: g.name, meta: `Guest · ${g.side === "both" ? "Both sides" : `${g.side === "bride" ? "Bride" : "Groom"} side`}${g.category ? ` · ${g.category}` : ""}` });
     for (const v of data.vendors) if (v.name.toLowerCase().includes(term)) out.push({ href: `/vendors?vendor=${v.id}`, label: v.name, meta: `Vendor · ${budgetCategoryLabel(v.categoryId)}` });
     for (const t of data.tasks) if (t.title.toLowerCase().includes(term)) out.push({ href: `/tasks?task=${t.id}`, label: t.title, meta: "Task" });
     return out.slice(0, 8);

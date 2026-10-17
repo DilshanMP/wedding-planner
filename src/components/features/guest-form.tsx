@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { useStore } from "@/lib/store/provider";
+import { useStore, useWeddingData } from "@/lib/store/provider";
+import { guestCategories } from "@/lib/domain/guests";
 import { INVITATION_LABEL, MEAL_LABEL, PARTY_LABEL, RELATION_LABEL, RSVP_LABEL } from "@/lib/domain/catalog";
 import { fieldErrors, guestSchema } from "@/lib/domain/schemas";
 import { newId, nowISO } from "@/lib/domain/ids";
@@ -26,6 +27,7 @@ export function GuestForm({ open, guest, onClose }: { open: boolean; guest?: Gue
 
 function Inner({ open, guest, onClose }: { open: boolean; guest?: Guest; onClose: () => void }) {
   const store = useStore();
+  const data = useWeddingData();
   const toast = useToast();
   const [draft, setDraft] = useState<Draft>(() => {
     if (!guest) return blank;
@@ -68,7 +70,8 @@ function Inner({ open, guest, onClose }: { open: boolean; guest?: Guest; onClose
         }
       >
         <form className="wos-form" onSubmit={(e) => { e.preventDefault(); save(); }} noValidate>
-          <ChoiceChips className="full" label="Side" value={draft.side} onChange={(v) => set("side", v)} options={[{ value: "bride", label: "Bride side" }, { value: "groom", label: "Groom side" }]} />
+          <ChoiceChips className="full" label="Side" value={draft.side} onChange={(v) => set("side", v)} options={[{ value: "bride", label: "Bride side" }, { value: "groom", label: "Groom side" }, { value: "both", label: "Both of us" }]} />
+          <CategoryField value={draft.category} onChange={(v) => set("category", v)} categories={guestCategories(data.guests)} />
           <TextField className="full" label="Name" value={draft.name} onChange={(v) => set("name", v)} error={errors.name} placeholder="Perera family" autoFocus={!guest} />
           <SelectField<Relation> label="Relationship" value={draft.relation} onChange={(v) => set("relation", v)} options={(Object.keys(RELATION_LABEL) as Relation[]).map((r) => ({ value: r, label: RELATION_LABEL[r] }))} />
           <SelectField<PartyType> label="Party" value={draft.partyType} onChange={(v) => setDraft((d) => ({ ...d, partyType: v, adults: PARTY_DEFAULTS[v][0], children: PARTY_DEFAULTS[v][1] }))} options={(Object.keys(PARTY_LABEL) as PartyType[]).map((p) => ({ value: p, label: PARTY_LABEL[p] }))} />
@@ -108,5 +111,21 @@ function Inner({ open, guest, onClose }: { open: boolean; guest?: Guest; onClose
         danger
       />
     </>
+  );
+}
+
+
+/** Free-text category with one-tap suggestions (Brand team, Photography crew…). */
+function CategoryField({ value, onChange, categories }: { value: string; onChange: (v: string) => void; categories: string[] }) {
+  return (
+    <div className="wos-field full">
+      <TextField label="Category (optional)" value={value} onChange={(v) => onChange(v.slice(0, 60))} placeholder="e.g. Brand team, Photography crew" list="guest-categories" />
+      <datalist id="guest-categories">{categories.map((c) => <option key={c} value={c} />)}</datalist>
+      <div className="wos-chips" role="group" aria-label="Category ideas">
+        {categories.slice(0, 8).map((c) => (
+          <button key={c} type="button" className="wos-chip !h-8" aria-pressed={value === c} onClick={() => onChange(value === c ? "" : c)}>{c}</button>
+        ))}
+      </div>
+    </div>
   );
 }

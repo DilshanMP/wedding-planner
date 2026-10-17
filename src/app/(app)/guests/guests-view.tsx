@@ -1,12 +1,13 @@
 "use client";
 
+import Link from "next/link";
 import { useMemo, useState } from "react";
-import { Download, Mail, Plus, Send } from "lucide-react";
+import { Download, Mail, Plus, Send, Sparkles } from "lucide-react";
 import { usePage } from "@/lib/hooks/use-page";
 import { useQueryState } from "@/lib/hooks/use-query-state";
 import { useStore } from "@/lib/store/provider";
 import { GuestSheet } from "@/components/features/sheets";
-import { GUEST_GROUP_LABEL, guestGroup, guestMetrics, partySize, type GuestGroupId } from "@/lib/domain/guests";
+import { GUEST_GROUP_LABEL, SIDE_LABEL, guestGroup, guestMetrics, partySize, type GuestGroupId } from "@/lib/domain/guests";
 import { INVITATION_LABEL, INVITATION_TONE, MEAL_LABEL, PARTY_LABEL, RSVP_LABEL, RSVP_TONE } from "@/lib/domain/catalog";
 import { INVITATION_STATUSES, RSVP_STATUSES, type Guest, type InvitationStatus, type RsvpStatus } from "@/lib/domain/types";
 import { downloadCSV } from "@/lib/export";
@@ -30,6 +31,7 @@ export function GuestsView() {
   const invitation = (q.get("invitation") ?? "") as InvitationStatus | "";
   const rsvp = (q.get("rsvp") ?? "") as RsvpStatus | "";
   const search = q.get("q") ?? "";
+  const category = q.get("category") ?? "";
   const editingId = q.get("guest");
   const creating = q.get("new") === "1";
   const sheet = q.get("view") === "sheet";
@@ -38,17 +40,18 @@ export function GuestsView() {
     if (!page) return [];
     const term = search.trim().toLowerCase();
     return page.data.guests
-      .filter((g) => (!side || g.side === side) && (!group || guestGroup(g) === group) && (!invitation || g.invitation === invitation) && (!rsvp || g.rsvp === rsvp))
-      .filter((g) => !term || `${g.name} ${g.phone} ${g.email} ${g.table} ${g.notes}`.toLowerCase().includes(term))
+      .filter((g) => (!side || g.side === side) && (!group || guestGroup(g) === group) && (!invitation || g.invitation === invitation) && (!rsvp || g.rsvp === rsvp) && (!category || g.category === category))
+      .filter((g) => !term || `${g.name} ${g.phone} ${g.email} ${g.table} ${g.notes} ${g.category}`.toLowerCase().includes(term))
       .sort((a, b) => a.name.localeCompare(b.name));
-  }, [page, side, group, invitation, rsvp, search]);
+  }, [page, side, group, invitation, rsvp, search, category]);
 
   if (!page) return <PageSkeleton />;
   const { data } = page;
   const m = guestMetrics(data.guests, data.wedding);
   const fm = guestMetrics(filtered, data.wedding);
   const editing = data.guests.find((g) => g.id === editingId);
-  const filtersOn = Boolean(side || group || invitation || rsvp || search);
+  const filtersOn = Boolean(side || group || invitation || rsvp || search || category);
+  const usedCategories = [...new Set(data.guests.map((g) => g.category.trim()).filter(Boolean))].sort();
 
   const patch = (g: Guest, changes: Partial<Guest>) => {
     // Confirming an RSVP implies the invitation reached them.
@@ -61,8 +64,8 @@ export function GuestsView() {
   const notSentShown = filtered.filter((g) => g.invitation === "not_sent");
   const exportCSV = () =>
     downloadCSV(`guests-${data.wedding.brideName}-${data.wedding.groomName}.csv`.toLowerCase().replace(/\s+/g, "-"), [
-      ["Name", "Side", "Group", "Party", "Adults", "Children", "Invitation", "RSVP", "Meal", "Table", "Phone", "Email", "Transport", "Accommodation", "Notes"],
-      ...filtered.map((g) => [g.name, g.side === "bride" ? "Bride" : "Groom", GUEST_GROUP_LABEL[guestGroup(g)], PARTY_LABEL[g.partyType], g.adults, g.children, INVITATION_LABEL[g.invitation], RSVP_LABEL[g.rsvp], MEAL_LABEL[g.meal], g.table, g.phone, g.email, g.needsTransport ? "Yes" : "", g.needsAccommodation ? "Yes" : "", g.notes]),
+      ["Name", "Side", "Category", "Group", "Party", "Adults", "Children", "Invitation", "RSVP", "Meal", "Table", "Phone", "Email", "Transport", "Accommodation", "Notes"],
+      ...filtered.map((g) => [g.name, SIDE_LABEL[g.side], g.category, GUEST_GROUP_LABEL[guestGroup(g)], PARTY_LABEL[g.partyType], g.adults, g.children, INVITATION_LABEL[g.invitation], RSVP_LABEL[g.rsvp], MEAL_LABEL[g.meal], g.table, g.phone, g.email, g.needsTransport ? "Yes" : "", g.needsAccommodation ? "Yes" : "", g.notes]),
     ]);
 
   return (
@@ -73,6 +76,7 @@ export function GuestsView() {
         lead={m.total ? `${m.total} people in ${m.parties} invitations · ${m.confirmed} confirmed · about ${m.expectedAttendance} expected.` : "Build your list one family at a time."}
         actions={
           <>
+            {m.total > 0 && <Link href="/guests/report" className="wos-btn wos-btn--secondary"><Sparkles className="wos-icon" aria-hidden="true" />Share Report</Link>}
             {m.total > 0 && <button type="button" className="wos-btn wos-btn--secondary" onClick={exportCSV}><Download className="wos-icon" aria-hidden="true" />Export</button>}
             <button type="button" className="wos-btn wos-btn--primary" onClick={() => q.set({ new: "1" })}><Plus className="wos-icon" aria-hidden="true" />Add Guest</button>
           </>
@@ -121,17 +125,18 @@ export function GuestsView() {
 
           <div className="flex flex-col gap-3">
             <div className="wos-tabs" role="tablist" aria-label="Side">
-              {[["", "Everyone"], ["bride", "Bride side"], ["groom", "Groom side"]].map(([v, l]) => (
+              {[["", "Everyone"], ["bride", "Bride side"], ["groom", "Groom side"], ["both", "Both"]].map(([v, l]) => (
                 <button key={v} type="button" role="tab" className="wos-tab" aria-selected={side === v} onClick={() => q.set({ side: v })}>{l}</button>
               ))}
             </div>
             <div className="flex flex-wrap gap-3">
               <label className="sr-only" htmlFor="g-search">Search guests</label>
               <input id="g-search" type="search" className="wos-input max-w-[300px] flex-[1_1_200px]" placeholder="Search name, phone, table" value={search} onChange={(e) => q.set({ q: e.target.value })} />
+              {usedCategories.length > 0 && <FilterSelect id="g-cat" label="Category" value={category} onChange={(v) => q.set({ category: v })} options={usedCategories.map((c) => [c, c])} all="All categories" />}
               <FilterSelect id="g-group" label="Group" value={group} onChange={(v) => q.set({ group: v })} options={(Object.keys(GUEST_GROUP_LABEL) as GuestGroupId[]).map((k) => [k, GUEST_GROUP_LABEL[k]])} all="All groups" />
               <FilterSelect id="g-inv" label="Invitation" value={invitation} onChange={(v) => q.set({ invitation: v })} options={INVITATION_STATUSES.map((s) => [s, INVITATION_LABEL[s]])} all="Any invitation" />
               <FilterSelect id="g-rsvp" label="RSVP" value={rsvp} onChange={(v) => q.set({ rsvp: v })} options={RSVP_STATUSES.map((s) => [s, RSVP_LABEL[s]])} all="Any RSVP" />
-              {filtersOn && <button type="button" className="wos-btn wos-btn--ghost" onClick={() => q.set({ side: null, group: null, invitation: null, rsvp: null, q: null })}>Clear filters</button>}
+              {filtersOn && <button type="button" className="wos-btn wos-btn--ghost" onClick={() => q.set({ side: null, group: null, invitation: null, rsvp: null, q: null, category: null })}>Clear filters</button>}
             </div>
             <div className="flex flex-wrap items-center justify-between gap-3">
               <p className="m-0 text-[13px] font-medium text-ink-muted" aria-live="polite">
@@ -153,7 +158,7 @@ export function GuestsView() {
           {sheet && filtered.length > 0 ? (
             <GuestSheet guests={filtered} />
           ) : filtered.length === 0 ? (
-            <EmptyState title="No guests match." action={<button type="button" className="wos-btn wos-btn--secondary" onClick={() => q.set({ side: null, group: null, invitation: null, rsvp: null, q: null })}>Clear Filters</button>}>
+            <EmptyState title="No guests match." action={<button type="button" className="wos-btn wos-btn--secondary" onClick={() => q.set({ side: null, group: null, invitation: null, rsvp: null, q: null, category: null })}>Clear Filters</button>}>
               {invitation === "not_sent" ? "Every invitation has gone out." : "Try a different filter or search."}
             </EmptyState>
           ) : (
@@ -172,7 +177,7 @@ export function GuestsView() {
                       <tr key={g.id}>
                         <td className="wrap">
                           <strong>{g.name}{g.vip && <Badge tone="champagne" plain className="ml-2 align-middle">VIP</Badge>}</strong>
-                          <em>{GUEST_GROUP_LABEL[guestGroup(g)]}{g.phone ? ` · ${g.phone}` : ""}</em>
+                          <em>{g.category ? `${g.category} · ` : ""}{GUEST_GROUP_LABEL[guestGroup(g)]}{g.phone ? ` · ${g.phone}` : ""}</em>
                         </td>
                         <td><SideChip side={g.side} /></td>
                         <td className="num">{partySize(g)}{g.children > 0 && <em className="block">{g.children} {g.children === 1 ? "child" : "children"}</em>}</td>
@@ -196,7 +201,7 @@ export function GuestsView() {
                     <div className="flex items-start justify-between gap-3">
                       <button type="button" className="flex flex-col border-0 bg-transparent p-0 text-left text-ink cursor-pointer" onClick={() => q.set({ guest: g.id })}>
                         <b className="text-[15px] leading-[22px] font-semibold">{g.name}</b>
-                        <span className="text-[13px] leading-[18px] text-ink-muted">{GUEST_GROUP_LABEL[guestGroup(g)]} · {partySize(g)} {partySize(g) === 1 ? "person" : "people"}{g.table ? ` · ${g.table}` : ""}</span>
+                        <span className="text-[13px] leading-[18px] text-ink-muted">{g.category ? `${g.category} · ` : ""}{GUEST_GROUP_LABEL[guestGroup(g)]} · {partySize(g)} {partySize(g) === 1 ? "person" : "people"}{g.table ? ` · ${g.table}` : ""}</span>
                       </button>
                       <SideChip side={g.side} />
                     </div>

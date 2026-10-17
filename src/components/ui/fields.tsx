@@ -35,6 +35,8 @@ export function TextField({ label, error, help, className, value, onChange, type
   autoComplete?: string;
   min?: string;
   max?: string;
+  /** id of a <datalist> with suggestions. */
+  list?: string;
 }) {
   const id = useId();
   return (
