@@ -153,7 +153,9 @@ export function menuText(menu: MenuPlan, title: string): string {
 /* Tables                                                              */
 /* ------------------------------------------------------------------ */
 
-export type FixtureKind = "poruwa" | "head" | "dance" | "buffet" | "bar" | "band" | "cake" | "entrance" | "photo";
+export type FixtureKind =
+  | "poruwa" | "head" | "dance" | "buffet" | "bar" | "band" | "cake" | "entrance" | "photo"
+  | "arch" | "flowers" | "lamp" | "lounge" | "gift" | "kids" | "screen" | "pillar";
 
 export interface Fixture {
   id: ID;
@@ -164,6 +166,8 @@ export interface Fixture {
   y: number;
   w: number;
   h: number;
+  /** Degrees clockwise. */
+  rotation?: number;
 }
 
 export interface SeatTable {
@@ -172,7 +176,9 @@ export interface SeatTable {
   x: number;
   y: number;
   seats: number;
-  shape: "round" | "long";
+  shape: "round" | "long" | "square";
+  /** Degrees clockwise (long tables). */
+  rotation?: number;
   /** Guest parties seated here. */
   guestIds: ID[];
 }
@@ -184,6 +190,9 @@ export interface SeatingPlan {
   depth: number;
   tables: SeatTable[];
   fixtures: Fixture[];
+  /** An open-air area beyond the far wall (garden, lake deck) in metres; 0 = none. */
+  outdoorDepth?: number;
+  outdoorLabel?: string;
 }
 
 export const FIXTURE_LABEL: Record<FixtureKind, string> = {
@@ -196,6 +205,20 @@ export const FIXTURE_LABEL: Record<FixtureKind, string> = {
   cake: "Cake table",
   entrance: "Entrance",
   photo: "Photo corner",
+  arch: "Flower arch",
+  flowers: "Flower stand",
+  lamp: "Oil lamp (Pol thel pahana)",
+  lounge: "Lounge sofas",
+  gift: "Gift table",
+  kids: "Kids' corner",
+  screen: "LED screen",
+  pillar: "Pillar",
+};
+
+/** Default size (metres) when an area is added. */
+export const FIXTURE_SIZE: Record<FixtureKind, [number, number]> = {
+  poruwa: [3.2, 3.2], head: [6, 1.2], dance: [6, 5], buffet: [6, 1.4], bar: [3.5, 1.2], band: [4, 2.5], cake: [1.6, 1.2], entrance: [3, 1], photo: [3, 2],
+  arch: [3, 0.8], flowers: [0.8, 0.8], lamp: [0.7, 0.7], lounge: [3, 1.6], gift: [2, 1], kids: [3, 3], screen: [4, 0.4], pillar: [0.6, 0.6],
 };
 
 export function emptySeating(): SeatingPlan {

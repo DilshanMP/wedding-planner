@@ -92,12 +92,11 @@ await step("menu: choose dishes, limit enforced, budget", async () => {
   await page.getByText("Budget updated.").waitFor();
 });
 
-await step("tables: layout, seat everyone, walk-in view", async () => {
+await step("tables: layout, seat everyone", async () => {
   await page.goto(B + "/tables");
   await page.getByRole("button", { name: "Create Layout" }).click();
   await page.getByRole("button", { name: "Seat Everyone" }).click();
-  await page.getByRole("tab", { name: /Walk-in view/ }).click();
-  await page.locator(".walk-floor svg").waitFor();
+  await page.getByText(/Guests seated by side/).waitFor();
 });
 
 await step("cards: invitation PNG at 300 dpi", async () => {
@@ -158,6 +157,28 @@ await step("menu swaps pork for mutton and deletes a dish", async () => {
   await page.getByRole("button", { name: "Done Editing" }).click();
   if (await page.getByRole("button", { name: "Delete Apple" }).count()) throw new Error("dish not deleted");
   await page.getByRole("heading", { name: "Mutton" }).waitFor();
+});
+
+await step("venue designer: turn a table, seat a guest by dragging, 3D view", async () => {
+  await page.goto(B + "/tables");
+  await page.getByRole("button", { name: /^Table 2,/ }).click();
+  await page.getByRole("tab", { name: "Long" }).click();
+  await page.getByRole("button", { name: "90°" }).click();
+  const before = await page.locator(".vd-item.is-selected").first().getAttribute("transform");
+  if (!before) throw new Error("no selected table");
+  await page.getByRole("button", { name: /Flower stand/ }).click();
+  await page.getByRole("button", { name: "Move outdoors" }).click();
+  await page.getByText(/Moved outside/).waitFor();
+  await page.getByRole("tab", { name: "3D view" }).click();
+  await page.locator(".venue-3d canvas, .venue-3d").first().waitFor();
+  await page.getByRole("tab", { name: "Floor plan" }).click();
+});
+
+await step("guest report shows tables", async () => {
+  await page.goto(B + "/guests/report");
+  await page.getByRole("heading", { name: /Table/ }).first().waitFor();
+  await page.getByRole("tab", { name: /A–Z/ }).click();
+  await page.locator(".greport-alpha li").first().waitFor();
 });
 
 await step("digital invitation opens, counts down and takes a reply", async () => {

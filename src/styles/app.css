@@ -221,15 +221,6 @@ textarea.wos-input { height: auto; min-height: 96px; padding: var(--space-3) var
 .print-only { display: none; }
 
 /* Tables */
-.floor-plan { display: block; width: 100%; height: auto; border-radius: 20px; background: var(--surface-sunken); touch-action: none; user-select: none; }
-.walk-wrap { position: relative; overflow: hidden; border-radius: 24px; padding: 6% 4% 2%; perspective: 1100px; perspective-origin: 50% 0%; background: radial-gradient(ellipse at 50% 0%, #3b2f3f 0%, #1c1620 70%); box-shadow: var(--shadow-md); }
-.walk-floor { transform-origin: 50% 60%; transform-style: preserve-3d; transition: transform var(--dur-slow) var(--ease-silk); }
-.walk-floor .floor-plan { box-shadow: 0 40px 80px rgba(0,0,0,.55); }
-.walk-glow { position: absolute; inset: 0; pointer-events: none; background:
-  radial-gradient(circle at 30% 8%, rgba(255,226,160,.35) 0 6%, transparent 18%),
-  radial-gradient(circle at 70% 8%, rgba(255,226,160,.35) 0 6%, transparent 18%),
-  radial-gradient(ellipse at 50% 120%, rgba(0,0,0,.45), transparent 60%); }
-@media (prefers-reduced-motion: reduce) { .walk-floor { transition: none; } }
 
 /* Cards & boxes */
 .card-preview { overflow: hidden; border-radius: 6px; box-shadow: 0 1px 2px rgba(0,0,0,.06), 0 18px 40px -18px rgba(42,31,28,.35); background: #fff; }
@@ -377,4 +368,18 @@ textarea.wos-input { height: auto; min-height: 96px; padding: var(--space-3) var
   .greport-tables { grid-template-columns: repeat(3, 1fr); gap: 8px; }
   .greport-table li { font-size: 11px; padding: 2px; }
 }
+}
+
+@layer components {
+/* Venue designer */
+.vd-plan { touch-action: none; outline: none; }
+.vd-plan:focus-visible { box-shadow: 0 0 0 3px var(--focus); }
+.vd-item > g[role="button"] { cursor: grab; }
+.vd-item > g[role="button"]:active { cursor: grabbing; }
+.vd-item.is-selected { filter: drop-shadow(0 0.05px 0.15px rgb(0 0 0 / .25)); }
+.vd-rotate { cursor: grab; }
+.vd-resize { cursor: nwse-resize; }
+.venue-3d { position: relative; width: 100%; height: min(72vh, 640px); min-height: 380px; border-radius: 24px; overflow: hidden; background: #1b1622; box-shadow: 0 20px 40px rgb(40 20 20 / .15); }
+.venue-3d canvas { display: block; width: 100% !important; height: 100% !important; touch-action: none; }
+.vd-panel { border-color: var(--wine-600); box-shadow: 0 0 0 3px var(--wine-50); }
 }
