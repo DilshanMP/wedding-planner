@@ -501,7 +501,8 @@ export function planImport(data: WeddingData, sheets: { name: string; rows: Cell
       if (bool(row[2]) && sec.items.includes(str(row[1]))) chosen[sec.id] = [...(chosen[sec.id] ?? []), str(row[1])];
     }
     for (const sec of next.sections) if (sec.pick > 0) next.chosen[sec.id] = (chosen[sec.id] ?? []).slice(0, sec.pick);
-    const key = (c: Record<string, string[]>) => JSON.stringify(Object.entries(c).filter(([, v]) => v.length).sort(([a], [b]) => a.localeCompare(b)));
+    // Order of ticking doesn't matter, only which dishes.
+    const key = (c: Record<string, string[]>) => JSON.stringify(Object.entries(c).filter(([, v]) => v.length).map(([k, v]) => [k, [...v].sort()]).sort(([a], [b]) => String(a).localeCompare(String(b))));
     if (key(next.chosen) !== key(data.planner.menu.chosen)) menu = { ...next, finalizedAt: null };
   }
 

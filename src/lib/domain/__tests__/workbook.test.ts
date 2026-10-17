@@ -47,6 +47,12 @@ describe("full workbook", () => {
   const data = createSampleWedding("2026-10-17", now);
   data.planner.seating = defaultSeating("Hall", 3, id);
   data.planner.seating.tables[0].guestIds = [data.guests[0].id];
+  data.planner.menu = {
+    venue: "", menuName: "M", pricePerHead: 0, listedPrice: null, notes: "", finalizedAt: null,
+    sections: [{ id: "a", title: "Appetizers", pick: 2, items: ["One", "Two", "Three"] }],
+    // Ticked in a different order from the card.
+    chosen: { a: ["Three", "One"] },
+  };
 
   it("round-trips with no changes (stored and Excel-compressed)", async () => {
     const sheets = exportWorkbook(data, "2026-10-17");

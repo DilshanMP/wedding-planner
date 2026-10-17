@@ -75,7 +75,7 @@ await step("10-11 budget and add expense", async () => {
   await page.goto(B + "/budget?tab=categories&newItem=1");
   await dlg().getByLabel("Category").selectOption("cake");
   await dlg().getByLabel("Item").fill("Tiered cake");
-  await dlg().getByLabel("Planned").fill("60000");
+  await dlg().getByLabel("Planned — slide or type (type an amount)").fill("60000");
   await dlg().getByRole("button", { name: "Add Line" }).click();
   await page.getByText("Tiered cake").waitFor();
 });
@@ -105,7 +105,7 @@ await step("13 track vendor payment", async () => {
   await dlg().getByRole("button", { name: "Save Payment" }).click();
   await page.getByRole("button", { name: "Pay", exact: true }).first().click();
   await dlg().getByRole("button", { name: "Record Payment" }).click();
-  await page.getByRole("tab", { name: "Paid" }).click();
+  await page.getByRole("tab", { name: "Paid", exact: true }).click();
   await page.getByText("LKR 100,000.00").waitFor();
 });
 await step("14 edit wedding timeline", async () => {

@@ -159,7 +159,7 @@ await step("menu swaps pork for mutton and deletes a dish", async () => {
   await page.getByRole("heading", { name: "Mutton" }).waitFor();
 });
 
-await step("venue designer: turn a table, seat a guest by dragging, 3D view", async () => {
+await step("venue designer: turn a table, decor outdoors, 3D view", async () => {
   await page.goto(B + "/tables");
   await page.getByRole("button", { name: /^Table 2,/ }).click();
   await page.getByRole("tab", { name: "Long" }).click();
@@ -192,7 +192,7 @@ await step("excel: export everything and import it back", async () => {
 
 await step("digital invitation opens, counts down and takes a reply", async () => {
   await page.goto(B + "/invitations");
-  await page.getByRole("button", { name: /Piano/ }).click();
+  await page.getByRole("radio", { name: /piano/i }).click();
   await page.getByRole("button", { name: "Full screen" }).click();
   const inv = page.locator(".inv-full");
   await inv.getByRole("button", { name: /Break the seal/ }).click({ force: true });

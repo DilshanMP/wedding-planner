@@ -6,6 +6,7 @@ import { useMemo, useRef, useState, type ReactNode } from "react";
 import {
   Armchair,
   LayoutGrid,
+  BookOpen,
   Mail,
   MailOpen,
   UtensilsCrossed,
@@ -74,6 +75,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       title: "Plan",
       items: [
         { href: "/dashboard", label: "Home", icon: Home },
+        { href: "/guide", label: "Guide · start here", icon: BookOpen },
         { href: "/tasks", label: "Checklist", icon: ListChecks, count: stats?.tasks.open },
         { href: "/timeline", label: "Day plan", icon: CalendarClock },
       ],

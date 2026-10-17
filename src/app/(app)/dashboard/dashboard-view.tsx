@@ -88,6 +88,14 @@ function Dashboard({ today, data }: { today: string; data: WeddingData }) {
         )}
       </section>
 
+      <Link href="/guide" className="guide-banner">
+        <span className="guide-banner-icon" aria-hidden="true">🧭</span>
+        <span className="min-w-0 flex-1">
+          <b>මොකක්ද ඊළඟට කරන්නේ? User guide එක බලන්න</b>
+          <span>පියවරෙන් පියවර, screenshots එක්ක — colours, hotel, payments, guests, tables, invitations.</span>
+        </span>
+        <span className="wos-link">Open guide →</span>
+      </Link>
       <PlanTiles data={data} m={m} />
 
       <div className="flex flex-wrap items-start gap-6">
