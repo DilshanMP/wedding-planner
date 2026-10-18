@@ -37,9 +37,14 @@ export function googleCalendarUrl(c: InviteContent): string {
   return `https://calendar.google.com/calendar/render?${q.toString()}`;
 }
 
+const MAPS_URL = /^https:\/\/(www\.)?(google\.[a-z.]+\/maps|maps\.app\.goo\.gl|goo\.gl\/maps|maps\.google\.[a-z.]+)/i;
+
+/** Only Google Maps links are shown to guests. */
+export const isMapsUrl = (url: string) => MAPS_URL.test(url.trim());
+
 /** The couple's own Google Maps link when given (only http(s)), else a search. */
 export function mapLink(c: Pick<InviteContent, "mapsUrl" | "venueName" | "address">): string | null {
-  if (/^https:\/\/(www\.)?(google\.[a-z.]+\/maps|maps\.app\.goo\.gl|goo\.gl\/maps|maps\.google\.[a-z.]+)/i.test(c.mapsUrl.trim())) return c.mapsUrl.trim();
+  if (isMapsUrl(c.mapsUrl)) return c.mapsUrl.trim();
   const place = placeOf(c);
   return place ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(place)}` : null;
 }

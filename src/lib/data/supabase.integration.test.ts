@@ -11,7 +11,9 @@ import type { AddressInfo } from "node:net";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { createSampleWedding } from "@/lib/domain/sample-data";
-import { claimInvites, inviteToWedding, listMembers, listPendingInvites, rsvpLookup, rsvpSubmit } from "./cloud-services";
+import { contentFromWedding, newProject, snapshot } from "@/lib/domain/invite-studio";
+import { claimInvites, invitationLookup, inviteToWedding, listMembers, listPendingInvites, rsvpLookup, rsvpSubmit } from "./cloud-services";
+import { CloudPublished } from "./published";
 import { SupabaseRepository } from "./supabase-repository";
 
 const POSTGREST_URL = process.env.POSTGREST_URL;
@@ -154,6 +156,53 @@ describe.skipIf(!POSTGREST_URL || !JWT_SECRET)("Supabase repository against Post
     // Anonymous visitors still can't read tables directly.
     const { data: rows } = await anon.from("guests").select("id");
     expect(rows).toEqual([]);
+  });
+
+  it("publishes an invitation that guests can open and answer, and only members read the replies", async () => {
+    const owner = new SupabaseRepository(clientFor(users.a));
+    const project = newProject("ivory-champagne", contentFromWedding(data.wedding), "2026-10-20T10:00:00.000Z", randomUUID, "Main invitation");
+    // The design itself is saved with the planner.
+    await owner.savePlanner(data.wedding.id, "invites", { projects: [project], mainId: project.id });
+    expect((await owner.loadWedding(data.wedding.id))!.planner.invites?.projects[0].name).toBe("Main invitation");
+
+    const slug = `nethmi-and-kasun-${randomUUID().slice(0, 4)}`;
+    const now = "2026-10-20T10:05:00.000Z";
+    const rec = { slug, weddingId: data.wedding.id, projectId: project.id, isMain: true, data: snapshot(project, now), publishedAt: now, views: 0, active: true };
+    await new CloudPublished(clientFor(users.a)).publish(rec);
+    // A non-member can't publish over someone else's link, or into this wedding.
+    await expect(new CloudPublished(clientFor(randomUUID())).publish({ ...rec })).rejects.toThrow();
+
+    // A guest (signed out) opens it by slug and replies.
+    const guest = new CloudPublished(clientFor());
+    const opened = await guest.open(slug);
+    expect(opened?.content.brideName).toBe("Nethmi");
+    expect(await guest.open("no-such-invitation")).toBeNull();
+    expect(await guest.reply(slug, { name: "Ruwan Silva", attending: "yes", party: 2, message: "Congratulations!", contact: "0771234567" })).toBe(true);
+    await expect(guest.reply(slug, { name: "Too many", attending: "yes", party: 9, message: "", contact: "" })).rejects.toThrow();
+    // Guests can't list invitations or read replies directly.
+    expect((await clientFor().from("invitation_rsvps").select("id")).data).toEqual([]);
+    await expect(guest.rsvps(data.wedding.id)).resolves.toEqual([]);
+
+    // Members see the reply and the view count.
+    const replies = await new CloudPublished(clientFor(users.a)).rsvps(data.wedding.id);
+    expect(replies).toEqual([expect.objectContaining({ slug, name: "Ruwan Silva", attending: "yes", party: 2, message: "Congratulations!" })]);
+    expect((await new CloudPublished(clientFor(users.c)).rsvps(data.wedding.id)).length).toBe(1); // viewer can read
+    const listed = await new CloudPublished(clientFor(users.a)).list(data.wedding.id);
+    expect(listed).toEqual([expect.objectContaining({ slug, isMain: true, views: 1, active: true })]);
+
+    // Personal links pick up the main design.
+    const someone = data.guests[2];
+    const lookup = await invitationLookup(clientFor(), someone.rsvpToken);
+    expect(lookup?.design?.projectId).toBe(project.id);
+
+    // A viewer can't delete replies; the owner can. Unpublishing closes the link.
+    await new CloudPublished(clientFor(users.c)).removeRsvp(data.wedding.id, replies[0].id);
+    expect((await new CloudPublished(clientFor(users.a)).rsvps(data.wedding.id)).length).toBe(1);
+    await new CloudPublished(clientFor(users.a)).removeRsvp(data.wedding.id, replies[0].id);
+    expect(await new CloudPublished(clientFor(users.a)).rsvps(data.wedding.id)).toEqual([]);
+    await new CloudPublished(clientFor(users.a)).unpublish(data.wedding.id, slug);
+    expect(await guest.open(slug)).toBeNull();
+    expect(await guest.reply(slug, { name: "Late", attending: "no", party: 0, message: "", contact: "" })).toBe(false);
   });
 
   it("soft-deletes a wedding", async () => {

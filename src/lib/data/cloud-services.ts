@@ -1,4 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import type { PublishedSnapshot } from "@/lib/domain/invite-studio";
 import type { MealPreference } from "@/lib/domain/types";
 
 /**
@@ -102,6 +103,8 @@ export interface InvitationData extends RsvpInvitation {
   theme: unknown;
   stationery: unknown;
   moments: { time: string; title: string; scene: string; location: string }[];
+  /** The EverAfter design chosen for personal links (a published snapshot), when there is one. */
+  design?: PublishedSnapshot | null;
 }
 
 /** Everything the guest's invitation shows. Falls back to the RSVP lookup if the newer SQL hasn't been run yet. */
@@ -109,7 +112,7 @@ export async function invitationLookup(client: SupabaseClient, token: string): P
   const res = await client.rpc("invitation_lookup", { token });
   if (res.error && /invitation_lookup|function|schema cache/i.test(res.error.message)) {
     const basic = await rsvpLookup(client, token);
-    return basic ? { ...basic, theme: null, stationery: null, moments: [] } : null;
+    return basic ? { ...basic, theme: null, stationery: null, moments: [], design: null } : null;
   }
   return (check("open the invitation", res) as InvitationData | null) ?? null;
 }

@@ -64,7 +64,7 @@ function RsvpForm({ content, rsvp }: { content: InviteContent; rsvp: RsvpHandler
   const max = Math.max(1, content.maxParty || 1);
   const [name, setName] = useState(rsvp.initialName ?? "");
   const [attending, setAttending] = useState<"yes" | "no" | "maybe" | null>(rsvp.current && rsvp.current !== "pending" ? rsvp.current : null);
-  const [party, setParty] = useState(Math.min(max, 1));
+  const [party, setParty] = useState(rsvp.knownGuest ? max : 1);
   const [message, setMessage] = useState("");
   const [contact, setContact] = useState("");
   const [busy, setBusy] = useState(false);

@@ -254,4 +254,9 @@
 .ev-cta .ev-btn { background: var(--ev-ivory); color: var(--ev-wine); }
 .ev-footer { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 10px; padding: 26px clamp(16px, 5vw, 64px); font-size: 13px; opacity: .7; }
 .ev-footer a { color: inherit; }
+
+.ea-loading { min-height: 100dvh; display: grid; place-items: center; background: radial-gradient(circle at 50% 30%, #f3e6d6, #fbf7f0 70%); }
+.ea-loading-seal { width: 64px; height: 64px; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #a24a55, #722F37 60%, #4d1d24); box-shadow: 0 6px 14px rgb(0 0 0 / .2); animation: ea-beat 1.6s ease-in-out infinite; }
+@keyframes ea-beat { 50% { transform: scale(1.08); } }
+@media (prefers-reduced-motion: reduce) { .ea-loading-seal { animation: none; } }
 }

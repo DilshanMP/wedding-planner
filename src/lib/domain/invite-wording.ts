@@ -60,7 +60,7 @@ const EN: Record<Tone, Record<Tradition, Record<Length, ((v: Vars) => string)[]>
     traditional: {
       short: [
         (v) => `Two families, one Poruwa, and all of you. Come celebrate ${v.bride} & ${v.groom}!`,
-        (v) => `We're tying the knot the Sri Lankan way — and we'd love you there.`,
+        () => `We're tying the knot the Sri Lankan way — and we'd love you there.`,
       ],
       detailed: [
         (v) => `Two hearts, one Poruwa and all the people we love. Join us on ${v.date}${v.venue ? ` at ${v.venue}` : ""} for the Poruwa ceremony, then dinner, music and dancing late into the night.`,

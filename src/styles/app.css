@@ -423,3 +423,9 @@ textarea.wos-input { height: auto; min-height: 96px; padding: var(--space-3) var
 .guide-banner-icon { font-size: 28px; }
 @media (max-width: 640px) { .guide-banner > .wos-link { display: none; } }
 }
+
+@layer components {
+/* Simulator: one moment per screen. */
+html:has(.sim-snap) { scroll-snap-type: y proximity; }
+}
+.wos-tab[aria-current="page"] { background: var(--surface-raised); color: var(--wine-600); box-shadow: var(--shadow-sm); }

@@ -164,13 +164,14 @@ const STEPS: Step[] = [
   {
     id: "invite",
     when: "මාස 3–2 කලින්",
-    title: "Digital invitation — music, petals, countdown",
-    why: "හැම guest කෙනෙක්ටම තමන්ගේම link එකක්. Open කළාම envelope එක ඇරෙනවා, සින්දුවක් එක්ක. Reply කළොත් list එක auto update වෙනවා.",
+    title: "Digital invitation — EverAfter Studio",
+    why: "Guest open කළාම wax seal එක කැඩිලා, envelope එක 3D විදිහට ඇරිලා card එක එළියට එනවා — music, countdown, RSVP එක්ක.",
     how: [
-      "“Invitations” → පාට, music (Music box / Soft piano), effects තෝරන්න. Phone එකේ preview එක බලන්න.",
-      "Step 2: “Online RSVP” on කරන්න (cloud account ඕනි).",
-      "Step 3: “Send to next guest” — WhatsApp එක message එක්කම open වෙනවා. Send කළාම ඊළඟ කෙනා.",
-      "“Opened”, “Attending” කියලා කවුද බැලුවේ/කිව්වේ කියලා පේනවා.",
+      "\u201cInvitations\u201d → \u201cNew invitation\u201d → design එකක් තෝරන්න (Ivory & Champagne, Dusty Pink, Traditional Sri Lankan…).",
+      "Editor එකේ නම්, දවස, venue, Sinhala/English wording, photo, පාට, envelope, seal වෙනස් කරන්න. දකුණු පැත්තේ live preview එක.",
+      "\u201cPublish\u201d → link එක, QR code එක, WhatsApp බොත්තම.",
+      "\u201cRSVPs\u201d tab එකේ කවුද එනවා, කී දෙනාද, wishes බලන්න.",
+      "Guest කෙනෙකුට තමන්ගේම link එක යවන්න \u201cSend to guests\u201d tab එක.",
     ],
     href: "/invitations",
     go: "Invitations",
@@ -207,15 +208,56 @@ const STEPS: Step[] = [
 ];
 
 const KEY = "wos-guide-done";
+const LANG_KEY = "wos-guide-lang";
+
+type Lang = "en" | "si";
+
+/** English text for each step (the default). */
+const EN: Record<string, Pick<Step, "when" | "title" | "why" | "how" | "go">> = {
+  colours: { when: "Now", title: "Choose your colours (Ivory + Champagne + Dusty pink)", why: "Cards, digital invitations and the table plan all follow these colours.", go: "Our look",
+    how: ["Open \u201cOur look\u201d in the menu.", "Pick the \u201cIvory, champagne & dusty pink\u201d colour set.", "Optionally turn on \u201cUse our colours across the app\u201d.", "You can also take colours from a venue photo."] },
+  hotel: { when: "Now", title: "Tell the app what the hotel provides", why: "Anything the hotel covers doesn't need a separate vendor — its booking tasks are ticked off for you.", go: "Vendors",
+    how: ["Go to \u201cVendors\u201d → \u201cHotel Package\u201d.", "Catering: \u201cPlate price\u201d (the buffet is in the LKR 11,000 plate).", "Lighting: \u201cHotel, extra charge\u201d → 120,000.", "Decoration: \u201cHotel, extra charge\u201d + tick \u201cPrice not confirmed yet\u201d and slide to your estimate (175k – 1.5M). Update it when the hotel confirms in December.", "Press \u201cSave Package\u201d."] },
+  budget: { when: "Now", title: "Budget — personal costs on their own lines", why: "Things like the earphone repair and salon treatments don't get mixed up with vendor bills.", go: "Budget",
+    how: ["\u201cBudget\u201d → \u201cCategories\u201d.", "Under \u201cQuick add\u201d, tap \u201cEarphone repair (hearing backup)\u201d or \u201cSalon treatments before the wedding\u201d.", "Set the planned amount with the slider or type it → \u201cAdd Line\u201d.", "Prefer a spreadsheet? Use the \u201cSpreadsheet\u201d tab."] },
+  payments: { when: "When you pay an advance", title: "Payments — who paid and what's left", why: "See what's paid, what's left and the next payment for every bill at a glance.", go: "Payments",
+    how: ["\u201cBudget\u201d → \u201cPayments\u201d.", "On a bill, press \u201cPay advance\u201d (or \u201cAdd payment\u201d).", "Slide the amount (10% / 25% / 50% / Full balance) and choose \u201cWho paid?\u201d.", "Not paid yet? Choose \u201cPay later (reminder)\u201d and set the date.", "Paid an advance before adding its category? Use \u201cAssign\u201d under \u201cPayments not in a category yet\u201d."] },
+  guests: { when: "8–6 months before", title: "Guest list with categories", why: "See and filter groups like the brand team or the photography crew.", go: "Guests",
+    how: ["\u201cGuests\u201d → \u201cAdd\u201d.", "Side: Bride / Groom / \u201cBoth of us\u201d (for crew and brand team).", "Category: tap \u201cBrand team\u201d, \u201cPhotography crew\u201d… or type your own.", "Adding many at once? Use Excel (step 11)."] },
+  menu: { when: "6–3 months before", title: "Menu — mutton, delete dishes, mark final", why: "Choose course by course and send it straight to the hotel.", go: "Menu",
+    how: ["\u201cMenu\u201d → \u201cParadise Inn — Crystal Glow\u201d.", "Mutton replaces the pork course (older menus: \u201cSwap to Mutton\u201d).", "Don't want a dish? \u201cAdd / Delete Dishes\u201d → 🗑.", "When every course is chosen: \u201cMark Menu Final\u201d → \u201cShare on WhatsApp\u201d."] },
+  tables: { when: "2–1 months before", title: "Venue designer — tables, outdoor Poruwa, 3D", why: "Lay out the hall as it really is and see who sits where.", go: "Tables",
+    how: ["\u201cTables\u201d → tick \u201cPoruwa and bar outdoors\u201d → \u201cCreate Layout\u201d.", "Tap anything to select it, then drag. The round handle turns it; the square handle resizes it.", "\u201cManage tables\u201d: delete a table, add several at once, or renumber them.", "Drag a guest from the list onto a table — or press \u201cSeat Everyone\u201d.", "\u201c3D view\u201d → \u201cFrom the entrance\u201d / \u201cFrom the Poruwa\u201d to walk around."] },
+  report: { when: "1 month before", title: "Share the guest report", why: "A beautiful list with table numbers — for family, the hotel and the entrance.", go: "Guest report",
+    how: ["\u201cGuests\u201d → \u201cShare Report\u201d.", "Choose \u201cBy table\u201d or \u201cA–Z · find your table\u201d.", "\u201cPrint / PDF\u201d, \u201cExcel\u201d or \u201cWhatsApp\u201d."] },
+  cards: { when: "4–3 months before", title: "Wedding card, envelope, cake box (+ Canva)", why: "Print at real size — or finish the design in Canva.", go: "Cards",
+    how: ["\u201cCards & boxes\u201d → pick a design (Ivory & blush / Arch with our photo / Ribbon & wax seal).", "For the arch design, \u201cAdd our photo\u201d.", "Names: \u201cCalligraphy\u201d or \u201cClassic\u201d.", "Download the \u201cSVG\u201d and upload it in Canva Pro (steps under \u201cFinish it in Canva Pro\u201d)."] },
+  invite: { when: "3–2 months before", title: "Digital invitation — EverAfter Studio", why: "Guests break the wax seal, the envelope opens in 3D and the card rises out — with music, a countdown and RSVP.", go: "Invitations",
+    how: ["\u201cInvitations\u201d → \u201cNew invitation\u201d → choose a design (Ivory & Champagne, Dusty Pink, Traditional Sri Lankan…).", "In the editor, change names, date, venue, Sinhala/English wording, photo, colours, envelope and seal. The live preview is on the right.", "\u201cPublish\u201d → your link, QR code and WhatsApp button.", "The \u201cRSVPs\u201d tab shows who's coming, how many, and their wishes.", "To send each guest their own link, use the \u201cSend to guests\u201d tab."] },
+  excel: { when: "Any time", title: "Excel — export and import everything", why: "Edit comfortably in Excel and bring it back. Also a handy backup.", go: "Reports",
+    how: ["\u201cReports\u201d → \u201cExport Everything\u201d.", "Edit in Excel or Google Sheets. Don't change the ID column; leave ID empty for new rows.", "To delete a row, write Yes in \u201cDelete?\u201d. (Removing a row does not delete it — your data is safe.)", "\u201cImport from Excel\u201d → check the changes → \u201cApply Changes\u201d."] },
+  activity: { when: "Every day", title: "Activity — what each of you changed", why: "Who changed what. Refreshes every 30 seconds, and there's a \u201cRefresh\u201d button.", go: "Activity",
+    how: ["Open \u201cActivity\u201d (also on Home under \u201cRecent activity\u201d).", "Nothing showing? Make sure the database updates (migrations) were run in the Supabase SQL Editor."] },
+};
 
 export function GuideView() {
   const [done, setDone] = useState<string[]>([]);
+  const [lang, setLangState] = useState<Lang>("en");
+  const setLang = (l: Lang) => {
+    setLangState(l);
+    try {
+      localStorage.setItem(LANG_KEY, l);
+    } catch {
+      // ignore
+    }
+  };
   const [zoom, setZoom] = useState<Step["shots"][number] | null>(null);
 
   useEffect(() => {
     try {
       const saved = JSON.parse(localStorage.getItem(KEY) ?? "[]") as string[];
       if (Array.isArray(saved) && saved.length) setTimeout(() => setDone(saved), 0);
+      if (localStorage.getItem(LANG_KEY) === "si") setTimeout(() => setLangState("si"), 0);
     } catch {
       // Private mode: ticks just won't be remembered.
     }
@@ -236,17 +278,25 @@ export function GuideView() {
 
   return (
     <>
-      <PageHeader overline="Start here" title="User guide · පියවරෙන් පියවර" lead="මොකක්ද මුලින්ම කරන්න ඕනි කියලා පටලැවෙනවා නම් — මේ පිළිවෙළට යන්න. හැම step එකකටම screenshot එකක් තියෙනවා. ඉවර කරපු ඒවා tick කරන්න 🎉" />
+      <PageHeader overline="Start here" title={lang === "en" ? "User guide · step by step" : "User guide · පියවරෙන් පියවර"}
+        lead={lang === "en" ? "Not sure what to do first? Follow this order. Every step has a screenshot. Tick the ones you've finished 🎉" : "මොකක්ද මුලින්ම කරන්න ඕනි කියලා පටලැවෙනවා නම් — මේ පිළිවෙළට යන්න. හැම step එකකටම screenshot එකක් තියෙනවා. ඉවර කරපු ඒවා tick කරන්න 🎉"}
+        actions={
+          <div className="wos-tabs" role="radiogroup" aria-label="Language">
+            <button type="button" role="radio" className="wos-tab" aria-checked={lang === "en"} onClick={() => setLang("en")}>English</button>
+            <button type="button" role="radio" className="wos-tab" aria-checked={lang === "si"} onClick={() => setLang("si")} lang="si">සිංහල</button>
+          </div>
+        } />
       <section className="guide-progress" aria-label="Progress">
         <div className="flex items-baseline justify-between gap-3">
-          <b>{done.length} / {STEPS.length} ඉවරයි</b>
-          <span className="text-[13px] text-ink-muted">{pct === 100 ? "නියමයි! සේරම setup කරලා 💍" : "Tick කරන එක ඔයාගේ phone/computer එකේ මතක තියාගන්නවා."}</span>
+          <b>{done.length} / {STEPS.length} {lang === "en" ? "done" : "ඉවරයි"}</b>
+          <span className="text-[13px] text-ink-muted">{lang === "en" ? (pct === 100 ? "Wonderful — everything is set up! 💍" : "Your ticks are remembered on this phone or computer.") : (pct === 100 ? "නියමයි! සේරම setup කරලා 💍" : "Tick කරන එක ඔයාගේ phone/computer එකේ මතක තියාගන්නවා.")}</span>
         </div>
         <div className="bill-bar"><i style={{ width: `${pct}%` }} /></div>
       </section>
 
       <ol className="guide-steps">
-        {STEPS.map((s, i) => {
+        {STEPS.map((step, i) => {
+          const s = lang === "en" ? { ...step, ...EN[step.id] } : step;
           const isDone = done.includes(s.id);
           return (
             <li key={s.id} className={cx("guide-step wos-card", isDone && "is-done")}>
@@ -261,7 +311,7 @@ export function GuideView() {
                 </div>
               </div>
               <div className="guide-body">
-                <ol className="guide-how">
+                <ol className="guide-how" lang={lang === "si" ? "si" : undefined}>
                   {s.how.map((h, k) => <li key={k}>{h}</li>)}
                 </ol>
                 <div className={cx("guide-shots", s.shots.some((x) => x.phone) && "has-phone")}>
@@ -274,7 +324,7 @@ export function GuideView() {
               </div>
               <div className="flex flex-wrap items-center gap-2">
                 <Link href={s.href} className="wos-btn wos-btn--primary wos-btn--sm">{s.go}<ArrowRight className="wos-icon" aria-hidden="true" /></Link>
-                <button type="button" className="wos-btn wos-btn--ghost wos-btn--sm" onClick={(e) => toggle(s.id, e.currentTarget)}>{isDone ? "Undo" : "ඉවරයි ✓"}</button>
+                <button type="button" className="wos-btn wos-btn--ghost wos-btn--sm" onClick={(e) => toggle(s.id, e.currentTarget)}>{isDone ? (lang === "en" ? "Undo" : "ආපසු") : lang === "en" ? "Done ✓" : "ඉවරයි ✓"}</button>
               </div>
             </li>
           );

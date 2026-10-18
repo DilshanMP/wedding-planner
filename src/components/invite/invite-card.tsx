@@ -121,7 +121,16 @@ function pieces(x: Ctx) {
   const when = `${time ? formatTime(time).replace(":00", "") : ""}`;
   const where = [t.venueName, t.address].filter(Boolean);
   const rsvp = t.rsvpDeadline ? `Kindly reply by ${formatDate(t.rsvpDeadline)}` : "";
-  const msg = (lines: number, width: number, size: number) => clamp(wrap(t.inviteMessage, width, size, x.bodyKind), lines);
+  // Long messages get a slightly smaller size before anything is cut.
+  const msg = (lines: number, width: number, size: number) => {
+    let sz = size;
+    let out = wrap(t.inviteMessage, width, sz, x.bodyKind);
+    while (out.length > lines && sz > size * 0.72) {
+      sz *= 0.92;
+      out = wrap(t.inviteMessage, width, sz, x.bodyKind);
+    }
+    return { lines: clamp(out, lines + 2), size: sz };
+  };
   const name = (n: string, size: number): Item => ({ k: "text", lines: [n || " "], size: size * x.sn, family: x.names, fill: c.ink, italic: x.nameKind === "serif" });
   return { hosts, full, when, where, rsvp, msg, name };
 }
@@ -173,7 +182,7 @@ function Classic(x: Ctx) {
         { k: "text", lines: t.sinhalaLine ? [t.sinhalaLine] : [], size: 46 * x.sb, family: sinhalaFamily, fill: c.ink, weight: 600 },
         { k: "space", h: 26 },
         { k: "text", lines: p.hosts ? wrap(p.hosts, 900, 34 * x.sb, x.bodyKind) : [], size: 34 * x.sb, family: x.body, fill: c.ink, italic: true },
-        { k: "text", lines: p.msg(x.hasPhoto ? 2 : 3, 940, 36 * x.sb), size: 36 * x.sb, family: x.body, fill: c.ink, italic: true },
+        { k: "text", ...p.msg(x.hasPhoto ? 2 : 3, 940, 36 * x.sb), family: x.body, fill: c.ink, italic: true },
         { k: "space", h: 34 },
         p.name(t.brideName, 140),
         { k: "text", lines: ["&"], size: 64, family: x.head, fill: c.accent, italic: true },
@@ -220,7 +229,7 @@ function Garden(x: Ctx) {
       <Fit top={720} bottom={H - 150} items={[
         { k: "text", lines: t.sinhalaLine ? [t.sinhalaLine] : [], size: 42 * x.sb, family: sinhalaFamily, fill: c.ink, weight: 600 },
         { k: "space", h: 16 },
-        { k: "text", lines: p.msg(3, 960, 36 * x.sb), size: 36 * x.sb, family: x.body, fill: c.ink, italic: true },
+        { k: "text", ...p.msg(3, 960, 36 * x.sb), family: x.body, fill: c.ink, italic: true },
         { k: "space", h: 26 },
         p.name(`${t.brideName} & ${t.groomName}`, 118),
         { k: "space", h: 26 },
@@ -251,7 +260,7 @@ function Editorial(x: Ctx) {
         p.name(t.groomFull || t.groomName, 150),
         { k: "space", h: 40 },
         { k: "node", h: 30, render: (y) => <line x1={L} x2={L + 220} y1={y + 10} y2={y + 10} stroke={c.ink} strokeWidth="3" /> },
-        { k: "text", lines: p.msg(4, 800, 34 * x.sb), size: 34 * x.sb, family: x.body, fill: c.ink, lh: 1.45 },
+        { k: "text", ...p.msg(4, 800, 34 * x.sb), family: x.body, fill: c.ink, lh: 1.45 },
       ]} />
       <line x1={L} x2={W - L} y1={H - 430} y2={H - 430} stroke={c.ink} strokeWidth="1.5" />
       <text x={L} y={H - 370} fontSize={24} fontFamily={x.body} fill={c.accent} letterSpacing="8">WHEN</text>
@@ -288,7 +297,7 @@ function Royal(x: Ctx) {
         { k: "text", lines: [t.blessing], size: 28 * x.sb, family: x.head, fill: c.accent, spacing: 4, upper: true },
         { k: "space", h: 18 },
         { k: "text", lines: p.hosts ? wrap(p.hosts, 900, 32 * x.sb, "serif") : [], size: 32 * x.sb, family: x.body, fill: c.ink, italic: true },
-        { k: "text", lines: p.msg(2, 940, 34 * x.sb), size: 34 * x.sb, family: x.body, fill: c.ink, italic: true },
+        { k: "text", ...p.msg(2, 940, 34 * x.sb), family: x.body, fill: c.ink, italic: true },
         { k: "space", h: 24 },
         p.name(t.brideName, 130),
         { k: "text", lines: ["& "], size: 56, family: x.head, fill: c.accent },
@@ -325,7 +334,7 @@ function Arch(x: Ctx) {
       <FloralCluster kind={x.d.florals} x={box.x - 60} y={box.y + box.h - 220} s={0.9} c={c} />
       <FloralCluster kind={x.d.florals} x={box.x + box.w + 60} y={box.y + box.h - 220} s={0.9} c={c} flipX={-1} />
       <Fit top={880} bottom={H - 140} items={[
-        { k: "text", lines: p.msg(2, 960, 34 * x.sb), size: 34 * x.sb, family: x.body, fill: c.ink, italic: true },
+        { k: "text", ...p.msg(2, 960, 34 * x.sb), family: x.body, fill: c.ink, italic: true },
         { k: "space", h: 20 },
         p.name(`${t.brideName} & ${t.groomName}`, 116),
         { k: "space", h: 24 },
@@ -362,7 +371,7 @@ function Kandyan(x: Ctx) {
         { k: "text", lines: [t.blessing], size: 30 * x.sb, family: x.head, fill: c.accent, spacing: 4, upper: true },
         { k: "space", h: 20 },
         { k: "text", lines: p.hosts ? wrap(p.hosts, 900, 32 * x.sb, "serif") : [], size: 32 * x.sb, family: x.body, fill: c.ink, italic: true },
-        { k: "text", lines: p.msg(3, 940, 34 * x.sb), size: 34 * x.sb, family: x.body, fill: c.ink, italic: true },
+        { k: "text", ...p.msg(3, 940, 34 * x.sb), family: x.body, fill: c.ink, italic: true },
         { k: "space", h: 24 },
         p.name(t.brideName, 128),
         { k: "text", lines: ["&"], size: 60, family: x.head, fill: c.accent },
@@ -405,7 +414,7 @@ function Deco(x: Ctx) {
         { k: "text", lines: ["— & —"], size: 40, family: x.head, fill: c.accent, spacing: 6 },
         { k: "text", lines: [t.groomName || " "], size: 136 * x.sn, family: x.names, fill: gold },
         { k: "space", h: 24 },
-        { k: "text", lines: p.msg(2, 920, 32 * x.sb), size: 32 * x.sb, family: x.body, fill: c.ink, italic: true },
+        { k: "text", ...p.msg(2, 920, 32 * x.sb), family: x.body, fill: c.ink, italic: true },
         { k: "space", h: 22 },
         { k: "text", lines: [`✦ ${dp.weekday} ✦ ${dp.day} ${dp.month} ${dp.year} ✦`], size: 34 * x.sb, family: x.head, fill: c.ink, spacing: 3, upper: true },
         { k: "text", lines: p.when ? [p.when] : [], size: 32 * x.sb, family: x.body, fill: c.ink },

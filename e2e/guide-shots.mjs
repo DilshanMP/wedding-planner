@@ -72,8 +72,12 @@ await shot("11-report");
 await page.goto(B + "/cards");
 await shot("12-cards");
 
-await page.goto(B + "/invitations");
-await page.getByRole("heading", { name: "Digital invitations" }).waitFor();
+await page.goto(B + "/invitations/new?template=ivory-champagne");
+await page.getByRole("button", { name: "Next", exact: true }).click();
+await page.getByRole("button", { name: "Next", exact: true }).click();
+await page.getByRole("button", { name: /Create and open the editor/ }).click();
+await page.getByRole("tab", { name: "Details" }).waitFor();
+await page.waitForTimeout(1500);
 await shot("13-invitations");
 
 const phone = await b.newContext({ viewport: { width: 390, height: 780 }, deviceScaleFactor: 1.5 });
@@ -81,12 +85,17 @@ const p2 = await phone.newPage();
 await p2.goto(B + "/onboarding");
 await p2.getByRole("button", { name: /Explore Sample Wedding/ }).click();
 await p2.waitForURL("**/dashboard");
-await p2.goto(B + "/invitations");
-await p2.getByRole("button", { name: "Full screen" }).click();
+await p2.goto(B + "/invitations/new?template=ivory-champagne");
+await p2.getByRole("button", { name: "Next", exact: true }).click();
+await p2.getByRole("button", { name: "Next", exact: true }).click();
+await p2.getByRole("button", { name: /Create and open the editor/ }).click();
+await p2.getByRole("tab", { name: "Details" }).waitFor();
+await p2.goto(p2.url() + "/preview");
+await p2.locator(".ea-env").waitFor();
 await p2.waitForTimeout(1200);
 await p2.screenshot({ path: path.join(OUT, "14-invite-sealed.jpg"), type: "jpeg", quality: 72 });
-await p2.locator(".inv-full").getByRole("button", { name: /Break the seal/ }).click({ force: true });
-await p2.waitForTimeout(3500);
+await p2.locator(".ea-hint").click();
+await p2.waitForTimeout(5500);
 await p2.screenshot({ path: path.join(OUT, "15-invite-open.jpg"), type: "jpeg", quality: 72 });
 console.log("saved 14/15");
 

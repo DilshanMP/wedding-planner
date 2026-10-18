@@ -91,8 +91,8 @@ function Dashboard({ today, data }: { today: string; data: WeddingData }) {
       <Link href="/guide" className="guide-banner">
         <span className="guide-banner-icon" aria-hidden="true">🧭</span>
         <span className="min-w-0 flex-1">
-          <b>මොකක්ද ඊළඟට කරන්නේ? User guide එක බලන්න</b>
-          <span>පියවරෙන් පියවර, screenshots එක්ක — colours, hotel, payments, guests, tables, invitations.</span>
+          <b>Not sure what to do next? Open the user guide</b>
+          <span>Step by step, with screenshots — colours, hotel, payments, guests, tables, invitations. Also in සිංහල.</span>
         </span>
         <span className="wos-link">Open guide →</span>
       </Link>

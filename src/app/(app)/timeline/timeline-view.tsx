@@ -9,7 +9,9 @@ import { addDays, compareISO, daysBetween, formatLongDate, formatShortDate, form
 import { formatLKR } from "@/lib/domain/money";
 import { isOpen } from "@/lib/domain/tasks";
 import type { WeddingData } from "@/lib/domain/types";
-import { Badge, Card, EmptyState, PageHeader, cx } from "@/components/ui/primitives";
+import { Badge, Card, EmptyState, Notice, PageHeader, cx } from "@/components/ui/primitives";
+import { useStore } from "@/lib/store/provider";
+import { useToast } from "@/components/shell/toast";
 import { PageSkeleton } from "@/components/shell/wedding-gate";
 import { EventForm } from "@/components/features/event-form";
 import { EveningTemplateButton } from "@/components/features/evening-template";
@@ -43,9 +45,30 @@ export function TimelineView() {
         <button type="button" role="tab" className="wos-tab" aria-selected={tab === "day"} onClick={() => q.set({ tab: null })}>Wedding day</button>
         <button type="button" role="tab" className="wos-tab" aria-selected={tab === "planning"} onClick={() => q.set({ tab: "planning" })}>Planning</button>
       </div>
+      {tab === "day" && <RepeatedMoments data={data} />}
       {tab === "day" ? <DayTimeline data={data} onEdit={(id) => q.set({ event: id })} onAdd={() => q.set({ new: "1" })} /> : <PlanningTimeline data={data} today={today} />}
       <EventForm open={creating || Boolean(editing)} event={editing} onClose={() => q.set({ event: null, new: null })} />
     </>
+  );
+}
+
+/** The same moment saved twice (e.g. a template applied on two phones). */
+function RepeatedMoments({ data }: { data: WeddingData }) {
+  const store = useStore();
+  const toast = useToast();
+  const seen = new Set<string>();
+  const repeats = sortTimeline(data.timeline).filter((e) => {
+    const key = `${e.time}|${e.title.trim().toLowerCase()}`;
+    if (seen.has(key)) return true;
+    seen.add(key);
+    return false;
+  });
+  if (repeats.length === 0) return null;
+  return (
+    <Notice tone="warning" icon={<AlertTriangle className="wos-icon" />} title={`${repeats.length} ${repeats.length === 1 ? "moment is" : "moments are"} saved twice.`}
+      action={<button type="button" className="wos-btn wos-btn--secondary wos-btn--sm" onClick={() => { store.remove("timeline", repeats.map((e) => e.id)); toast("Repeated moments removed."); }}>Remove Repeats</button>}>
+      Same time and same name — keep one of each.
+    </Notice>
   );
 }
 

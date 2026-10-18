@@ -6,11 +6,12 @@ import { bills, moneyTotals, nextPaymentLabel, payerSuggestions, payerSummary, N
 import { formatDate, relativeDue } from "@/lib/domain/dates";
 import { formatAmount, formatLKR } from "@/lib/domain/money";
 import { newId, nowISO } from "@/lib/domain/ids";
-import type { Payment, WeddingData } from "@/lib/domain/types";
+import type { BudgetCategoryId, BudgetItem, Payment, WeddingData } from "@/lib/domain/types";
+import { BUDGET_CATEGORIES, budgetCategoryLabel } from "@/lib/domain/catalog";
 import { useStore, useWeddingData } from "@/lib/store/provider";
 import { celebrate } from "@/lib/confetti";
 import { Dialog } from "@/components/ui/dialog";
-import { ChoiceChips, MoneySlider, TextField } from "@/components/ui/fields";
+import { ChoiceChips, MoneyField, MoneySlider, SelectField, TextField } from "@/components/ui/fields";
 import { Badge, cx } from "@/components/ui/primitives";
 import { useToast } from "@/components/shell/toast";
 
@@ -136,8 +137,70 @@ function initials(name: string) {
   return name.split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0]?.toUpperCase()).join("") || "?";
 }
 
+/* ------------------------------------------------------------------ */
+/* Put an earlier payment into a budget category                       */
+/* ------------------------------------------------------------------ */
+
+export function AssignPaymentDialog({ payment, onClose }: { payment: Payment | null; onClose: () => void }) {
+  return payment ? <Assign key={payment.id} payment={payment} onClose={onClose} /> : null;
+}
+
+function Assign({ payment, onClose }: { payment: Payment; onClose: () => void }) {
+  const store = useStore();
+  const data = useWeddingData();
+  const toast = useToast();
+  const vendor = data.vendors.find((v) => v.id === payment.vendorId);
+  const [category, setCategory] = useState<BudgetCategoryId>(vendor?.categoryId ?? "venue");
+  const lines = data.budgetItems.filter((i) => i.categoryId === category && i.status !== "cancelled");
+  const [lineId, setLineId] = useState<string>(lines[0]?.id ?? "new");
+  const [name, setName] = useState(vendor ? `${budgetCategoryLabel(category)} — ${vendor.name}` : payment.label);
+  const [total, setTotal] = useState<number | null>(null);
+  const chosen = lines.find((l) => l.id === lineId);
+
+  const save = (e: React.MouseEvent<HTMLButtonElement>) => {
+    const now = nowISO();
+    let itemId = chosen?.id ?? null;
+    if (!chosen) {
+      if (!name.trim()) return toast("Give the budget line a name.", "danger");
+      const item: BudgetItem = {
+        id: newId(), categoryId: category, name: name.trim().slice(0, 120), planned: total ?? payment.amount, quoted: total, final: null,
+        vendorId: payment.vendorId, status: "booked", notes: "Added from an earlier payment", createdAt: now, updatedAt: now,
+      };
+      store.upsert("budgetItems", item);
+      itemId = item.id;
+    }
+    store.upsert("payments", { ...payment, budgetItemId: itemId, vendorId: payment.vendorId ?? chosen?.vendorId ?? null, updatedAt: now });
+    celebrate(e.currentTarget, 20);
+    toast(`${formatLKR(payment.amount)} now counts towards ${budgetCategoryLabel(category)}.`);
+    onClose();
+  };
+
+  return (
+    <Dialog open onClose={onClose} title="Put this payment in a category"
+      description={`${payment.label} · ${formatLKR(payment.amount)} · ${formatDate(payment.paidDate ?? payment.dueDate)}${payment.paidBy ? ` · ${payment.paidBy}` : ""}`}
+      footer={<><span className="spacer" /><button type="button" className="wos-btn wos-btn--secondary" onClick={onClose}>Cancel</button><button type="button" className="wos-btn wos-btn--primary" onClick={(e) => save(e)}>Assign Payment</button></>}>
+      <form className="wos-form" onSubmit={(e) => e.preventDefault()}>
+        <SelectField<BudgetCategoryId> className="full" label="Category" value={category}
+          onChange={(v) => { setCategory(v); const first = data.budgetItems.find((i) => i.categoryId === v && i.status !== "cancelled"); setLineId(first?.id ?? "new"); setName(vendor ? `${budgetCategoryLabel(v)} — ${vendor.name}` : payment.label); }}
+          options={BUDGET_CATEGORIES.map((c) => ({ value: c.id, label: c.label }))} />
+        <SelectField className="full" label="Budget line" value={lineId} onChange={setLineId}
+          options={[...lines.map((l) => ({ value: l.id, label: `${l.name} (${formatLKR(l.final ?? l.quoted ?? l.planned)})` })), { value: "new", label: "+ New line in this category" }]}
+          help={chosen ? "The payment is added to this line's paid amount." : "A new line is made in this category with this payment as its advance."} />
+        {!chosen && (
+          <>
+            <TextField className="full" label="Line name" value={name} onChange={setName} />
+            <MoneyField className="full" label="Full price, if you know it" value={total} onChange={setTotal} optional help="Leave empty and fill in later — e.g. when the hotel confirms." />
+          </>
+        )}
+      </form>
+    </Dialog>
+  );
+}
+
 export function BillsBoard({ data, today, onEditPayment }: { data: WeddingData; today: string; onEditPayment: (id: string) => void }) {
   const [paying, setPaying] = useState<Bill | null>(null);
+  const [assigning, setAssigning] = useState<Payment | null>(null);
+  const unassigned = data.payments.filter((p) => !p.budgetItemId || !data.budgetItems.some((i) => i.id === p.budgetItemId));
   const [show, setShow] = useState<"open" | "paid" | "all">("open");
   const list = bills(data);
   const totals = moneyTotals(list);
@@ -167,6 +230,23 @@ export function BillsBoard({ data, today, onEditPayment }: { data: WeddingData; 
         </div>
         <div className="bill-bar" role="img" aria-label={`${paidPct}% of all bills paid`}><i style={{ width: `${paidPct}%` }} /></div>
       </section>
+
+      {unassigned.length > 0 && (
+        <section className="wos-card flex flex-col gap-3 border-warning" aria-labelledby="h-unassigned">
+          <h2 id="h-unassigned" className="wos-card__title">Payments not in a category yet ({unassigned.length})</h2>
+          <p className="m-0 text-[14px] text-ink-muted">Paid before you added the budget line? Put each one in its category so the totals and balances are right.</p>
+          <ul className="bill-pays">
+            {unassigned.map((p) => (
+              <li key={p.id} className="!grid-cols-[22px_1fr_auto_auto]">
+                {p.status === "paid" ? <CheckCircle2 className="size-[18px] text-success" aria-label="Paid" /> : <CircleDashed className="size-[18px] text-ink-muted" aria-label="Not paid yet" />}
+                <span className="min-w-0 truncate">{p.label} <span className="text-ink-muted">· {formatDate(p.paidDate ?? p.dueDate)}{p.paidBy ? ` · ${p.paidBy}` : ""}</span></span>
+                <span className="wos-num font-semibold">{formatAmount(p.amount)}</span>
+                <button type="button" className="wos-btn wos-btn--secondary wos-btn--sm" onClick={() => setAssigning(p)}>Assign</button>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       {payers.length > 0 && (
         <section className="wos-card flex flex-col gap-3" aria-labelledby="h-payers">
@@ -253,6 +333,7 @@ export function BillsBoard({ data, today, onEditPayment }: { data: WeddingData; 
         </div>
       </section>
       <QuickPayDialog bill={paying} open={Boolean(paying)} onClose={() => setPaying(null)} today={today} />
+      <AssignPaymentDialog payment={assigning} onClose={() => setAssigning(null)} />
     </div>
   );
 }
