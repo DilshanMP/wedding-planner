@@ -3,6 +3,7 @@ import { Cormorant_Garamond, Great_Vibes, Manrope } from "next/font/google";
 import { WeddingProvider } from "@/lib/store/provider";
 import { ServiceWorker } from "@/components/shell/service-worker";
 import { WeddingTheme } from "@/components/shell/wedding-theme";
+import { inviteFontVars } from "./invite-fonts";
 import "./globals.css";
 
 const display = Cormorant_Garamond({
@@ -44,7 +45,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en-LK" data-scroll-behavior="smooth" className={`${display.variable} ${sans.variable} ${script.variable}`}>
+    <html lang="en-LK" data-scroll-behavior="smooth" className={`${display.variable} ${sans.variable} ${script.variable} ${inviteFontVars}`}>
       <body>
         <WeddingProvider>
           <WeddingTheme />

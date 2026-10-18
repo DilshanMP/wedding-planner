@@ -40,6 +40,7 @@ import { guestMetrics } from "@/lib/domain/guests";
 import { reminders } from "@/lib/domain/notifications";
 import { budgetCategoryLabel } from "@/lib/domain/catalog";
 import { Dialog } from "@/components/ui/dialog";
+import { InstallApp } from "./install-app";
 import { AccessNotice } from "./access-notice";
 import { cx } from "@/components/ui/primitives";
 
@@ -170,6 +171,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             <Settings className="wos-icon" aria-hidden="true" />
             <span className="nav-label">Settings</span>
           </Link>
+          <InstallApp variant="nav" />
         </div>
 
         <div className="nav-card flex-col gap-[10px] rounded-2xl bg-champagne-100 p-4" style={{ marginTop: "auto" }}>
@@ -217,6 +219,7 @@ export function AppShell({ children }: { children: ReactNode }) {
               {item.label}
             </Link>
           ))}
+          <InstallApp variant="tile" />
         </div>
       </Dialog>
     </div>

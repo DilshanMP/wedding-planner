@@ -94,7 +94,8 @@ function Tables({ data }: { data: WeddingData }) {
   };
 
   const addTable = (shape: SeatTable["shape"]) => {
-    const t: SeatTable = { id: newId(), label: `Table ${plan.tables.length + 1}`, x: plan.width / 2, y: Math.max(2, plan.depth - 4), seats: shape === "long" ? 12 : shape === "square" ? 8 : 10, shape, guestIds: [], rotation: 0 };
+    const spot = freeSpot(plan, plan.tables, shape);
+    const t: SeatTable = { id: newId(), label: nextTableLabel(plan.tables), x: spot.x, y: spot.y, seats: shape === "long" ? 12 : shape === "square" ? 8 : 10, shape, guestIds: [], rotation: 0 };
     setPlan((p) => ({ ...p, tables: [...p.tables, t] }));
     setSelection({ kind: "table", id: t.id });
   };
@@ -115,7 +116,7 @@ function Tables({ data }: { data: WeddingData }) {
   };
   const duplicate = () => {
     if (table) {
-      const copy = { ...table, id: newId(), label: `Table ${plan.tables.length + 1}`, x: Math.min(plan.width, table.x + 3), guestIds: [] };
+      const copy = { ...table, id: newId(), label: nextTableLabel(plan.tables), x: Math.min(plan.width, table.x + 3), guestIds: [] };
       setPlan((p) => ({ ...p, tables: [...p.tables, copy] }));
       setSelection({ kind: "table", id: copy.id });
     } else if (fixture) {
@@ -242,6 +243,7 @@ function Tables({ data }: { data: WeddingData }) {
               </ul>
             )}
           </section>
+          <TablesManager plan={plan} setPlan={setPlan} partySize={partySize} onSelect={(id) => setSelection({ kind: "table", id })} onCleared={() => setSelection(null)} />
           <HallPanel plan={plan} setPlan={setPlan} />
           <AddFixture onAdd={addFixture} />
           <button type="button" className="wos-btn wos-btn--ghost self-start text-danger" onClick={() => { if (window.confirm("Start the hall layout again? Seating will be cleared.")) { setPlan((p) => ({ ...p, tables: [], fixtures: [] })); setSelection(null); } }}><RotateCcw className="wos-icon" aria-hidden="true" />Start over</button>
@@ -303,6 +305,112 @@ function Setup({ data, onCreate }: { data: WeddingData; onCreate: (p: SeatingPla
         <p className="m-0 text-[13px] text-ink-muted">You&apos;ll get a Poruwa, head table, dance floor, buffet, bar and band area to start with. Move, turn, resize or remove anything to match your hall.</p>
       </section>
     </>
+  );
+}
+
+/** "Table N" with the lowest number not in use. */
+function nextTableLabel(tables: SeatTable[]): string {
+  const used = new Set(tables.map((t) => Number(/^Table\s*(\d+)$/i.exec(t.label)?.[1] ?? NaN)).filter((n) => !Number.isNaN(n)));
+  let n = 1;
+  while (used.has(n)) n++;
+  return `Table ${n}`;
+}
+
+/**
+ * An empty patch of floor for a new table: away from the walls, other tables
+ * and areas like the Poruwa or dance floor. Fills from the back of the hall.
+ */
+function freeSpot(p: SeatingPlan, tables: SeatTable[], shape: SeatTable["shape"]): { x: number; y: number } {
+  const gap = shape === "long" ? 3.6 : 3.1;
+  const edge = 1.7;
+  const clear = (x: number, y: number) =>
+    tables.every((t) => Math.hypot(t.x - x, t.y - y) >= (t.shape === "long" || shape === "long" ? 3.6 : gap)) &&
+    p.fixtures.every((f) => {
+      const turned = Math.abs(((f.rotation ?? 0) % 180)) > 45;
+      const hw = (turned ? f.h : f.w) / 2 + edge;
+      const hh = (turned ? f.w : f.h) / 2 + edge;
+      return Math.abs(x - f.x) >= hw || Math.abs(y - f.y) >= hh;
+    });
+  for (let y = p.depth - edge; y >= edge; y -= 0.5) {
+    for (let x = edge; x <= p.width - edge; x += 0.5) {
+      if (clear(x, y)) return { x: Math.round(x * 10) / 10, y: Math.round(y * 10) / 10 };
+    }
+  }
+  // Hall is full: stack near the entrance so the couple can drag it into place.
+  return { x: Math.round((p.width / 2) * 10) / 10, y: Math.round((p.depth - edge) * 10) / 10 };
+}
+
+/** Every table in one list: remove any, add several, renumber. */
+function TablesManager({ plan, setPlan, partySize, onSelect, onCleared }: {
+  plan: SeatingPlan;
+  setPlan: (fn: (p: SeatingPlan) => SeatingPlan) => void;
+  partySize: (id: string) => number;
+  onSelect: (id: string) => void;
+  onCleared: () => void;
+}) {
+  const [count, setCount] = useState(5);
+  const [shape, setShape] = useState<SeatTable["shape"]>("round");
+  const [seats, setSeats] = useState(10);
+  const sorted = [...plan.tables].sort((a, b) => a.label.localeCompare(b.label, undefined, { numeric: true }));
+  const add = () => {
+    setPlan((p) => {
+      const tables = [...p.tables];
+      for (let i = 0; i < count; i++) {
+        const spot = freeSpot(p, tables, shape);
+        tables.push({ id: newId(), label: nextTableLabel(tables), shape, seats, guestIds: [], rotation: 0, x: spot.x, y: spot.y });
+      }
+      return { ...p, tables };
+    });
+  };
+  const renumber = () =>
+    setPlan((p) => {
+      // Front to back, left to right.
+      const order = [...p.tables].sort((a, b) => a.y - b.y || a.x - b.x).map((t) => t.id);
+      return { ...p, tables: p.tables.map((t) => (/^Table\s*\d+$/i.test(t.label) || t.label === "" ? { ...t, label: `Table ${order.indexOf(t.id) + 1}` } : t)) };
+    });
+  return (
+    <details className="wos-card flex flex-col gap-3">
+      <summary className="cursor-pointer text-[15px] font-semibold"><LayoutGrid className="mr-2 inline size-4 align-[-2px]" aria-hidden="true" />Manage tables ({plan.tables.length})</summary>
+      <div className="mt-3 flex flex-col gap-3">
+        {sorted.length === 0 ? (
+          <p className="m-0 text-[14px] text-ink-muted">No tables yet. Add some below.</p>
+        ) : (
+          <ul className="m-0 flex max-h-[260px] list-none flex-col gap-1 overflow-y-auto p-0">
+            {sorted.map((t) => (
+              <li key={t.id} className="flex items-center gap-2 rounded-xl px-2 py-1.5 hover:bg-surface-sunken">
+                <button type="button" className="min-w-0 flex-1 border-0 bg-transparent p-0 text-left text-[14px] font-semibold text-ink" onClick={() => onSelect(t.id)}>{t.label}</button>
+                <span className="wos-num text-[12px] text-ink-muted">{seatsUsed(t, partySize)}/{t.seats} · {t.shape}</span>
+                <button type="button" className="border-0 bg-transparent p-1 text-ink-muted hover:text-danger" aria-label={`Delete ${t.label}`}
+                  onClick={() => { if (t.guestIds.length === 0 || window.confirm(`${t.label} has guests. Delete it? They'll go back to "Waiting for a table".`)) setPlan((p) => ({ ...p, tables: p.tables.filter((x) => x.id !== t.id) })); }}>
+                  <Trash2 style={{ width: 16, height: 16 }} />
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+        <div className="grid grid-cols-3 gap-2">
+          <label className="flex flex-col gap-1 text-[12px] font-semibold text-ink-muted">How many
+            <input type="number" min={1} max={60} className="wos-input !h-9" value={count} onChange={(e) => setCount(Math.max(1, Math.min(60, Number(e.target.value) || 1)))} />
+          </label>
+          <label className="flex flex-col gap-1 text-[12px] font-semibold text-ink-muted">Shape
+            <select className="wos-input !h-9" value={shape} onChange={(e) => setShape(e.target.value as SeatTable["shape"])}>
+              <option value="round">Round</option><option value="long">Long</option><option value="square">Square</option>
+            </select>
+          </label>
+          <label className="flex flex-col gap-1 text-[12px] font-semibold text-ink-muted">Seats each
+            <input type="number" min={2} max={30} className="wos-input !h-9" value={seats} onChange={(e) => setSeats(Math.max(2, Math.min(30, Number(e.target.value) || 2)))} />
+          </label>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <button type="button" className="wos-btn wos-btn--primary wos-btn--sm" onClick={add}><Plus className="wos-icon" aria-hidden="true" />Add {count} {count === 1 ? "table" : "tables"}</button>
+          <button type="button" className="wos-btn wos-btn--secondary wos-btn--sm" onClick={renumber} disabled={plan.tables.length === 0}>Renumber 1, 2, 3…</button>
+          <button type="button" className="wos-btn wos-btn--ghost wos-btn--sm text-danger" disabled={plan.tables.length === 0}
+            onClick={() => { if (window.confirm(`Delete all ${plan.tables.length} tables? Areas like the Poruwa stay; guests go back to "Waiting for a table".`)) { setPlan((p) => ({ ...p, tables: [] })); onCleared(); } }}>
+            <Trash2 className="wos-icon" aria-hidden="true" />Delete all tables
+          </button>
+        </div>
+      </div>
+    </details>
   );
 }
 

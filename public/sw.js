@@ -3,8 +3,8 @@
  * - Pages and route data are network-first, falling back to the last copy.
  * Wedding data itself lives in the browser (local mode), so planning keeps
  * working with no connection. API and Supabase requests are never cached. */
-const VERSION = "wos-v1";
-const SHELL = ["/", "/dashboard", "/tasks", "/guests", "/budget", "/vendors", "/timeline", "/documents", "/reports", "/assistant", "/settings", "/wedding-day", "/simulator", "/onboarding", "/manifest.webmanifest", "/icon.svg"];
+const VERSION = "wos-v2";
+const SHELL = ["/", "/dashboard", "/tasks", "/guests", "/budget", "/vendors", "/timeline", "/documents", "/reports", "/assistant", "/settings", "/wedding-day", "/simulator", "/onboarding", "/manifest.webmanifest", "/icon.svg", "/icons/icon-192.png", "/icons/icon-512.png"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
@@ -25,7 +25,7 @@ self.addEventListener("fetch", (event) => {
   if (url.origin !== self.location.origin) return; // Supabase, fonts CDN, WhatsApp…
   if (url.pathname.startsWith("/api/") || url.pathname.startsWith("/rsvp/")) return;
 
-  if (url.pathname.startsWith("/_next/static/") || url.pathname === "/icon.svg") {
+  if (url.pathname.startsWith("/_next/static/") || url.pathname === "/icon.svg" || url.pathname.startsWith("/icons/")) {
     event.respondWith(
       caches.match(req).then(
         (hit) =>

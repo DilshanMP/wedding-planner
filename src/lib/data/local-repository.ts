@@ -2,6 +2,7 @@ import type { CollectionItem, CollectionKey, Wedding, WeddingData } from "@/lib/
 import type { ActivityEntry } from "@/lib/domain/activity";
 import type { PlannerData, PlannerKey } from "@/lib/domain/planner";
 import { normalizeWeddingData } from "@/lib/domain/normalize";
+import { LocalPublished } from "./published";
 import { toSummary, type WeddingRepository, type WeddingSummary } from "./repository";
 
 /**
@@ -27,7 +28,11 @@ export class LocalRepository implements WeddingRepository {
   readonly mode = "local" as const;
   private cache: Snapshot | null = null;
 
-  constructor(private readonly storage: KeyValueStore) {}
+  readonly published: LocalPublished;
+
+  constructor(private readonly storage: KeyValueStore) {
+    this.published = new LocalPublished(storage);
+  }
 
   private read(): Snapshot {
     if (this.cache) return this.cache;

@@ -36,10 +36,19 @@ function Simulator() {
   const progress = useSpring(scrollYProgress, { stiffness: 120, damping: 30, restDelta: 0.001 });
   if (!page) return <div className="mx-auto max-w-[720px] p-6"><Skeleton style={{ height: 320 }} /></div>;
   const { data } = page;
-  const events = sortTimeline(data.timeline).filter((e) => e.scene !== "other" || e.description);
+  // One scene per moment: exact repeats (same time and name) show once.
+  const seen = new Set<string>();
+  const events = sortTimeline(data.timeline)
+    .filter((e) => e.scene !== "other" || e.description)
+    .filter((e) => {
+      const key = `${e.time}|${e.title.trim().toLowerCase()}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
 
   return (
-    <div className="bg-surface text-ink">
+    <div className="sim-snap bg-surface text-ink">
       <motion.div className="fixed inset-x-0 top-0 z-20 h-[3px] origin-left bg-wine-600" style={{ scaleX: progress }} aria-hidden="true" />
       <Link href="/timeline" className="wos-iconbtn fixed top-4 right-4 z-20" aria-label="Close simulator"><X className="wos-icon" aria-hidden="true" /></Link>
 
@@ -78,7 +87,7 @@ function Scene({ children, evening, label }: { children: ReactNode; evening: boo
   const opacity = useTransform(scrollYProgress, [0, 0.3, 0.7, 1], [0, 1, 1, 0]);
   const y = useTransform(scrollYProgress, [0, 1], [48, -48]);
   return (
-    <section ref={ref} aria-label={label} data-theme={evening ? "evening" : undefined} className="sim-scene bg-surface px-6 text-ink" style={{ transition: "background var(--dur-cinematic) var(--ease-silk)" }}>
+    <section ref={ref} aria-label={label} data-theme={evening ? "evening" : undefined} className="sim-scene flex min-h-dvh snap-start items-center bg-surface px-6 text-ink" style={{ transition: "background var(--dur-cinematic) var(--ease-silk)" }}>
       <motion.div className="mx-auto w-full max-w-[760px] py-16" style={reduce ? undefined : { opacity, y }}>
         {children}
       </motion.div>

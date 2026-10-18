@@ -13,6 +13,7 @@ import { computeJourney, computeReadiness, currentStage } from "@/lib/domain/rea
 import { nextActions, type Insight } from "@/lib/domain/insights";
 import { formatLKR, percent } from "@/lib/domain/money";
 import { sortTimeline } from "@/lib/domain/day";
+import { InstallBanner } from "@/components/shell/install-app";
 import { Badge, Card, cx } from "@/components/ui/primitives";
 import { PageSkeleton } from "@/components/shell/wedding-gate";
 import { GuestDonut } from "@/components/features/guest-donut";
@@ -66,6 +67,7 @@ function Dashboard({ today, data }: { today: string; data: WeddingData }) {
 
   return (
     <>
+      <InstallBanner />
       <PhotoHero data={data} today={today} daysLeft={daysLeft} keyMoments={keyMoments} lead={lead} readiness={m.readiness.overall} onReadiness={() => setBreakdownOpen(true)} />
       <ReadinessBreakdown readiness={m.readiness} open={breakdownOpen} onClose={() => setBreakdownOpen(false)} />
 
@@ -91,8 +93,8 @@ function Dashboard({ today, data }: { today: string; data: WeddingData }) {
       <Link href="/guide" className="guide-banner">
         <span className="guide-banner-icon" aria-hidden="true">🧭</span>
         <span className="min-w-0 flex-1">
-          <b>මොකක්ද ඊළඟට කරන්නේ? User guide එක බලන්න</b>
-          <span>පියවරෙන් පියවර, screenshots එක්ක — colours, hotel, payments, guests, tables, invitations.</span>
+          <b>Not sure what to do next? Open the user guide</b>
+          <span>Step by step, with screenshots — colours, hotel, payments, guests, tables, invitations. Also in සිංහල.</span>
         </span>
         <span className="wos-link">Open guide →</span>
       </Link>

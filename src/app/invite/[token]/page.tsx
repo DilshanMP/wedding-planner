@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 
 export default function InvitePage() {
   return (
-    <Suspense fallback={<main className="dinv-loading" aria-busy="true"><span className="dinv-loading-seal" /></main>}>
+    <Suspense fallback={<main className="ea-loading" aria-busy="true"><span className="ea-loading-seal" /></main>}>
       <InviteView />
     </Suspense>
   );

@@ -4,11 +4,27 @@ import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { cloudEnabled, getSupabase } from "@/lib/supabase/client";
 import { invitationLookup, invitationOpened, rsvpSubmit, type InvitationData } from "@/lib/data/cloud-services";
-import { contentFromLookup } from "@/lib/domain/digital-invite";
-import { DigitalInvitation } from "@/components/features/digital-invitation";
+import { contentFromWedding, designFromTemplate, initials, normalizeProject, type InviteContent, type InviteDesign } from "@/lib/domain/invite-studio";
+import { InvitationExperience } from "@/components/invite/invitation-experience";
 import { LotusMark } from "@/components/ui/primitives";
 
 type State = { status: "loading" } | { status: "missing" } | { status: "error"; message: string } | { status: "ready"; invite: InvitationData };
+
+const SCENES = ["arrival", "poruwa", "reception", "dinner", "cake", "entertainment", "going_away"];
+
+/** The couple's chosen design, or a template with their details when none is published yet. */
+function inviteFor(inv: InvitationData): { content: InviteContent; design: InviteDesign } {
+  const party = Math.max(1, inv.adults + inv.children);
+  if (inv.design?.content && inv.design.design) {
+    const p = normalizeProject({ id: inv.design.projectId, content: inv.design.content, design: inv.design.design }, inv.design.publishedAt);
+    return { content: { ...p.content, maxParty: party }, design: p.design };
+  }
+  const moments = (inv.moments ?? []).filter((m) => SCENES.includes(m.scene)).map((m) => ({ time: String(m.time).slice(0, 5), title: m.title }));
+  const content = { ...contentFromWedding({ brideName: inv.brideName, groomName: inv.groomName, weddingDate: inv.weddingDate, venue: inv.venue ?? "", location: inv.location ?? "" }, moments), maxParty: party };
+  const design = designFromTemplate("ivory-champagne");
+  design.seal.text = initials(inv.brideName, inv.groomName);
+  return { content, design };
+}
 
 /** The guest's personal, animated invitation. */
 export function InviteView() {
@@ -27,7 +43,7 @@ export function InviteView() {
     };
   }, [token]);
 
-  if (state.status === "loading") return <main className="dinv-loading" aria-busy="true"><span className="dinv-loading-seal" /></main>;
+  if (state.status === "loading") return <main className="ea-loading" aria-busy="true"><span className="ea-loading-seal" /></main>;
   if (state.status !== "ready") {
     return (
       <main className="flex min-h-dvh items-center justify-center px-4">
@@ -41,17 +57,22 @@ export function InviteView() {
   }
 
   const invite = state.invite;
+  const { content, design } = inviteFor(invite);
   return (
     <main>
-      <DigitalInvitation
-        content={contentFromLookup(invite)}
+      <InvitationExperience
+        content={content}
+        design={design}
+        guestName={invite.guestName}
+        party={{ adults: invite.adults, children: invite.children }}
         onOpen={() => void invitationOpened(getSupabase(), token)}
         rsvp={{
+          knownGuest: true,
+          initialName: invite.guestName,
           current: invite.rsvp,
-          meal: invite.meal,
           submit: async (reply) => {
             try {
-              const ok = await rsvpSubmit(getSupabase(), token, { response: reply.response, meal: reply.meal, attending: reply.attending, message: reply.message });
+              const ok = await rsvpSubmit(getSupabase(), token, { response: reply.attending, meal: invite.meal, attending: reply.attending === "yes" ? reply.party : null, message: reply.message });
               return ok ? null : "This invitation is no longer accepting replies.";
             } catch (e) {
               return e instanceof Error ? e.message.replace(/^Couldn't send your reply: /, "") : "Couldn't send your reply.";

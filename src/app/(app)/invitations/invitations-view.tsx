@@ -1,233 +1,162 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
-import { Check, Copy, Eye, Link2, Maximize2, MessageCircle, Play, Send, X } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { Copy, Eye, Pencil, Plus, Share2, Smartphone, Sparkles, Star, Trash2 } from "lucide-react";
 import { usePage } from "@/lib/hooks/use-page";
-import { usePlanner } from "@/lib/hooks/use-planner";
-import { useAuth, useStore } from "@/lib/store/provider";
-import { contentFromWedding } from "@/lib/domain/digital-invite";
-import { invitationMessage, inviteUrl, whatsAppLink } from "@/lib/domain/invitations";
-import { INVITATION_LABEL, RSVP_LABEL } from "@/lib/domain/catalog";
-import { PALETTES, type InviteEffect, type InviteMusic, type InviteSettings } from "@/lib/domain/planner";
-import type { Guest, WeddingData } from "@/lib/domain/types";
-import { DigitalInvitation } from "@/components/features/digital-invitation";
-import { RsvpSettings } from "@/components/features/guest-invite";
-import { Badge, Notice, PageHeader, SideChip, cx } from "@/components/ui/primitives";
-import { ChoiceChips, TextArea } from "@/components/ui/fields";
+import { useInvites } from "@/lib/hooks/use-invites";
+import { useStore } from "@/lib/store/provider";
+import { TEMPLATES, hasUnpublishedChanges, templateById, type InviteProject } from "@/lib/domain/invite-studio";
+import { StudioTabs } from "@/components/invite/studio-tabs";
+import { CardThumb, TemplateThumb } from "@/components/invite/template-thumb";
+import { SharePanel } from "@/components/invite/share-panel";
+import { Badge, EmptyState, Notice, PageHeader } from "@/components/ui/primitives";
+import { ConfirmDialog, Dialog } from "@/components/ui/dialog";
 import { PageSkeleton } from "@/components/shell/wedding-gate";
 import { useToast } from "@/components/shell/toast";
 
 export function InvitationsView() {
   const page = usePage();
   if (!page) return <PageSkeleton />;
-  return <Invitations data={page.data} />;
+  return <Dashboard />;
 }
 
-type Filter = "to_send" | "sent" | "replied" | "all";
+const when = (iso: string) => new Date(iso).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
 
-const isSent = (g: Guest) => g.invitation !== "not_sent";
-const replied = (g: Guest) => g.rsvp !== "pending";
-
-function Swatch({ colors, label, on, onPick }: { colors: string[]; label: string; on: boolean; onPick: () => void }) {
-  return (
-    <button type="button" onClick={onPick} aria-pressed={on} className={cx("inv-swatch", on && "is-on")}>
-      <span className="inv-swatch-dots" aria-hidden="true">{colors.slice(0, 4).map((c, i) => <i key={i} style={{ background: c }} />)}</span>
-      <span className="inv-swatch-label">{label}</span>
-      {on && <Check className="inv-swatch-check" aria-hidden="true" />}
-    </button>
-  );
-}
-
-function Invitations({ data }: { data: WeddingData }) {
+function Dashboard() {
   const store = useStore();
-  const auth = useAuth();
   const toast = useToast();
-  const [stationery, setStationery] = usePlanner("stationery");
-  const [theme] = usePlanner("theme");
-  const settings = stationery.invite;
-  const set = (patch: Partial<InviteSettings>) => setStationery((s) => ({ ...s, invite: { ...s.invite, ...patch } }));
-  const [previewId, setPreviewId] = useState<string | null>(null);
-  const [replay, setReplay] = useState(0);
-  const [full, setFull] = useState(false);
-  const [filter, setFilter] = useState<Filter>("to_send");
+  const { plan, setPlan, duplicate, remove, publish, weddingId, weddingContent, cloud } = useInvites();
+  const [views, setViews] = useState<Record<string, number>>({});
+  const [sharing, setSharing] = useState<InviteProject | null>(null);
+  const [deleting, setDeleting] = useState<InviteProject | null>(null);
+  const content = useMemo(() => weddingContent(), [weddingContent]);
+  const published = plan.projects.filter((p) => p.publishedAt).length;
 
-  const { wedding, guests } = data;
-  const online = auth.mode === "cloud" && wedding.rsvpEnabled;
-  const origin = typeof window !== "undefined" ? window.location.origin : "";
-  const previewGuest = guests.find((g) => g.id === previewId) ?? null;
-  const content = useMemo(() => contentFromWedding(data, previewGuest), [data, previewGuest]);
+  useEffect(() => {
+    let alive = true;
+    store.repo.published.list(weddingId).then(
+      (rows) => alive && setViews(Object.fromEntries(rows.map((r) => [r.projectId, r.views]))),
+      () => {},
+    );
+    return () => {
+      alive = false;
+    };
+  }, [store, weddingId, published]);
 
-  const sorted = [...guests].sort((a, b) => a.name.localeCompare(b.name));
-  const shown = sorted.filter((g) => (filter === "to_send" ? !isSent(g) : filter === "sent" ? isSent(g) && !replied(g) : filter === "replied" ? replied(g) : true));
-  const sent = guests.filter(isSent).length;
-  const opened = guests.filter((g) => g.invitation === "opened" || g.invitation === "confirmed" || replied(g)).length;
-  const yes = guests.filter((g) => g.rsvp === "yes").length;
-  const nextGuest = sorted.find((g) => !isSent(g) && whatsAppLink(g, ""));
-
-  const linkFor = (g: Guest) => (online ? inviteUrl(origin, g) : null);
-  const markSent = (g: Guest) => {
-    if (g.invitation === "not_sent") store.upsert("guests", { ...g, invitation: "sent" });
-  };
-  const copy = async (g: Guest) => {
-    const link = linkFor(g);
-    if (!link) return;
-    try {
-      await navigator.clipboard.writeText(invitationMessage(wedding, g, link));
-      toast(`Invitation for ${g.name} copied — paste it in any chat.`);
-      markSent(g);
-    } catch {
-      toast("Couldn't copy. Long-press the link to copy it instead.", "danger");
+  const makeMain = async (p: InviteProject) => {
+    setPlan((prev) => ({ ...prev, mainId: p.id }));
+    if (p.publishedAt) {
+      try {
+        await publish(p, { main: true });
+      } catch (e) {
+        toast(e instanceof Error ? e.message : "Couldn't update the guest links.", "danger");
+        return;
+      }
     }
-  };
-  const sendNext = () => {
-    if (!nextGuest) return;
-    const wa = whatsAppLink(nextGuest, invitationMessage(wedding, nextGuest, linkFor(nextGuest)));
-    if (!wa) return;
-    window.open(wa, "_blank", "noopener,noreferrer");
-    markSent(nextGuest);
-    setPreviewId(nextGuest.id);
+    toast(`Personal guest links now use “${p.name}”.`);
   };
 
-  const paletteChoices = [{ name: "theme", label: theme.name ? `Our colours (${theme.name})` : "Our wedding colours", colors: theme.colors }, ...PALETTES.map((p) => ({ name: p.name, label: p.name, colors: p.colors }))];
+  const sorted = [...plan.projects].sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
 
   return (
-    <>
+    <div className="flex flex-col gap-6">
       <PageHeader
-        overline="Create"
-        title="Digital invitations"
-        lead="An animated invitation that opens like a real envelope — with music, falling petals and a live countdown. Each guest gets their own link to reply."
-        actions={<button type="button" className="wos-btn wos-btn--secondary" onClick={() => setFull(true)}><Maximize2 className="wos-icon" aria-hidden="true" />Full screen</button>}
+        overline="EverAfter Studio"
+        title="My invitations"
+        lead="Design an animated envelope invitation, publish it to its own link, and collect replies in one place."
+        actions={<Link href="/invitations/new" className="wos-btn wos-btn--primary"><Plus className="wos-icon" aria-hidden="true" />New invitation</Link>}
       />
+      <StudioTabs />
 
-      <div className="inv-layout">
-        <div className="inv-preview">
-          <div className="phone-frame">
-            <div className="phone-screen">
-              <DigitalInvitation key={`${replay}-${previewId}`} content={content} framed />
-            </div>
-          </div>
-          <div className="flex flex-wrap items-center justify-center gap-2">
-            <button type="button" className="wos-btn wos-btn--ghost wos-btn--sm" onClick={() => setReplay((n) => n + 1)}><Play className="wos-icon" aria-hidden="true" />Play again</button>
-            <span className="text-[13px] text-ink-muted">{previewGuest ? `As ${previewGuest.name} sees it` : "Preview"}</span>
-            {previewGuest && <button type="button" className="wos-btn wos-btn--ghost wos-btn--sm" onClick={() => setPreviewId(null)}>Clear guest</button>}
-          </div>
-        </div>
+      {!cloud && (
+        <Notice tone="info" icon={<Smartphone className="wos-icon" aria-hidden="true" />} title="You're planning on this device only">
+          Published links open on this browser so you can try the whole flow. Sign in with a cloud account to share them with guests.
+        </Notice>
+      )}
 
-        <div className="flex min-w-0 flex-col gap-5">
-          <section className="wos-card flex flex-col gap-4">
-            <div className="flex items-start gap-3">
-              <span className="inv-step">1</span>
-              <div>
-                <h2 className="wos-h2 !text-[22px] !leading-[28px]">Make it yours</h2>
-                <p className="m-0 text-[14px] text-ink-muted">Names, blessing and times come from <Link href="/cards" className="wos-link">Cards &amp; boxes</Link> and <Link href="/timeline" className="wos-link">Day plan</Link>.</p>
-              </div>
-            </div>
-            <div className="flex flex-col gap-2">
-              <span className="text-[14px] leading-5 font-semibold">Colours</span>
-              <div className="inv-swatches">
-                {paletteChoices.map((p) => <Swatch key={p.name} colors={p.colors} label={p.label} on={settings.palette === p.name} onPick={() => set({ palette: p.name })} />)}
-              </div>
-            </div>
-            <ChoiceChips<InviteMusic> label="Music" value={settings.music} onChange={(music) => set({ music })}
-              options={[{ value: "music-box", label: "🎶 Music box" }, { value: "piano", label: "🎹 Soft piano" }, { value: "none", label: "🔇 Silent" }]} />
-            <ChoiceChips<InviteEffect> label="Effects" value={settings.effect} onChange={(effect) => set({ effect })}
-              options={[{ value: "both", label: "🌸✨ Petals & sparkles" }, { value: "petals", label: "🌸 Petals" }, { value: "sparkles", label: "✨ Sparkles" }]} />
-            <TextArea label="A note from you both" value={settings.note} onChange={(note) => set({ note: note.slice(0, 300) })} rows={3} />
-            <TextArea label="Dress code (optional)" value={settings.dressCode} onChange={(dressCode) => set({ dressCode: dressCode.slice(0, 200) })} rows={2} />
-          </section>
-
-          <section className="wos-card flex flex-col gap-4">
-            <div className="flex items-start gap-3">
-              <span className="inv-step">2</span>
-              <div>
-                <h2 className="wos-h2 !text-[22px] !leading-[28px]">Turn on guest links</h2>
-                <p className="m-0 text-[14px] text-ink-muted">Every guest gets a private link. Only they can see their invitation.</p>
-              </div>
-            </div>
-            <RsvpSettings wedding={wedding} />
-          </section>
-
-          <section className="wos-card flex flex-col gap-4">
-            <div className="flex items-start gap-3">
-              <span className="inv-step">3</span>
-              <div className="min-w-0 flex-1">
-                <h2 className="wos-h2 !text-[22px] !leading-[28px]">Send</h2>
-                <p className="m-0 text-[14px] text-ink-muted">Tap WhatsApp: the message and link are written for you. We mark it sent.</p>
-              </div>
-            </div>
-            <div className="inv-stats">
-              <div><strong className="wos-num">{sent}</strong><span>of {guests.length} sent</span></div>
-              <div><strong className="wos-num">{opened}</strong><span>opened</span></div>
-              <div><strong className="wos-num">{yes}</strong><span>coming</span></div>
-            </div>
-            {!online && (
-              <Notice tone="info" icon={<Link2 className="wos-icon" />} title={auth.mode === "cloud" ? "Guest links are off." : "Messages will go without a link."}>
-                {auth.mode === "cloud" ? "Turn on guest links above so each message carries the animated invitation." : "Animated invitation links need the free cloud account (Settings → Sync). WhatsApp messages still work."}
-              </Notice>
-            )}
-            {nextGuest && (
-              <button type="button" className="wos-btn wos-btn--primary wos-btn--lg" onClick={sendNext}>
-                <Send className="wos-icon" aria-hidden="true" />Send to next guest: {nextGuest.name}
-              </button>
-            )}
-            <div className="flex flex-wrap gap-2" role="group" aria-label="Show guests">
-              {([["to_send", "To send"], ["sent", "Waiting for reply"], ["replied", "Replied"], ["all", "All"]] as [Filter, string][]).map(([f, label]) => (
-                <button key={f} type="button" className={cx("wos-chip", filter === f && "is-on")} aria-pressed={filter === f} onClick={() => setFilter(f)}>{label}</button>
+      {sorted.length === 0 ? (
+        <>
+          <EmptyState title="No invitations yet" action={<Link href="/invitations/new" className="wos-btn wos-btn--primary"><Sparkles className="wos-icon" aria-hidden="true" />Create your first invitation</Link>}>
+            Pick a template below — your names, date and venue are filled in from your wedding details.
+          </EmptyState>
+          <section className="flex flex-col gap-3">
+            <h2 className="wos-h2">Start from a template</h2>
+            <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+              {TEMPLATES.map((t) => (
+                <Link key={t.id} href={`/invitations/new?template=${t.id}`} className="wos-card !p-0 flex flex-col overflow-hidden no-underline transition-transform hover:-translate-y-0.5">
+                  <TemplateThumb templateId={t.id} content={content} className="aspect-[4/5]" />
+                  <span className="flex flex-col gap-0.5 p-3">
+                    <strong className="text-[14px] text-ink">{t.name}</strong>
+                    <span className="text-[12px] text-ink-muted">{t.mood.join(" · ")}</span>
+                  </span>
+                </Link>
               ))}
             </div>
-            {shown.length === 0 ? (
-              <p className="m-0 py-4 text-center text-ink-muted">{guests.length === 0 ? <>Add guests first on the <Link href="/guests" className="wos-link">Guests</Link> page.</> : "Nobody here. 🎉"}</p>
-            ) : (
-              <ul className="inv-list">
-                {shown.map((g) => {
-                  const wa = whatsAppLink(g, invitationMessage(wedding, g, linkFor(g)));
-                  return (
-                    <li key={g.id} className={cx("inv-row", previewId === g.id && "is-on")}>
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-center gap-2">
-                          <span className="truncate font-semibold">{g.name}</span>
-                          <SideChip side={g.side} />
-                        </div>
-                        <div className="flex flex-wrap items-center gap-1.5 text-[13px] text-ink-muted">
-                          {g.category && <span>{g.category} ·</span>}
-                          <span>{g.adults + g.children} {g.adults + g.children === 1 ? "person" : "people"}</span>
-                          <Badge tone={replied(g) ? (g.rsvp === "yes" ? "success" : g.rsvp === "no" ? "danger" : "warning") : isSent(g) ? "info" : "neutral"}>
-                            {replied(g) ? RSVP_LABEL[g.rsvp] : INVITATION_LABEL[g.invitation]}
-                          </Badge>
-                          {!wa && <span className="text-[12px]">No WhatsApp number</span>}
-                        </div>
-                      </div>
-                      <div className="flex flex-none gap-1">
-                        <button type="button" className="wos-btn wos-btn--ghost wos-btn--sm !px-2.5" aria-label={`Preview ${g.name}'s invitation`} title="Preview" onClick={() => { setPreviewId(g.id); setReplay((n) => n + 1); }}>
-                          <Eye className="wos-icon" aria-hidden="true" />
-                        </button>
-                        {linkFor(g) && (
-                          <button type="button" className="wos-btn wos-btn--ghost wos-btn--sm !px-2.5" aria-label={`Copy invitation for ${g.name}`} title="Copy message and link" onClick={() => void copy(g)}>
-                            <Copy className="wos-icon" aria-hidden="true" />
-                          </button>
-                        )}
-                        {wa && (
-                          <a href={wa} target="_blank" rel="noopener noreferrer" className="wos-btn wos-btn--secondary wos-btn--sm" aria-label={`Send invitation to ${g.name} on WhatsApp`} onClick={() => markSent(g)}>
-                            <MessageCircle className="wos-icon" aria-hidden="true" />WhatsApp
-                          </a>
-                        )}
-                      </div>
-                    </li>
-                  );
-                })}
-              </ul>
-            )}
           </section>
-        </div>
-      </div>
-
-      {full && (
-        <div className="inv-full" role="dialog" aria-modal="true" aria-label="Invitation preview">
-          <DigitalInvitation content={content} />
-          <button type="button" className="inv-full-close" onClick={() => setFull(false)} aria-label="Close preview"><X aria-hidden="true" /></button>
+        </>
+      ) : (
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3" data-testid="invite-projects">
+          {sorted.map((p) => {
+            const main = plan.mainId === p.id;
+            const pending = hasUnpublishedChanges(p);
+            return (
+              <article key={p.id} className="wos-card !p-0 flex flex-col overflow-hidden" data-testid="invite-project">
+                <Link href={`/invitations/${p.id}`} aria-label={`Edit ${p.name}`}>
+                  <CardThumb content={p.content} design={p.design} className="aspect-[5/4]" />
+                </Link>
+                <div className="flex flex-1 flex-col gap-3 p-4">
+                  <div className="flex flex-col gap-1">
+                    <h2 className="m-0 font-[family-name:var(--wos-serif)] text-[20px] leading-[26px] text-ink">{p.name}</h2>
+                    <p className="m-0 text-[13px] text-ink-muted">{templateById(p.design.templateId).name} · edited {when(p.updatedAt)}</p>
+                  </div>
+                  <div className="flex flex-wrap gap-1.5">
+                    {p.publishedAt ? <Badge tone="success">Live</Badge> : <Badge>Draft</Badge>}
+                    {p.publishedAt && pending && <Badge tone="warning">Changes not published</Badge>}
+                    {main && <Badge tone="wine">Guest links</Badge>}
+                    {p.publishedAt && <Badge plain>{views[p.id] ?? 0} {(views[p.id] ?? 0) === 1 ? "view" : "views"}</Badge>}
+                  </div>
+                  <div className="mt-auto flex flex-wrap gap-2">
+                    <Link href={`/invitations/${p.id}`} className="wos-btn wos-btn--primary wos-btn--sm"><Pencil className="wos-icon" aria-hidden="true" />Edit</Link>
+                    <Link href={`/invitations/${p.id}/preview`} className="wos-btn wos-btn--secondary wos-btn--sm"><Eye className="wos-icon" aria-hidden="true" />Preview</Link>
+                    {p.publishedAt && p.slug && <button type="button" className="wos-btn wos-btn--secondary wos-btn--sm" onClick={() => setSharing(p)}><Share2 className="wos-icon" aria-hidden="true" />Share</button>}
+                  </div>
+                  <div className="flex flex-wrap gap-1 border-t border-line pt-2">
+                    {!main && <button type="button" className="wos-btn wos-btn--ghost wos-btn--sm" onClick={() => void makeMain(p)}><Star className="wos-icon" aria-hidden="true" />Use for guest links</button>}
+                    <button type="button" className="wos-btn wos-btn--ghost wos-btn--sm" onClick={() => { duplicate(p); toast("Copy made."); }}><Copy className="wos-icon" aria-hidden="true" />Duplicate</button>
+                    <button type="button" className="wos-btn wos-btn--ghost wos-btn--sm !text-[var(--danger)]" onClick={() => setDeleting(p)}><Trash2 className="wos-icon" aria-hidden="true" />Delete</button>
+                  </div>
+                </div>
+              </article>
+            );
+          })}
         </div>
       )}
-    </>
+
+      <p className="m-0 text-[14px] text-ink-muted">Want to see how it feels for guests? <Link href="/everafter" className="wos-link">Open the EverAfter showcase</Link>.</p>
+
+      <Dialog open={Boolean(sharing)} onClose={() => setSharing(null)} title="Share your invitation" description="Anyone with this link can open the invitation and reply.">
+        {sharing?.slug && <SharePanel slug={sharing.slug} content={sharing.content} />}
+      </Dialog>
+      <ConfirmDialog
+        open={Boolean(deleting)}
+        onCancel={() => setDeleting(null)}
+        onConfirm={async () => {
+          const p = deleting;
+          setDeleting(null);
+          if (!p) return;
+          try {
+            await remove(p);
+            toast("Invitation deleted.");
+          } catch (e) {
+            toast(e instanceof Error ? e.message : "Couldn't delete it.", "danger");
+          }
+        }}
+        title={`Delete “${deleting?.name ?? ""}”?`}
+        body={deleting?.publishedAt ? "Its link stops working for guests. Replies you've already received are kept." : "This design will be removed."}
+        confirmLabel="Delete"
+        danger
+      />
+    </div>
   );
 }

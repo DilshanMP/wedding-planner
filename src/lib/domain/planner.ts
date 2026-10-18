@@ -1,4 +1,5 @@
 import type { BudgetItem, ID, ISODateTime, LKR, SimulatorScene, TimelineEvent } from "./types";
+import { emptyInvites, normalizeInvites, type InvitesPlan } from "./invite-studio";
 
 /**
  * The couple's creative plan: wedding colours, menu, table layout, cards and
@@ -411,6 +412,8 @@ export interface PlannerData {
   seating: SeatingPlan;
   stationery: StationeryPlan;
   vision: VisionPlan;
+  /** EverAfter Studio invitation projects. */
+  invites: InvitesPlan;
 }
 
 export type PlannerKey = keyof PlannerData;
@@ -421,10 +424,11 @@ export const PLANNER_LABEL: Record<PlannerKey, string> = {
   seating: "the table plan",
   stationery: "the wedding cards",
   vision: "the vision board",
+  invites: "the invitations",
 };
 
 export function defaultPlanner(newId: () => string): PlannerData {
-  return { theme: DEFAULT_THEME, menu: emptyMenu(), seating: emptySeating(), stationery: defaultStationery(), vision: defaultVision(newId) };
+  return { theme: DEFAULT_THEME, menu: emptyMenu(), seating: emptySeating(), stationery: defaultStationery(), vision: defaultVision(newId), invites: emptyInvites() };
 }
 
 /** Fill anything missing (older saves) with defaults. */
@@ -438,6 +442,7 @@ export function normalizePlanner(raw: Partial<PlannerData> | null | undefined, n
     seating: { ...d.seating, ...(p.seating ?? {}) },
     stationery: { ...d.stationery, ...st, text: { ...d.stationery.text, ...(st.text ?? {}) }, invite: { ...d.stationery.invite, ...(st.invite ?? {}) } },
     vision: { ...d.vision, ...(p.vision ?? {}), preview: { ...d.vision.preview, ...(p.vision?.preview ?? {}) } },
+    invites: normalizeInvites(p.invites, new Date().toISOString()),
   };
 }
 
