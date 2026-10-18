@@ -104,3 +104,22 @@ describe("publishing", () => {
     expect(hasUnpublishedChanges({ ...p, updatedAt: "2026-10-21T00:00:00.000Z" })).toBe(true);
   });
 });
+
+describe("addressing personal invitations", () => {
+  it("says You, You Both or You & Your Family from the party", async () => {
+    const { addressFor, designFromTemplate } = await import("../invite-studio");
+    expect(addressFor({ adults: 1, children: 0 })).toBe("You");
+    expect(addressFor({ adults: 2, children: 0 })).toBe("You Both");
+    expect(addressFor({ adults: 1, children: 1 })).toBe("You & Your Family");
+    expect(addressFor({ adults: 4, children: 0 })).toBe("You & Your Family");
+    expect(addressFor({ adults: 0, children: 0 })).toBe("You");
+    expect(designFromTemplate("ivory-champagne").addressing).toBe("you");
+  });
+
+  it("uses the same words in the WhatsApp message", async () => {
+    const { invitationMessage } = await import("../invitations");
+    const wedding = { brideName: "Amaya", groomName: "Kavindu", weddingDate: "2027-05-27", venue: "Paradise Inn", location: "Bolgoda" };
+    const msg = invitationMessage(wedding as never, { name: "Perera family", adults: 2, children: 2 } as never, null);
+    expect(msg).toContain("warmly invite you and your family to celebrate");
+  });
+});

@@ -173,6 +173,9 @@ export function WordingPanel({ p, change }: { p: InviteProject; change: Change }
         <TextArea label="Invitation message" rows={4} value={c.inviteMessage} onChange={(v) => set.content("inviteMessage", v)} />
       </Section>
       <Section title="Opening and closing">
+        <ChoiceChips label="Personal links are addressed to" value={p.design.addressing} onChange={(v) => set.design((d) => ({ ...d, addressing: v }), "addressing")}
+          options={[{ value: "you", label: "You · You Both · You & Your Family" }, { value: "name", label: "The guest's name" }]} />
+        <p className="m-0 -mt-2 text-[13px] text-ink-muted">With the first option the envelope says “An invitation for You Both” (or You / You &amp; Your Family, from the guest list) in a clean modern font.</p>
         <TextField label="Text on the envelope" value={p.design.openingText} onChange={(v) => set.design((d) => ({ ...d, openingText: v }), "openingText")} />
         <TextArea label="Closing message" rows={2} value={p.design.closingMessage} onChange={(v) => set.design((d) => ({ ...d, closingMessage: v }), "closingMessage")} />
       </Section>

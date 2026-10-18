@@ -64,6 +64,7 @@ export function InviteView() {
         content={content}
         design={design}
         guestName={invite.guestName}
+        party={{ adults: invite.adults, children: invite.children }}
         onOpen={() => void invitationOpened(getSupabase(), token)}
         rsvp={{
           knownGuest: true,

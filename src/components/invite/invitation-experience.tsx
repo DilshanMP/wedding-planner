@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import { motion, useMotionValue, useReducedMotion, useSpring } from "motion/react";
 import { FastForward, RotateCcw, Volume2, VolumeX } from "lucide-react";
-import { FONTS, readableOn, type InviteContent, type InviteDesign } from "@/lib/domain/invite-studio";
+import { FONTS, addressFor, readableOn, type InviteContent, type InviteDesign } from "@/lib/domain/invite-studio";
 import { InviteSound } from "@/lib/invite-sound";
 import { mix } from "@/lib/theme-colors";
 import { Ambience } from "./ambience";
@@ -32,8 +32,9 @@ const EASE_PAPER = [0.65, 0, 0.35, 1] as const;
 export interface ExperienceProps {
   content: InviteContent;
   design: InviteDesign;
-  /** Shown on the envelope ("For Nimal & family"). */
+  /** The guest, for personal links. With "you" addressing (the default) only their party size is used. */
   guestName?: string;
+  party?: { adults: number; children: number };
   rsvp?: RsvpHandler;
   /** Link guests share (published URL). */
   shareUrl?: string;
@@ -47,7 +48,7 @@ export interface ExperienceProps {
 }
 
 export function InvitationExperience(props: ExperienceProps) {
-  const { content, design, guestName, framed, startOpen, silent, onOpen } = props;
+  const { content, design, guestName, party, framed, startOpen, silent, onOpen } = props;
   const reduce = useReducedMotion();
   const [phase, setPhase] = useState<Phase>(startOpen ? 5 : 0);
   const [muted, setMuted] = useState(Boolean(silent));
@@ -169,6 +170,10 @@ export function InvitationExperience(props: ExperienceProps) {
   const sealTop = SEAL_AT[design.envelope.flap];
   const couple = `${content.brideName} & ${content.groomName}`;
   const scriptFont = FONTS[design.fonts.names].family;
+  // "You / You Both / You & Your Family" in a clean modern face, or the guest's name in script.
+  const personal = Boolean(guestName || party);
+  const modern = design.addressing !== "name" || !guestName;
+  const to = personal ? (modern ? addressFor(party ?? { adults: 1, children: 0 }) : guestName!) : null;
   const opened = phase >= 5;
 
   return (
@@ -188,8 +193,8 @@ export function InvitationExperience(props: ExperienceProps) {
               tiltX.set(0);
               tiltY.set(0);
             }}>
-            <motion.p className="ea-greeting" animate={{ opacity: phase === 0 ? 1 : 0, y: phase === 0 ? 0 : -12 }} transition={{ duration: 0.5 }}>
-              {guestName ? <>Dear <b>{guestName}</b></> : <>{couple}</>}
+            <motion.p className={`ea-greeting${to && modern ? " ea-greeting--modern" : ""}`} animate={{ opacity: phase === 0 ? 1 : 0, y: phase === 0 ? 0 : -12 }} transition={{ duration: 0.5 }}>
+              {to ? (modern ? <>An invitation for<b className="ea-to">{to}</b></> : <>Dear <b>{to}</b></>) : <>{couple}</>}
             </motion.p>
 
             <motion.div className="ea-camera" animate={{ scale: design.animation.preset === "cinematic" && phase >= 3 ? 1.06 : 1 }} transition={{ duration: T.rise * 1.4, ease: EASE_SOFT }}>
@@ -209,7 +214,7 @@ export function InvitationExperience(props: ExperienceProps) {
                     <InviteCard content={content} design={design} className="ea-card-svg" />
                   </motion.span>
 
-                  <span className="ea-part ea-pocket"><EnvelopePocket c={c} texture={design.envelope.texture} flap={design.envelope.flap} guestName={guestName} couple={guestName ? couple : undefined} font={scriptFont} /></span>
+                  <span className="ea-part ea-pocket"><EnvelopePocket c={c} texture={design.envelope.texture} flap={design.envelope.flap} guestName={to ?? undefined} couple={to ? couple : undefined} font={modern ? FONTS.jost.family : scriptFont} modern={modern} /></span>
 
                   <motion.span className="ea-flap" style={{ height: `${FLAP_SHARE * 100}%`, zIndex: phase >= 3 ? 1 : 4 }}
                     animate={{ rotateX: phase >= 2 ? 178 : 0 }} transition={{ duration: T.flap, ease: EASE_PAPER }}>

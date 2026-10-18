@@ -22,6 +22,7 @@ function Preview() {
   const { plan } = useInvites();
   const [run, setRun] = useState(0);
   const [guest, setGuest] = useState("");
+  const [party, setParty] = useState<"" | "1" | "2" | "4">("2");
   const p = plan.projects.find((x) => x.id === id);
   if (!p) {
     return <EmptyState title="We couldn't find this invitation" action={<Link href="/invitations" className="wos-btn wos-btn--primary">Back to my invitations</Link>} />;
@@ -33,6 +34,7 @@ function Preview() {
         content={p.content}
         design={p.design}
         guestName={guest || undefined}
+        party={party ? { adults: party === "4" ? 2 : Number(party), children: party === "4" ? 2 : 0 } : undefined}
         rsvp={{ submit: async () => null }}
       />
       <div className="pointer-events-none fixed inset-x-0 top-0 z-[95] flex items-center justify-between gap-2 p-3">
@@ -40,8 +42,16 @@ function Preview() {
         <div className="pointer-events-auto flex items-center gap-2 rounded-full bg-white/90 px-2 py-1 shadow-[var(--shadow-md)] backdrop-blur">
           <label className="flex items-center gap-1.5 text-[12px] text-ink-muted">
             For
-            <input className="w-[120px] rounded-full border border-line bg-white px-2 py-1 text-[13px] text-ink" placeholder="Guest name" value={guest} onChange={(e) => setGuest(e.target.value)} />
+            <select className="rounded-full border border-line bg-white px-2 py-1 text-[13px] text-ink" value={party} onChange={(e) => { setParty(e.target.value as typeof party); setRun((r) => r + 1); }}>
+              <option value="">Public link</option>
+              <option value="1">One guest</option>
+              <option value="2">A couple</option>
+              <option value="4">A family</option>
+            </select>
           </label>
+          {p.design.addressing === "name" && party && (
+            <input aria-label="Guest name" className="w-[120px] rounded-full border border-line bg-white px-2 py-1 text-[13px] text-ink" placeholder="Guest name" value={guest} onChange={(e) => setGuest(e.target.value)} />
+          )}
           <button type="button" className="wos-iconbtn" aria-label="Replay" onClick={() => setRun((r) => r + 1)}><RotateCcw className="wos-icon" aria-hidden="true" /></button>
         </div>
       </div>

@@ -1,3 +1,4 @@
+import { addressFor } from "./invite-studio";
 import { formatLongDate } from "./dates";
 import type { Guest, Wedding } from "./types";
 
@@ -28,7 +29,7 @@ export function invitationMessage(wedding: Wedding, guest: Guest, link: string |
   const lines = [
     `Ayubowan ${guest.name} 🙏`,
     "",
-    `${wedding.brideName} & ${wedding.groomName} warmly invite you to celebrate our wedding on ${formatLongDate(wedding.weddingDate)}${place ? ` at ${place}` : ""}.`,
+    `${wedding.brideName} & ${wedding.groomName} warmly invite ${addressFor(guest).toLowerCase().replace("&", "and")} to celebrate our wedding on ${formatLongDate(wedding.weddingDate)}${place ? ` at ${place}` : ""}.`,
   ];
   if (link) lines.push("", `💌 Open your invitation (turn the sound on!) and let us know if you can join us:`, link);
   return lines.join("\n");

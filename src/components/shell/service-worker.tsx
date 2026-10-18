@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect } from "react";
+// Loaded with every page so the browser's install offer is never missed.
+import "@/lib/hooks/use-install";
 
 /** Registers the offline service worker in production builds. */
 export function ServiceWorker() {

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { CalendarClock, Check, Scale, Sparkles, Store, SunMedium, Users, Wallet } from "lucide-react";
 import { JasmineMark, LotusMark, PoruwaMark } from "@/components/ui/primitives";
 import { LandingCta } from "./landing-cta";
+import { InstallApp } from "@/components/shell/install-app";
 import { PLANS } from "@/lib/domain/plans";
 
 const JOURNEY = ["Vision", "Budget", "Venue", "Guest Planning", "Vendors", "Ceremony", "Reception", "Attire", "Invitations", "Final Preparation", "Wedding Day", "Post Wedding"];
@@ -38,6 +39,7 @@ export default function LandingPage() {
               <LandingCta variant="hero" />
               <Link href="#journey" className="wos-btn wos-btn--secondary wos-btn--lg">Explore Wedding Journey</Link>
             </div>
+            <InstallApp className="wos-btn--ghost self-start !px-0" />
           </div>
           <div className="wos-hero wos-reveal" aria-hidden="true">
             <div className="wos-hero__main !flex-[1_1_100%]">

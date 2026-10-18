@@ -13,6 +13,7 @@ import { computeJourney, computeReadiness, currentStage } from "@/lib/domain/rea
 import { nextActions, type Insight } from "@/lib/domain/insights";
 import { formatLKR, percent } from "@/lib/domain/money";
 import { sortTimeline } from "@/lib/domain/day";
+import { InstallBanner } from "@/components/shell/install-app";
 import { Badge, Card, cx } from "@/components/ui/primitives";
 import { PageSkeleton } from "@/components/shell/wedding-gate";
 import { GuestDonut } from "@/components/features/guest-donut";
@@ -66,6 +67,7 @@ function Dashboard({ today, data }: { today: string; data: WeddingData }) {
 
   return (
     <>
+      <InstallBanner />
       <PhotoHero data={data} today={today} daysLeft={daysLeft} keyMoments={keyMoments} lead={lead} readiness={m.readiness.overall} onReadiness={() => setBreakdownOpen(true)} />
       <ReadinessBreakdown readiness={m.readiness} open={breakdownOpen} onClose={() => setBreakdownOpen(false)} />
 

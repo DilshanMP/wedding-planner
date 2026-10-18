@@ -179,7 +179,7 @@ function pocketTop(flap: FlapStyle): { left: number; mid: number } {
   return { left: 0.5, mid: tip - 1.5 };
 }
 
-export function EnvelopePocket({ c, texture, flap, guestName, couple, font }: { c: DesignColors; texture: EnvelopeTexture; flap: FlapStyle; guestName?: string; couple?: string; font: string }) {
+export function EnvelopePocket({ c, texture, flap, guestName, couple, font, modern }: { c: DesignColors; texture: EnvelopeTexture; flap: FlapStyle; guestName?: string; couple?: string; font: string; modern?: boolean }) {
   const u = uidOf(useId());
   const { left, mid } = pocketTop(flap);
   const body = `M0 ${left}L50 ${mid}L100 ${left}V140H0Z`;
@@ -209,7 +209,11 @@ export function EnvelopePocket({ c, texture, flap, guestName, couple, font }: { 
       {guestName && (
         <g>
           <text x="50" y="112" textAnchor="middle" fontSize="3.4" fontFamily="'Manrope', sans-serif" fill={ink} letterSpacing="0.8" opacity="0.8">FOR</text>
-          <text x="50" y="122" textAnchor="middle" fontSize="7.2" fontFamily={font} fill={ink} transform="scale(1 1)">{guestName.length > 24 ? `${guestName.slice(0, 22)}…` : guestName}</text>
+          {modern ? (
+            <text x="50" y="121.5" textAnchor="middle" fontSize="4.6" fontFamily={font} fontWeight="500" fill={ink} letterSpacing="1.1">{guestName.toUpperCase()}</text>
+          ) : (
+            <text x="50" y="122" textAnchor="middle" fontSize="7.2" fontFamily={font} fill={ink}>{guestName.length > 24 ? `${guestName.slice(0, 22)}…` : guestName}</text>
+          )}
           {couple && <text x="50" y="131" textAnchor="middle" fontSize="3" fontFamily="'Manrope', sans-serif" fill={ink} letterSpacing="0.6" opacity="0.7">{couple.toUpperCase()}</text>}
         </g>
       )}

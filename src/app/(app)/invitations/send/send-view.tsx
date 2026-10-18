@@ -89,7 +89,7 @@ function Invitations({ data }: { data: WeddingData }) {
           <div className="phone-frame">
             <div className="phone-screen">
               {main ? (
-                <InvitationExperience key={`${replay}-${previewId}-${main.id}`} content={main.content} design={main.design} guestName={previewGuest?.name} framed silent />
+                <InvitationExperience key={`${replay}-${previewId}-${main.id}`} content={main.content} design={main.design} guestName={previewGuest?.name} party={previewGuest ? { adults: previewGuest.adults, children: previewGuest.children } : undefined} framed silent />
               ) : (
                 <div className="grid h-full place-items-center p-6 text-center text-ink-muted">Choose or create a design to preview it here.</div>
               )}
@@ -217,7 +217,7 @@ function Invitations({ data }: { data: WeddingData }) {
 
       {full && (
         <div className="inv-full" role="dialog" aria-modal="true" aria-label="Invitation preview">
-          {main && <InvitationExperience content={main.content} design={main.design} guestName={previewGuest?.name} silent />}
+          {main && <InvitationExperience content={main.content} design={main.design} guestName={previewGuest?.name} party={previewGuest ? { adults: previewGuest.adults, children: previewGuest.children } : undefined} silent />}
           <button type="button" className="inv-full-close" onClick={() => setFull(false)} aria-label="Close preview"><X aria-hidden="true" /></button>
         </div>
       )}

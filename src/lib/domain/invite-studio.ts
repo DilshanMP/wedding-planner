@@ -69,6 +69,8 @@ export interface DesignColors {
   floralB: string;
 }
 
+export type Addressing = "you" | "name";
+
 export interface InviteDesign {
   templateId: string;
   colors: DesignColors;
@@ -86,6 +88,8 @@ export interface InviteDesign {
   closingMessage: string;
   showCountdown: boolean;
   showDayPlan: boolean;
+  /** Personal links: "You / You Both / You & Your Family", or the guest's name. */
+  addressing: Addressing;
   photo: { src: string | null; x: number; y: number; zoom: number; placement: PhotoPlacement };
 }
 
@@ -172,7 +176,7 @@ export interface InviteTemplate {
   name: string;
   tagline: string;
   mood: string[];
-  design: Omit<InviteDesign, "templateId" | "photo" | "openingText" | "closingMessage" | "showCountdown" | "showDayPlan" | "music"> & { music: Music };
+  design: Omit<InviteDesign, "templateId" | "photo" | "openingText" | "closingMessage" | "showCountdown" | "showDayPlan" | "addressing" | "music"> & { music: Music };
   /** Static (no ambience, quick reveal) or animated by default. */
   animated: boolean;
 }
@@ -342,6 +346,14 @@ export function templateById(id: string): InviteTemplate {
 /* Creating projects                                                   */
 /* ------------------------------------------------------------------ */
 
+/** How a personal invitation addresses its guest, in plain English. */
+export function addressFor(party: { adults: number; children: number }): string {
+  const n = Math.max(1, party.adults + party.children);
+  if (n === 1) return "You";
+  if (n === 2 && party.children === 0) return "You Both";
+  return "You & Your Family";
+}
+
 export function initials(bride: string, groom: string): string {
   const first = (s: string) => (s.trim()[0] ?? "").toUpperCase();
   const b = first(bride);
@@ -359,6 +371,7 @@ export function designFromTemplate(templateId: string, keep?: Partial<InviteDesi
     closingMessage: keep?.closingMessage ?? "With love and gratitude, we can't wait to celebrate with you.",
     showCountdown: keep?.showCountdown ?? true,
     showDayPlan: keep?.showDayPlan ?? true,
+    addressing: keep?.addressing ?? "you",
     photo: keep?.photo ?? { src: null, x: 50, y: 50, zoom: 1, placement: "none" },
   };
 }
