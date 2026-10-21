@@ -62,6 +62,15 @@ await page.getByRole("button", { name: "Publish", exact: true }).click();
 const link = await page.getByLabel("Invitation link").inputValue();
 ok(/\/i\//.test(link), `published ${link}`);
 
+// The card can be sent as a picture, without a link (saved here; phones open the share sheet).
+await page.evaluate(() => { navigator.canShare = undefined; });
+const [pic] = await Promise.all([page.waitForEvent("download"), page.getByRole("button", { name: "Share the card as a picture" }).click()]);
+ok(pic.suggestedFilename().endsWith(".jpg"), `card picture ready to send (${pic.suggestedFilename()})`);
+ok(await page.getByRole("status").filter({ hasText: "Attach it to a WhatsApp chat" }).isVisible(), "tells how to attach it in WhatsApp");
+await page.getByRole("radiogroup", { name: "Picture language" }).getByRole("radio", { name: "සිංහල" }).click();
+const [picSi] = await Promise.all([page.waitForEvent("download"), page.getByRole("button", { name: "Share the card as a picture" }).click()]);
+ok(picSi.suggestedFilename().endsWith("-si.jpg"), "the card picture also comes in Sinhala");
+
 // Same browser: without a cloud account, a published link opens where it was published.
 const g = await ctx.newPage();
 await g.setViewportSize({ width: 390, height: 844 });
