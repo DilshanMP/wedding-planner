@@ -12,6 +12,7 @@
     "test:e2e": "node e2e/acceptance.mjs",
     "test:e2e:cloud": "node e2e/cloud.mjs",
     "test:e2e:studio": "node e2e/studio.mjs",
+    "test:e2e:gate": "node e2e/gate.mjs",
     "test:e2e:cloud-studio": "node e2e/cloud-studio.mjs"
   },
   "dependencies": {

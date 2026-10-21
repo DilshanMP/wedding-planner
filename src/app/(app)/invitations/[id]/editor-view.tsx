@@ -166,7 +166,7 @@ function Editor({ initial }: { initial: InviteProject }) {
               <button key={t.id} type="button" role="tab" id={`tab-${t.id}`} aria-controls="editor-panel" aria-selected={tab === t.id} className="wos-tab !px-1" onClick={() => setTab(t.id)}>{t.label}</button>
             ))}
           </div>
-          <div id="editor-panel" role="tabpanel" aria-labelledby={`tab-${tab}`} className="min-h-0 flex-1 lg:-mr-3 lg:overflow-y-auto lg:pr-3">
+          <div id="editor-panel" role="tabpanel" aria-labelledby={`tab-${tab}`} className="min-h-0 min-w-0 flex-1 overflow-x-hidden lg:-mr-3 lg:overflow-y-auto lg:pr-3">
             {tab === "template" && <TemplatePanel p={project} onPick={(id) => { change((p) => applyTemplate(p, id)); toast(`${templateById(id).name} — undo with Ctrl+Z.`); }} />}
             {tab === "details" && <DetailsPanel p={project} change={change} onRefreshMoments={() => change((p) => ({ ...p, content: { ...p.content, moments: weddingContent().moments } }))} />}
             {tab === "wording" && <WordingPanel p={project} change={change} />}
@@ -205,7 +205,7 @@ function Editor({ initial }: { initial: InviteProject }) {
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div className="wos-tabs" role="radiogroup" aria-label="Preview">
               {(["envelope", "invitation", "card"] as const).map((m) => (
-                <button key={m} type="button" role="radio" aria-checked={mode === m} className="wos-tab" onClick={() => { setMode(m); if (m === "envelope") setReplay((r) => r + 1); }}>{m === "envelope" ? "Envelope" : m === "invitation" ? "Invitation" : "Card"}</button>
+                <button key={m} type="button" role="radio" aria-checked={mode === m} className="wos-tab" onClick={() => { setMode(m); if (m === "envelope") setReplay((r) => r + 1); }}>{m === "envelope" ? "Opening" : m === "invitation" ? "Invitation" : "Card"}</button>
               ))}
             </div>
             <div className="wos-tabs" role="radiogroup" aria-label="Screen">
@@ -222,7 +222,7 @@ function Editor({ initial }: { initial: InviteProject }) {
               </div>
             )}
           </div>
-          {mode === "envelope" && <p className="m-0 text-center text-[13px] text-ink-muted">Tap the envelope to play the opening. Music is muted in the editor.</p>}
+          {mode === "envelope" && <p className="m-0 text-center text-[13px] text-ink-muted">{draft.design.opening === "gate" ? "Tap the doors" : "Tap the envelope"} to play the opening. Music is muted in the editor.</p>}
         </section>
       </div>
 

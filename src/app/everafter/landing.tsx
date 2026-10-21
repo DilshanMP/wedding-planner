@@ -9,7 +9,7 @@ import { InvitationExperience } from "@/components/invite/invitation-experience"
 import { InviteCard } from "@/components/invite/invite-card";
 
 const STEPS = [
-  { n: "01", title: "Choose a design", text: "Eight original templates — from ivory and champagne to Kandyan gold and black tie." },
+  { n: "01", title: "Choose a design", text: "Nine original templates — garden doors with golden rings, ivory and champagne, Kandyan gold, black tie and more." },
   { n: "02", title: "Make it yours", text: "Names, date, venue, Sinhala or English wording, your photo, colours, fonts and the wax seal." },
   { n: "03", title: "Publish & share", text: "A private link, a QR code and a WhatsApp message — ready in one tap." },
   { n: "04", title: "Collect replies", text: "Guests reply inside the invitation. You see every RSVP and wish in one place." },
@@ -73,7 +73,7 @@ export function EverAfterLanding() {
 
       <section id="templates" className="ev-section">
         <p className="ev-over">The collection</p>
-        <h2>Eight original designs</h2>
+        <h2>Nine original designs</h2>
         <p className="ev-lead">Each with its own envelope, card, typography, florals and opening animation. Change anything later.</p>
         <div className="ev-gallery">
           {TEMPLATES.map((t) => (

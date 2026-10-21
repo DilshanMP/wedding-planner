@@ -4,6 +4,7 @@
 @import "../styles/app.css";
 @import "../styles/invite.css";
 @import "../styles/everafter.css";
+@import "../styles/maison.css";
 
 /* Tailwind utilities read the Wedding OS tokens, so they follow the active theme. */
 @theme inline {

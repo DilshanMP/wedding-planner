@@ -32,7 +32,7 @@ await page.waitForURL("**/invitations/new?template=dusty-pink*");
 await page.getByRole("heading", { name: "Your details" }).waitFor();
 ok(await page.getByLabel("Bride's name").inputValue() !== "", "wizard pre-fills the couple from the wedding");
 await page.getByRole("button", { name: "Next", exact: true }).click();
-await page.getByRole("radio", { name: "Match my wedding colour" }).click();
+await page.getByRole("radio", { name: "Pick a colour" }).click();
 await page.getByRole("button", { name: "Next", exact: true }).click();
 await page.getByLabel("Design name").fill("Main invitation");
 await shot(page, "studio-wizard");

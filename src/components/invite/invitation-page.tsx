@@ -21,7 +21,7 @@ export interface RsvpHandler {
   knownGuest?: boolean;
 }
 
-function useNow(ms: number) {
+export function useNow(ms: number) {
   const [now, setNow] = useState<Date | null>(null);
   useEffect(() => {
     const tick = () => setNow(new Date());
@@ -60,7 +60,7 @@ function Countdown({ content }: { content: InviteContent }) {
   );
 }
 
-function RsvpForm({ content, rsvp }: { content: InviteContent; rsvp: RsvpHandler }) {
+export function RsvpForm({ content, rsvp }: { content: InviteContent; rsvp: RsvpHandler }) {
   const max = Math.max(1, content.maxParty || 1);
   const [name, setName] = useState(rsvp.initialName ?? "");
   const [attending, setAttending] = useState<"yes" | "no" | "maybe" | null>(rsvp.current && rsvp.current !== "pending" ? rsvp.current : null);
@@ -138,6 +138,45 @@ function RsvpForm({ content, rsvp }: { content: InviteContent; rsvp: RsvpHandler
   );
 }
 
+/** Download an .ics file for Apple Calendar / Outlook. */
+export function saveCalendarFile(content: InviteContent) {
+  const blob = new Blob([calendarFile(content, `${content.date}-${content.brideName}-${content.groomName}`.replace(/\s+/g, ""))], { type: "text/calendar" });
+  const href = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = href;
+  a.download = `${content.brideName}-${content.groomName}-wedding.ics`.replace(/\s+/g, "-");
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(href), 1000);
+}
+
+/** The sticky bar at the bottom of an opened invitation. */
+export function ActionBar({ content, shareUrl, onRsvp }: { content: InviteContent; shareUrl: string; onRsvp: () => void }) {
+  const [copied, setCopied] = useState(false);
+  const map = mapLink(content);
+  const share = async () => {
+    const text = `${content.brideName} & ${content.groomName} — wedding invitation`;
+    try {
+      if (navigator.share) await navigator.share({ title: text, text, url: shareUrl });
+      else {
+        await navigator.clipboard.writeText(shareUrl);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      }
+    } catch {
+      // Cancelled.
+    }
+  };
+  return (
+    <nav className="ea-bar" aria-label="Invitation actions">
+      <button type="button" onClick={onRsvp}><Check aria-hidden="true" />RSVP</button>
+      {map && <a href={map} target="_blank" rel="noopener noreferrer"><MapPin aria-hidden="true" />Location</a>}
+      <a href={googleCalendarUrl(content)} target="_blank" rel="noopener noreferrer"><CalendarPlus aria-hidden="true" />Calendar</a>
+      <button type="button" onClick={() => void share()}>{copied ? <><Copy aria-hidden="true" />Copied</> : <><Share2 aria-hidden="true" />Share</>}</button>
+      <a href={`https://wa.me/?text=${encodeURIComponent(`${content.brideName} & ${content.groomName}'s wedding invitation 💌 ${shareUrl}`)}`} target="_blank" rel="noopener noreferrer" aria-label="Share on WhatsApp"><MessageCircle aria-hidden="true" />WhatsApp</a>
+    </nav>
+  );
+}
+
 export function InvitationPage({ content, design, rsvp, shareUrl, onReplay, startOpen, framed }: {
   content: InviteContent;
   design: InviteDesign;
@@ -147,36 +186,13 @@ export function InvitationPage({ content, design, rsvp, shareUrl, onReplay, star
   startOpen?: boolean;
   framed?: boolean;
 }) {
-  const [copied, setCopied] = useState(false);
   const map = mapLink(content);
   const place = placeOf(content);
   const photo = design.photo.src && (design.photo.placement === "reveal" || design.photo.placement === "both") ? design.photo.src : null;
   const url = shareUrl ?? (typeof window !== "undefined" ? window.location.href : "");
   const rsvpRef = useRef<HTMLDivElement>(null);
 
-  const ics = () => {
-    const blob = new Blob([calendarFile(content, `${content.date}-${content.brideName}-${content.groomName}`.replace(/\s+/g, ""))], { type: "text/calendar" });
-    const href = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = href;
-    a.download = `${content.brideName}-${content.groomName}-wedding.ics`.replace(/\s+/g, "-");
-    a.click();
-    setTimeout(() => URL.revokeObjectURL(href), 1000);
-  };
-
-  const share = async () => {
-    const text = `${content.brideName} & ${content.groomName} — wedding invitation`;
-    try {
-      if (navigator.share) await navigator.share({ title: text, text, url });
-      else {
-        await navigator.clipboard.writeText(url);
-        setCopied(true);
-        setTimeout(() => setCopied(false), 2000);
-      }
-    } catch {
-      // Cancelled.
-    }
-  };
+  const ics = () => saveCalendarFile(content);
 
   const ceremony = content.ceremonyTitle && { title: content.ceremonyTitle, time: content.ceremonyTime, venue: content.ceremonyVenue || content.venueName };
   const reception = content.receptionTitle && { title: content.receptionTitle, time: content.receptionTime, venue: content.receptionVenue || content.venueName };
@@ -279,13 +295,7 @@ export function InvitationPage({ content, design, rsvp, shareUrl, onReplay, star
         <p className="ea-made">Made with EverAfter Studio</p>
       </Reveal>
 
-      <nav className="ea-bar" aria-label="Invitation actions">
-        <button type="button" onClick={() => rsvpRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })}><Check aria-hidden="true" />RSVP</button>
-        {map && <a href={map} target="_blank" rel="noopener noreferrer"><MapPin aria-hidden="true" />Location</a>}
-        <a href={googleCalendarUrl(content)} target="_blank" rel="noopener noreferrer"><CalendarPlus aria-hidden="true" />Calendar</a>
-        <button type="button" onClick={() => void share()}>{copied ? <><Copy aria-hidden="true" />Copied</> : <><Share2 aria-hidden="true" />Share</>}</button>
-        <a href={`https://wa.me/?text=${encodeURIComponent(`${content.brideName} & ${content.groomName}'s wedding invitation 💌 ${url}`)}`} target="_blank" rel="noopener noreferrer" aria-label="Share on WhatsApp"><MessageCircle aria-hidden="true" />WhatsApp</a>
-      </nav>
+      <ActionBar content={content} shareUrl={url} onRsvp={() => rsvpRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })} />
     </article>
   );
 }
