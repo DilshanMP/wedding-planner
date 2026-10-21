@@ -1,4 +1,4 @@
-import { Bodoni_Moda, Cinzel, Jost, Noto_Sans_Sinhala, Noto_Serif_Sinhala, Parisienne, Pinyon_Script, Playfair_Display } from "next/font/google";
+import { Abhaya_Libre, Bodoni_Moda, Cinzel, Jost, Noto_Sans_Sinhala, Noto_Serif_Sinhala, Parisienne, Pinyon_Script, Playfair_Display, Yaldevi } from "next/font/google";
 
 /**
  * Typefaces for EverAfter Studio invitations. Fonts are declared once; the
@@ -13,4 +13,8 @@ const jost = Jost({ subsets: ["latin"], weight: ["300", "400", "500", "600"], di
 const serifSinhala = Noto_Serif_Sinhala({ subsets: ["sinhala"], weight: ["400", "600"], display: "swap", variable: "--font-serif-sinhala" });
 const sansSinhala = Noto_Sans_Sinhala({ subsets: ["sinhala"], weight: ["400", "600"], display: "swap", variable: "--font-sans-sinhala" });
 
-export const inviteFontVars = [playfair, cinzel, bodoni, pinyon, parisienne, jost, serifSinhala, sansSinhala].map((f) => f.variable).join(" ");
+// Sinhala for guests who read the invitation in සිංහල: an elegant serif and a clean sans.
+const abhaya = Abhaya_Libre({ subsets: ["sinhala", "latin"], weight: ["400", "500", "600", "700"], display: "swap", variable: "--font-abhaya" });
+const yaldevi = Yaldevi({ subsets: ["sinhala", "latin"], weight: ["400", "500", "600"], display: "swap", variable: "--font-yaldevi" });
+
+export const inviteFontVars = [playfair, cinzel, bodoni, pinyon, parisienne, jost, serifSinhala, sansSinhala, abhaya, yaldevi].map((f) => f.variable).join(" ");

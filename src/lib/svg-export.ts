@@ -40,7 +40,7 @@ function embeddedFonts(families: string[]): Promise<string> {
         const range = rule.style.getPropertyValue("unicode-range");
         // Browsers write ranges as "U+0-FF" or "U+0000-00FF".
         const latin = !range || /U\+0{1,4}-/i.test(range);
-        const sinhala = plain.includes("sinhala") && /U\+0?D[89A-F]/i.test(range);
+        const sinhala = /sinhala|abhaya|yaldevi/.test(plain) && /U\+0?D[89A-F]/i.test(range);
         if (!wanted.has(plain) || !(latin || sinhala)) continue;
         const src = /url\(["']?([^"')]+)["']?\)/.exec(rule.style.getPropertyValue("src"))?.[1];
         if (!src) continue;

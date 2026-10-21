@@ -4,34 +4,54 @@ import { useMemo, useRef, useState, type ReactNode } from "react";
 import { motion, useReducedMotion } from "motion/react";
 import { CalendarPlus, MapPin, RotateCcw } from "lucide-react";
 import { countdown } from "@/lib/domain/digital-invite";
-import { formatDate, formatLongDate, formatTime } from "@/lib/domain/dates";
 import { googleCalendarUrl, mapLink, startInstant } from "@/lib/domain/invite-links";
-import type { InviteContent, InviteDesign, StoryIcon } from "@/lib/domain/invite-studio";
+import { clock, localise, longDate, words, type InviteWords } from "@/lib/domain/invite-i18n";
+import type { GuestLanguage, InviteContent, InviteDesign, StoryIcon } from "@/lib/domain/invite-studio";
 import { ActionBar, RsvpForm, saveCalendarFile, useNow, type RsvpHandler } from "./invitation-page";
-import { CornerScroll, Crest, DressFigures, MiniEnvelope, SideColumn, Sketch, sketchFor, type GateIds, type GateTints, type SketchName } from "./gate-art";
+import { DressFigures, Sketch, sketchFor, type GateIds, type GateTints, type SketchName } from "./gate-art";
 
+const ART = "/everafter/gate";
 const STORY_SKETCH: Record<StoryIcon, SketchName> = { meet: "cups", adventure: "plane", question: "ringbox", wedding: "bouquet", heart: "heart", home: "home" };
 
 function Rise({ children, className, delay = 0 }: { children: ReactNode; className?: string; delay?: number }) {
   const reduce = useReducedMotion();
   return (
-    <motion.section className={className} initial={reduce ? false : { opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: 0.25 }}
+    <motion.section className={className} initial={reduce ? false : { opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: 0.2 }}
       transition={{ duration: 0.9, delay: delay / 1000, ease: [0.22, 1, 0.36, 1] }}>
       {children}
     </motion.section>
   );
 }
 
-function Message({ content, ids, t }: { content: InviteContent; ids: GateIds; t: GateTints }) {
+/** The couple in carved plaster — he in a full suit, she in a Kandyan osariya. */
+function Couple({ content, w }: { content: InviteContent; w: InviteWords }) {
+  const reduce = useReducedMotion();
+  return (
+    <section className="mx-section mx-couple">
+      <motion.div className="mx-couple-art" initial={reduce ? false : { opacity: 0, scale: 0.94, y: 40 }} whileInView={{ opacity: 1, scale: 1, y: 0 }} viewport={{ once: true, amount: 0.3 }} transition={{ duration: 1.3, ease: [0.22, 1, 0.36, 1] }}>
+        {/* eslint-disable-next-line @next/next/no-img-element -- static art */}
+        <img src={`${ART}/couple.webp`} alt={`${content.brideName} and ${content.groomName}`} loading="lazy" />
+        <div className="mx-tint" aria-hidden="true" />
+        <span className="mx-couple-shine" aria-hidden="true" />
+      </motion.div>
+      <p className="mx-caps mx-soft">{w.ourCouple}</p>
+      <h2 className="mx-script mx-script--lg mx-names">{content.brideName} &amp; {content.groomName}</h2>
+    </section>
+  );
+}
+
+function Message({ content, w }: { content: InviteContent; w: InviteWords }) {
   const [open, setOpen] = useState(false);
   return (
-    <motion.section className="mx-section mx-message" onViewportEnter={() => setTimeout(() => setOpen(true), 500)} viewport={{ once: true, amount: 0.6 }}>
-      <button type="button" className="mx-env-btn" onClick={() => setOpen((o) => !o)} aria-expanded={open} aria-label={open ? "Close the message" : "Open the message"}>
-        <MiniEnvelope ids={ids} t={t} open={open} />
+    <motion.section className="mx-section mx-message" onViewportEnter={() => setTimeout(() => setOpen(true), 400)} viewport={{ once: true, amount: 0.5 }}>
+      <button type="button" className={`mx-env${open ? " is-open" : ""}`} onClick={() => setOpen((o) => !o)} aria-expanded={open} aria-label={open ? w.closeMessage : w.openMessage}>
+        <span className="mx-env-letter" aria-hidden="true"><span>♡</span></span>
+        {/* eslint-disable-next-line @next/next/no-img-element -- static art */}
+        <img src={`${ART}/envelope.webp`} alt="" className="mx-env-img" loading="lazy" />
       </button>
-      <p className="mx-caps">There is a message for you</p>
-      <motion.div className="mx-message-body" initial={false} animate={{ opacity: open ? 1 : 0.0, y: open ? 0 : 12 }} transition={{ duration: 0.8 }}>
-        <h2 className="mx-script mx-script--md">You are invited to our wedding</h2>
+      <p className="mx-caps">{w.messageForYou}</p>
+      <motion.div className="mx-message-body" initial={false} animate={{ opacity: open ? 1 : 0, y: open ? 0 : 12 }} transition={{ duration: 0.8 }}>
+        <h2 className="mx-script mx-script--md">{w.invitedTitle}</h2>
         {content.blessing && <p className="mx-caps mx-soft">{content.blessing}</p>}
         <p className="mx-body mx-pre">{content.inviteMessage}</p>
       </motion.div>
@@ -39,38 +59,43 @@ function Message({ content, ids, t }: { content: InviteContent; ids: GateIds; t:
   );
 }
 
-function Count({ content, ids, t }: { content: InviteContent; ids: GateIds; t: GateTints }) {
+function Column({ side }: { side: "l" | "r" }) {
+  // eslint-disable-next-line @next/next/no-img-element -- static art
+  return <img src={`${ART}/column.webp`} alt="" aria-hidden="true" className={`mx-col mx-col--${side}`} loading="lazy" />;
+}
+
+function Count({ content, w }: { content: InviteContent; w: InviteWords }) {
   const now = useNow(1000);
   const target = useMemo(() => startInstant(content), [content]);
   const c = now ? countdown(target, now) : null;
   return (
     <Rise className="mx-section mx-count">
-      <SideColumn ids={ids} t={t} className="mx-col mx-col--l" />
-      <SideColumn ids={ids} t={t} className="mx-col mx-col--r" flip />
-      <h2 className="mx-script">Countdown</h2>
-      <p className="mx-small">The big day is getting closer</p>
+      <Column side="l" />
+      <Column side="r" />
+      <h2 className="mx-script">{w.countdown}</h2>
+      <p className="mx-small">{w.countdownSub}</p>
       {c && !c.done ? (
-        <div className="mx-count-row" role="timer" aria-label={`${c.days} days, ${c.hours} hours and ${c.minutes} minutes to go`}>
-          {([[c.days, "Days"], [c.hours, "Hours"], [c.minutes, "Minutes"]] as [number, string][]).map(([n, l]) => (
+        <div className="mx-count-row" role="timer" aria-label={`${c.days} ${w.days}, ${c.hours} ${w.hours}, ${c.minutes} ${w.minutes}`}>
+          {([[c.days, w.days], [c.hours, w.hours], [c.minutes, w.minutes]] as [number, string][]).map(([n, l]) => (
             <div key={l}><span className="mx-num">{n}</span><span className="mx-caps mx-tiny">{l}</span></div>
           ))}
         </div>
       ) : (
-        <p className="mx-body">{c?.done ? "Today is the day!" : " "}</p>
+        <p className="mx-body">{c?.done ? w.today : " "}</p>
       )}
-      <p className="mx-body mx-italic">Let&apos;s celebrate the beginning of the loveliest chapter of our story.</p>
+      <p className="mx-body mx-italic">{w.celebrateLine}</p>
     </Rise>
   );
 }
 
-function Story({ content }: { content: InviteContent }) {
+function Story({ content, w }: { content: InviteContent; w: InviteWords }) {
   const chapters = content.story.filter((x) => x.title.trim() || x.text.trim());
   if (!chapters.length) return null;
   return (
     <section className="mx-section">
       <Rise>
-        <h2 className="mx-script">Our Story</h2>
-        <p className="mx-small">A love story in a few short chapters</p>
+        <h2 className="mx-script">{w.ourStory}</h2>
+        <p className="mx-small">{w.storySub}</p>
       </Rise>
       <ol className="mx-story">
         {chapters.map((ch, i) => (
@@ -87,7 +112,7 @@ function Story({ content }: { content: InviteContent }) {
   );
 }
 
-function Day({ content, design }: { content: InviteContent; design: InviteDesign }) {
+function Day({ content, design, w, lang }: { content: InviteContent; design: InviteDesign; w: InviteWords; lang: GuestLanguage }) {
   const fromPlan = design.showDayPlan ? content.moments.filter((m) => m.title.trim()) : [];
   const items = fromPlan.length
     ? fromPlan
@@ -99,9 +124,9 @@ function Day({ content, design }: { content: InviteContent; design: InviteDesign
   return (
     <section className="mx-section">
       <Rise>
-        <p className="mx-caps mx-soft">Join us for</p>
-        <h2 className="mx-script">Our Wedding Day</h2>
-        <p className="mx-small">{formatLongDate(content.date)}{content.venueName ? ` · ${content.venueName}` : ""}</p>
+        <p className="mx-caps mx-soft">{w.joinUsFor}</p>
+        <h2 className="mx-script">{w.weddingDay}</h2>
+        <p className="mx-small">{longDate(content.date, lang)}{content.venueName ? ` · ${content.venueName}` : ""}</p>
       </Rise>
       <ol className="mx-day">
         {items.map((m, i) => (
@@ -109,7 +134,7 @@ function Day({ content, design }: { content: InviteContent; design: InviteDesign
             <Sketch name={sketchFor(m.title)} className="mx-sketch" />
             <div>
               <h3 className="mx-script mx-script--sm">{m.title}</h3>
-              {m.time && <p className="mx-caps mx-tiny">{formatTime(m.time)}</p>}
+              {m.time && <p className="mx-caps mx-tiny">{clock(m.time, lang)}</p>}
             </div>
           </Rise>
         ))}
@@ -118,62 +143,65 @@ function Day({ content, design }: { content: InviteContent; design: InviteDesign
   );
 }
 
-function Details({ content, ids, t }: { content: InviteContent; ids: GateIds; t: GateTints }) {
+function Details({ content, w, lang }: { content: InviteContent; w: InviteWords; lang: GuestLanguage }) {
   const map = mapLink(content);
   const ceremonyPlace = content.ceremonyVenue || content.venueName;
   const receptionPlace = content.receptionVenue || content.venueName;
   return (
-    <Rise className="mx-section mx-frame-wrap">
+    <Rise className="mx-section">
       <div className="mx-frame">
-        <Crest ids={ids} t={t} className="mx-crest" />
-        <CornerScroll ids={ids} t={t} className="mx-corner mx-corner--tl" />
-        <CornerScroll ids={ids} t={t} className="mx-corner mx-corner--tr" fx />
-        <CornerScroll ids={ids} t={t} className="mx-corner mx-corner--bl" fy />
-        <CornerScroll ids={ids} t={t} className="mx-corner mx-corner--br" fx fy />
-        <p className="mx-caps mx-soft">Join us to celebrate</p>
-        <h2 className="mx-script">Event Details</h2>
-        <p className="mx-body">{formatLongDate(content.date)}</p>
-        {content.ceremonyTitle && (
-          <>
-            <p className="mx-caps">{content.ceremonyTitle}{content.ceremonyTime ? ` at ${formatTime(content.ceremonyTime)}` : ""}</p>
-            {ceremonyPlace && <p className="mx-script mx-script--sm">{ceremonyPlace}</p>}
-          </>
-        )}
-        {content.address && <p className="mx-small">{content.address}</p>}
-        <div className="mx-pills">
-          {map && <a className="mx-pill" href={map} target="_blank" rel="noopener noreferrer"><MapPin aria-hidden="true" />Open in Google Maps</a>}
-          <a className="mx-pill" href={googleCalendarUrl(content)} target="_blank" rel="noopener noreferrer"><CalendarPlus aria-hidden="true" />Add to Google Calendar</a>
-          <button type="button" className="mx-pill" onClick={() => saveCalendarFile(content)}><CalendarPlus aria-hidden="true" />Apple / Outlook</button>
+        {/* eslint-disable-next-line @next/next/no-img-element -- static art */}
+        <img src={`${ART}/frame.webp`} alt="" aria-hidden="true" className="mx-frame-img" loading="lazy" />
+        <div className="mx-frame-body">
+          <p className="mx-caps mx-soft">{w.joinToCelebrate}</p>
+          <h2 className="mx-script mx-script--md">{w.eventDetails}</h2>
+          <p className="mx-body">{longDate(content.date, lang)}</p>
+          {content.ceremonyTitle && (
+            <>
+              <p className="mx-caps">{w.at(content.ceremonyTitle, content.ceremonyTime ? clock(content.ceremonyTime, lang) : "")}</p>
+              {ceremonyPlace && <p className="mx-script mx-script--sm">{ceremonyPlace}</p>}
+            </>
+          )}
+          {content.receptionTitle && (
+            <>
+              <span className="mx-rule" aria-hidden="true" />
+              <p className="mx-caps">{w.at(content.receptionTitle, content.receptionTime ? clock(content.receptionTime, lang) : "")}</p>
+              {receptionPlace && <p className="mx-script mx-script--sm">{receptionPlace}</p>}
+            </>
+          )}
         </div>
-        {content.receptionTitle && (
-          <>
-            <span className="mx-rule" aria-hidden="true" />
-            <p className="mx-caps">{content.receptionTitle}{content.receptionTime ? ` at ${formatTime(content.receptionTime)}` : ""}</p>
-            {receptionPlace && <p className="mx-script mx-script--sm">{receptionPlace}</p>}
-          </>
-        )}
+      </div>
+      {content.address && <p className="mx-small">{content.address}</p>}
+      <div className="mx-pills">
+        {map && <a className="mx-pill" href={map} target="_blank" rel="noopener noreferrer"><MapPin aria-hidden="true" />{w.openMaps}</a>}
+        <a className="mx-pill" href={googleCalendarUrl(content)} target="_blank" rel="noopener noreferrer"><CalendarPlus aria-hidden="true" />{w.addCalendar}</a>
+        <button type="button" className="mx-pill" onClick={() => saveCalendarFile(content)}><CalendarPlus aria-hidden="true" />{w.appleOutlook}</button>
       </div>
     </Rise>
   );
 }
 
-export function GatePage({ content, design, ids, t, rsvp, shareUrl, onReplay, startOpen }: {
+export function GatePage({ content: raw, design, rsvp, shareUrl, onReplay, startOpen, lang }: {
   content: InviteContent;
   design: InviteDesign;
   ids: GateIds;
   t: GateTints;
+  lang: GuestLanguage;
   rsvp?: RsvpHandler;
   shareUrl?: string;
   onReplay: () => void;
   startOpen?: boolean;
 }) {
+  const w = words(lang);
+  const { content, closing } = localise(raw, design.closingMessage, lang);
   const rsvpRef = useRef<HTMLDivElement>(null);
   const url = shareUrl ?? (typeof window !== "undefined" ? window.location.href : "");
   const photo = design.photo.src && (design.photo.placement === "reveal" || design.photo.placement === "both") ? design.photo.src : null;
   return (
     <article className="mx-page">
-      <Message content={content} ids={ids} t={t} />
-      {design.showCountdown && <Count content={content} ids={ids} t={t} />}
+      <Couple content={content} w={w} />
+      <Message content={content} w={w} />
+      {design.showCountdown && <Count content={content} w={w} />}
       {photo && (
         <Rise className="mx-section">
           <div className="mx-photo">
@@ -182,36 +210,36 @@ export function GatePage({ content, design, ids, t, rsvp, shareUrl, onReplay, st
           </div>
         </Rise>
       )}
-      <Story content={content} />
-      <Day content={content} design={design} />
-      <Details content={content} ids={ids} t={t} />
+      <Story content={content} w={w} />
+      <Day content={content} design={design} w={w} lang={lang} />
+      <Details content={content} w={w} lang={lang} />
       {content.dressCode && (
         <Rise className="mx-section">
-          <h2 className="mx-script">Dress Code</h2>
+          <h2 className="mx-script">{w.dressCode}</h2>
           <p className="mx-body">{content.dressCode}</p>
           <DressFigures className="mx-figures" />
         </Rise>
       )}
-      <div ref={rsvpRef} id="rsvp">
+      <div ref={rsvpRef} id="rsvp" className="w-full">
         <Rise className="mx-section mx-rsvp">
-          <h2 className="mx-script">Kindly Reply</h2>
-          {content.rsvpDeadline && <p className="mx-caps mx-soft">Please reply by {formatDate(content.rsvpDeadline)}</p>}
-          <RsvpForm content={content} rsvp={rsvp ?? { submit: async () => null }} />
+          <h2 className="mx-script">{w.kindlyReply}</h2>
+          {content.rsvpDeadline && <p className="mx-caps mx-soft">{w.replyBy}: {longDate(content.rsvpDeadline, lang)}</p>}
+          <RsvpForm content={content} lang={lang} rsvp={rsvp ?? { submit: async () => null }} />
         </Rise>
       </div>
       {content.contacts && (
         <Rise className="mx-section">
-          <p className="mx-caps mx-soft">Questions?</p>
+          <p className="mx-caps mx-soft">{w.questions}</p>
           <p className="mx-body mx-pre">{content.contacts}</p>
         </Rise>
       )}
       <Rise className="mx-section mx-closing">
-        <p className="mx-body mx-italic">{design.closingMessage}</p>
-        <p className="mx-script mx-script--lg">{content.brideName} &amp; {content.groomName}</p>
-        {!startOpen && <button type="button" className="ea-link" onClick={onReplay}><RotateCcw aria-hidden="true" className="ea-ico" /> Watch the opening again</button>}
-        <p className="ea-made">Made with EverAfter Studio</p>
+        <p className="mx-body mx-italic">{closing}</p>
+        <p className="mx-script mx-script--lg mx-names">{content.brideName} &amp; {content.groomName}</p>
+        {!startOpen && <button type="button" className="ea-link" onClick={onReplay}><RotateCcw aria-hidden="true" className="ea-ico" /> {w.watchAgain}</button>}
+        <p className="ea-made">{w.madeWith}</p>
       </Rise>
-      <ActionBar content={content} shareUrl={url} onRsvp={() => rsvpRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })} />
+      <ActionBar content={content} lang={lang} shareUrl={url} onRsvp={() => rsvpRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })} />
     </article>
   );
 }

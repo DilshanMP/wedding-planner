@@ -4,9 +4,10 @@ import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { motion, useReducedMotion } from "motion/react";
 import { CalendarPlus, Check, Clock3, Copy, MapPin, MessageCircle, Phone, RotateCcw, Share2, Shirt, Sparkles } from "lucide-react";
 import { countdown } from "@/lib/domain/digital-invite";
-import { formatDate, formatLongDate, formatTime } from "@/lib/domain/dates";
+import { formatDate } from "@/lib/domain/dates";
 import { calendarFile, googleCalendarUrl, mapLink, placeOf, startInstant } from "@/lib/domain/invite-links";
-import { checkRsvp, type InviteContent, type InviteDesign } from "@/lib/domain/invite-studio";
+import { checkRsvp, type GuestLanguage, type InviteContent, type InviteDesign } from "@/lib/domain/invite-studio";
+import { clock, localise, longDate, words } from "@/lib/domain/invite-i18n";
 import type { GuestReply } from "@/lib/data/published";
 import { celebrate } from "@/lib/confetti";
 import { InviteCard } from "./invite-card";
@@ -45,22 +46,24 @@ function Reveal({ children, delay = 0, className }: { children: ReactNode; delay
   );
 }
 
-function Countdown({ content }: { content: InviteContent }) {
+function Countdown({ content, lang }: { content: InviteContent; lang?: GuestLanguage }) {
+  const w = words(lang);
   const now = useNow(1000);
   const target = useMemo(() => startInstant(content), [content]);
   if (!now) return <div className="ea-count" style={{ minHeight: 92 }} />;
   const c = countdown(target, now);
-  if (c.done) return <p className="ea-lead">{now.getTime() - target.getTime() < 12 * 3600_000 ? "Today is the day! 💛" : "Thank you for celebrating with us."}</p>;
+  if (c.done) return <p className="ea-lead">{now.getTime() - target.getTime() < 12 * 3600_000 ? `${w.today} 💛` : w.thanksAfter}</p>;
   return (
     <div className="ea-count" role="timer" aria-label={`${c.days} days, ${c.hours} hours and ${c.minutes} minutes to go`}>
-      {([[c.days, c.days === 1 ? "Day" : "Days"], [c.hours, "Hours"], [c.minutes, "Minutes"], [c.seconds, "Seconds"]] as [number, string][]).map(([n, l]) => (
-        <div key={l} className="ea-tile"><span key={n} className="ea-tile-n">{l.startsWith("Day") ? n : String(n).padStart(2, "0")}</span><span className="ea-tile-l">{l}</span></div>
+      {([[c.days, c.days === 1 ? w.day : w.days], [c.hours, w.hours], [c.minutes, w.minutes], [c.seconds, w.seconds]] as [number, string][]).map(([n, l], i) => (
+        <div key={i} className="ea-tile"><span key={n} className="ea-tile-n">{i === 0 ? n : String(n).padStart(2, "0")}</span><span className="ea-tile-l">{l}</span></div>
       ))}
     </div>
   );
 }
 
-export function RsvpForm({ content, rsvp }: { content: InviteContent; rsvp: RsvpHandler }) {
+export function RsvpForm({ content, rsvp, lang }: { content: InviteContent; rsvp: RsvpHandler; lang?: GuestLanguage }) {
+  const w = words(lang);
   const max = Math.max(1, content.maxParty || 1);
   const [name, setName] = useState(rsvp.initialName ?? "");
   const [attending, setAttending] = useState<"yes" | "no" | "maybe" | null>(rsvp.current && rsvp.current !== "pending" ? rsvp.current : null);
@@ -76,9 +79,9 @@ export function RsvpForm({ content, rsvp }: { content: InviteContent; rsvp: Rsvp
     return (
       <div className="ea-thanks" role="status">
         <span className="ea-thanks-mark" aria-hidden="true">{sent === "yes" ? "🥂" : sent === "maybe" ? "🌸" : "💌"}</span>
-        <h3 className="ea-h3">{sent === "yes" ? "We can't wait to see you!" : "Thank you for letting us know"}</h3>
-        <p className="ea-lead">{sent === "yes" ? `${content.brideName} & ${content.groomName} have your reply.` : sent === "maybe" ? "You can come back to this link and change your reply." : "You'll be in our hearts on the day."}</p>
-        <button type="button" className="ea-link" onClick={() => setSent(null)}>Change my reply</button>
+        <h3 className="ea-h3">{sent === "yes" ? w.thanksYes : w.thanksOther}</h3>
+        <p className="ea-lead">{sent === "yes" ? w.haveReply(`${content.brideName} & ${content.groomName}`) : sent === "maybe" ? w.maybeNote : w.noNote}</p>
+        <button type="button" className="ea-link" onClick={() => setSent(null)}>{w.changeReply}</button>
       </div>
     );
   }
@@ -86,7 +89,7 @@ export function RsvpForm({ content, rsvp }: { content: InviteContent; rsvp: Rsvp
   return (
     <form className="ea-form" onSubmit={async (e) => {
       e.preventDefault();
-      if (!attending) return setError("Choose whether you can come.");
+      if (!attending) return setError(w.chooseComing);
       const problem = rsvp.knownGuest ? null : checkRsvp({ name, attending, party, message }, max);
       if (problem) return setError(problem);
       setBusy(true);
@@ -99,13 +102,13 @@ export function RsvpForm({ content, rsvp }: { content: InviteContent; rsvp: Rsvp
     }}>
       {!rsvp.knownGuest && (
         <label className="ea-field">
-          <span>Your name</span>
+          <span>{w.yourName}</span>
           <input className="ea-input" value={name} onChange={(e) => setName(e.target.value.slice(0, 80))} autoComplete="name" required />
         </label>
       )}
       <fieldset className="ea-answers">
-        <legend>Will you join us?</legend>
-        {([["yes", "Joyfully accepts", "💐"], ["maybe", "Not sure yet", "🤍"], ["no", "Regretfully declines", "💌"]] as const).map(([v, label, icon]) => (
+        <legend>{w.willYouJoin}</legend>
+        {([["yes", w.accepts, "💐"], ["maybe", w.notSure, "🤍"], ["no", w.declines, "💌"]] as const).map(([v, label, icon]) => (
           <label key={v} className={`ea-answer${attending === v ? " is-on" : ""}`}>
             <input type="radio" name="attending" value={v} checked={attending === v} onChange={() => setAttending(v)} />
             <span aria-hidden="true">{icon}</span>{label}
@@ -114,26 +117,26 @@ export function RsvpForm({ content, rsvp }: { content: InviteContent; rsvp: Rsvp
       </fieldset>
       {attending === "yes" && max > 1 && (
         <div className="ea-field ea-field--row">
-          <span id="ea-party">How many of you?</span>
+          <span id="ea-party">{w.howMany}</span>
           <div className="ea-stepper" role="group" aria-labelledby="ea-party">
-            <button type="button" aria-label="One fewer" disabled={party <= 1} onClick={() => setParty((n) => Math.max(1, n - 1))}>−</button>
+            <button type="button" aria-label={w.oneFewer} disabled={party <= 1} onClick={() => setParty((n) => Math.max(1, n - 1))}>−</button>
             <output aria-live="polite">{party}</output>
-            <button type="button" aria-label="One more" disabled={party >= max} onClick={() => setParty((n) => Math.min(max, n + 1))}>+</button>
+            <button type="button" aria-label={w.oneMore} disabled={party >= max} onClick={() => setParty((n) => Math.min(max, n + 1))}>+</button>
           </div>
         </div>
       )}
       <label className="ea-field">
-        <span>A wish for the couple <em>(optional)</em></span>
-        <textarea className="ea-input" rows={3} maxLength={500} value={message} onChange={(e) => setMessage(e.target.value)} placeholder="Wishing you a lifetime of happiness…" />
+        <span>{w.wish} <em>{w.optional}</em></span>
+        <textarea className="ea-input" rows={3} maxLength={500} value={message} onChange={(e) => setMessage(e.target.value)} placeholder={w.wishPlaceholder} />
       </label>
       {!rsvp.knownGuest && (
         <label className="ea-field">
-          <span>Phone <em>(optional, only the couple sees it)</em></span>
+          <span>{w.phone} <em>{w.phoneHint}</em></span>
           <input className="ea-input" inputMode="tel" value={contact} onChange={(e) => setContact(e.target.value.slice(0, 60))} />
         </label>
       )}
       {error && <p className="ea-error" role="alert">{error}</p>}
-      <button ref={btn} type="submit" className="ea-btn" disabled={busy}>{busy ? "Sending…" : "Send my reply"}</button>
+      <button ref={btn} type="submit" className="ea-btn" disabled={busy}>{busy ? w.sending : w.send}</button>
     </form>
   );
 }
@@ -150,7 +153,8 @@ export function saveCalendarFile(content: InviteContent) {
 }
 
 /** The sticky bar at the bottom of an opened invitation. */
-export function ActionBar({ content, shareUrl, onRsvp }: { content: InviteContent; shareUrl: string; onRsvp: () => void }) {
+export function ActionBar({ content, shareUrl, onRsvp, lang }: { content: InviteContent; shareUrl: string; onRsvp: () => void; lang?: GuestLanguage }) {
+  const w = words(lang);
   const [copied, setCopied] = useState(false);
   const map = mapLink(content);
   const share = async () => {
@@ -168,24 +172,27 @@ export function ActionBar({ content, shareUrl, onRsvp }: { content: InviteConten
   };
   return (
     <nav className="ea-bar" aria-label="Invitation actions">
-      <button type="button" onClick={onRsvp}><Check aria-hidden="true" />RSVP</button>
-      {map && <a href={map} target="_blank" rel="noopener noreferrer"><MapPin aria-hidden="true" />Location</a>}
-      <a href={googleCalendarUrl(content)} target="_blank" rel="noopener noreferrer"><CalendarPlus aria-hidden="true" />Calendar</a>
-      <button type="button" onClick={() => void share()}>{copied ? <><Copy aria-hidden="true" />Copied</> : <><Share2 aria-hidden="true" />Share</>}</button>
+      <button type="button" onClick={onRsvp}><Check aria-hidden="true" />{w.barRsvp}</button>
+      {map && <a href={map} target="_blank" rel="noopener noreferrer"><MapPin aria-hidden="true" />{w.barLocation}</a>}
+      <a href={googleCalendarUrl(content)} target="_blank" rel="noopener noreferrer"><CalendarPlus aria-hidden="true" />{w.barCalendar}</a>
+      <button type="button" onClick={() => void share()}>{copied ? <><Copy aria-hidden="true" />{w.barCopied}</> : <><Share2 aria-hidden="true" />{w.barShare}</>}</button>
       <a href={`https://wa.me/?text=${encodeURIComponent(`${content.brideName} & ${content.groomName}'s wedding invitation 💌 ${shareUrl}`)}`} target="_blank" rel="noopener noreferrer" aria-label="Share on WhatsApp"><MessageCircle aria-hidden="true" />WhatsApp</a>
     </nav>
   );
 }
 
-export function InvitationPage({ content, design, rsvp, shareUrl, onReplay, startOpen, framed }: {
+export function InvitationPage({ content: raw, design, rsvp, shareUrl, onReplay, startOpen, framed, lang }: {
   content: InviteContent;
   design: InviteDesign;
+  lang?: GuestLanguage;
   rsvp?: RsvpHandler;
   shareUrl?: string;
   onReplay: () => void;
   startOpen?: boolean;
   framed?: boolean;
 }) {
+  const w = words(lang);
+  const { content, closing } = localise(raw, design.closingMessage, lang);
   const map = mapLink(content);
   const place = placeOf(content);
   const photo = design.photo.src && (design.photo.placement === "reveal" || design.photo.placement === "both") ? design.photo.src : null;
@@ -212,28 +219,28 @@ export function InvitationPage({ content, design, rsvp, shareUrl, onReplay, star
 
       {design.showCountdown && (
         <Reveal className="ea-center" delay={80}>
-          <p className="ea-over">Counting down</p>
-          <Countdown content={content} />
+          <p className="ea-over">{w.countingDown}</p>
+          <Countdown content={content} lang={lang} />
         </Reveal>
       )}
 
       <Reveal className="ea-grid" delay={60}>
         <div className="ea-panel">
-          <p className="ea-over">When</p>
-          <p className="ea-big">{formatLongDate(content.date)}</p>
-          {content.time && <p className="ea-row"><Clock3 aria-hidden="true" />From {formatTime(content.time)}</p>}
+          <p className="ea-over">{w.when}</p>
+          <p className="ea-big">{longDate(content.date, lang)}</p>
+          {content.time && <p className="ea-row"><Clock3 aria-hidden="true" />{lang === "si" ? `${clock(content.time, lang)} ${w.from}` : `${w.from} ${clock(content.time)}`}</p>}
         </div>
         {ceremony && (
           <div className="ea-panel">
             <p className="ea-over">{ceremony.title}</p>
-            {ceremony.time && <p className="ea-big">{formatTime(ceremony.time)}</p>}
+            {ceremony.time && <p className="ea-big">{clock(ceremony.time, lang)}</p>}
             {ceremony.venue && <p className="ea-row"><MapPin aria-hidden="true" />{ceremony.venue}</p>}
           </div>
         )}
         {reception && (
           <div className="ea-panel">
             <p className="ea-over">{reception.title}</p>
-            {reception.time && <p className="ea-big">{formatTime(reception.time)}</p>}
+            {reception.time && <p className="ea-big">{clock(reception.time, lang)}</p>}
             {reception.venue && <p className="ea-row"><MapPin aria-hidden="true" />{reception.venue}</p>}
           </div>
         )}
@@ -250,23 +257,23 @@ export function InvitationPage({ content, design, rsvp, shareUrl, onReplay, star
 
       {(place || map) && (
         <Reveal className="ea-panel ea-center">
-          <p className="ea-over">Where</p>
+          <p className="ea-over">{w.where}</p>
           <p className="ea-big">{content.venueName || "Venue"}</p>
           {content.address && <p className="ea-lead">{content.address}</p>}
           <div className="ea-actions">
-            {map && <a className="ea-btn ea-btn--soft" href={map} target="_blank" rel="noopener noreferrer"><MapPin aria-hidden="true" />View location</a>}
-            <a className="ea-btn ea-btn--soft" href={googleCalendarUrl(content)} target="_blank" rel="noopener noreferrer"><CalendarPlus aria-hidden="true" />Google Calendar</a>
-            <button type="button" className="ea-btn ea-btn--soft" onClick={ics}><CalendarPlus aria-hidden="true" />Apple / Outlook</button>
+            {map && <a className="ea-btn ea-btn--soft" href={map} target="_blank" rel="noopener noreferrer"><MapPin aria-hidden="true" />{w.viewLocation}</a>}
+            <a className="ea-btn ea-btn--soft" href={googleCalendarUrl(content)} target="_blank" rel="noopener noreferrer"><CalendarPlus aria-hidden="true" />{w.googleCalendar}</a>
+            <button type="button" className="ea-btn ea-btn--soft" onClick={ics}><CalendarPlus aria-hidden="true" />{w.appleOutlook}</button>
           </div>
         </Reveal>
       )}
 
       {moments.length > 0 && (
         <Reveal className="ea-center">
-          <p className="ea-over">The celebration</p>
+          <p className="ea-over">{w.theCelebration}</p>
           <ol className="ea-moments">
             {moments.map((m, i) => (
-              <li key={`${m.time}-${i}`}><span className="ea-moment-time">{formatTime(m.time)}</span><span className="ea-moment-dot" aria-hidden="true" /><span>{m.title}</span></li>
+              <li key={`${m.time}-${i}`}><span className="ea-moment-time">{clock(m.time, lang)}</span><span className="ea-moment-dot" aria-hidden="true" /><span>{m.title}</span></li>
             ))}
           </ol>
         </Reveal>
@@ -274,28 +281,28 @@ export function InvitationPage({ content, design, rsvp, shareUrl, onReplay, star
 
       {(content.dressCode || content.rsvpDeadline || content.contacts) && (
         <Reveal className="ea-grid">
-          {content.dressCode && <div className="ea-panel"><p className="ea-over"><Shirt aria-hidden="true" className="ea-ico" /> Dress code</p><p className="ea-lead">{content.dressCode}</p></div>}
-          {content.rsvpDeadline && <div className="ea-panel"><p className="ea-over"><Sparkles aria-hidden="true" className="ea-ico" /> Please reply by</p><p className="ea-big">{formatDate(content.rsvpDeadline)}</p></div>}
-          {content.contacts && <div className="ea-panel"><p className="ea-over"><Phone aria-hidden="true" className="ea-ico" /> Contact</p><p className="ea-lead ea-pre">{content.contacts}</p></div>}
+          {content.dressCode && <div className="ea-panel"><p className="ea-over"><Shirt aria-hidden="true" className="ea-ico" /> {w.dressCode}</p><p className="ea-lead">{content.dressCode}</p></div>}
+          {content.rsvpDeadline && <div className="ea-panel"><p className="ea-over"><Sparkles aria-hidden="true" className="ea-ico" /> {w.replyBy}</p><p className="ea-big">{lang === "si" ? longDate(content.rsvpDeadline, lang) : formatDate(content.rsvpDeadline)}</p></div>}
+          {content.contacts && <div className="ea-panel"><p className="ea-over"><Phone aria-hidden="true" className="ea-ico" /> {w.contact}</p><p className="ea-lead ea-pre">{content.contacts}</p></div>}
         </Reveal>
       )}
 
       <div ref={rsvpRef} id="rsvp">
         <Reveal className="ea-panel ea-rsvp">
-          <p className="ea-over ea-center-text">RSVP</p>
-          <h2 className="ea-h2 ea-center-text">Will you celebrate with us?</h2>
-          <RsvpForm content={content} rsvp={rsvp ?? { submit: async () => null }} />
+          <p className="ea-over ea-center-text">{w.rsvp}</p>
+          <h2 className="ea-h2 ea-center-text">{w.willYouCelebrate}</h2>
+          <RsvpForm content={content} lang={lang} rsvp={rsvp ?? { submit: async () => null }} />
         </Reveal>
       </div>
 
       <Reveal className="ea-center ea-closing">
-        <p className="ea-lead">{design.closingMessage}</p>
+        <p className="ea-lead">{closing}</p>
         <p className="ea-sign">{content.brideName} &amp; {content.groomName}</p>
-        {!startOpen && <button type="button" className="ea-link" onClick={onReplay}><RotateCcw aria-hidden="true" className="ea-ico" /> Watch the opening again</button>}
-        <p className="ea-made">Made with EverAfter Studio</p>
+        {!startOpen && <button type="button" className="ea-link" onClick={onReplay}><RotateCcw aria-hidden="true" className="ea-ico" /> {w.watchAgain}</button>}
+        <p className="ea-made">{w.madeWith}</p>
       </Reveal>
 
-      <ActionBar content={content} shareUrl={url} onRsvp={() => rsvpRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })} />
+      <ActionBar content={content} lang={lang} shareUrl={url} onRsvp={() => rsvpRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })} />
     </article>
   );
 }

@@ -52,7 +52,10 @@ describe("digital invitation", () => {
   it("makes a monogram and a personal link", () => {
     expect(monogram("sachini", "Dilshan")).toEqual(["S", "D"]);
     const guest = { name: "Nimal", rsvpToken: "tok" } as Parameters<typeof inviteUrl>[1];
-    expect(inviteUrl("https://x.app", guest)).toBe("https://x.app/invite/tok");
+    expect(inviteUrl("https://x.app", guest)).toBe("https://x.app/invite/tok?to=you");
+    expect(inviteUrl("https://x.app", { ...guest, adults: 2, children: 0 })).toBe("https://x.app/invite/tok?to=both");
+    expect(inviteUrl("https://x.app", { ...guest, adults: 2, children: 1 })).toBe("https://x.app/invite/tok?to=family");
+    expect(inviteUrl("https://x.app", { ...guest, adults: 4, children: 0, partyType: "couple" })).toBe("https://x.app/invite/tok?to=both");
     expect(invitationMessage({ brideName: "S", groomName: "D", weddingDate: "2027-05-27", venue: "", location: "" } as Parameters<typeof invitationMessage>[0], guest, "https://x.app/invite/tok")).toContain("https://x.app/invite/tok");
   });
 });
