@@ -4,8 +4,9 @@ import { useId, useMemo, useRef, useState, type CSSProperties, type ReactNode } 
 import { ImagePlus, Plus, RefreshCw, Trash2, Wand2 } from "lucide-react";
 import {
   AMBIENCES, ANIMATION_PRESETS, CARD_LAYOUTS, CARD_SHAPES, ENVELOPE_TEXTURES, FLAP_STYLES, FLORALS, FONTS, FONT_IDS, LINER_STYLES, MUSIC, ORNAMENTS, PHOTO_PLACEMENTS, SEAL_STYLES, TEMPLATES,
-  initials, matchColors, type DesignColors, type FontId, type InviteContent, type InviteDesign, type InviteProject,
+  STORY_ICONS, initials, matchColors, paletteFromTheme, type DesignColors, type FontId, type InviteContent, type InviteDesign, type InviteProject, type StoryChapter, type StoryIcon,
 } from "@/lib/domain/invite-studio";
+import { usePlanner } from "@/lib/hooks/use-planner";
 import { generateWording, type Language, type Length, type Tone, type Tradition } from "@/lib/domain/invite-wording";
 import { isMapsUrl } from "@/lib/domain/invite-links";
 import { ChoiceChips, NumberField, SelectField, TextArea, TextField, Toggle } from "@/components/ui/fields";
@@ -172,6 +173,7 @@ export function WordingPanel({ p, change }: { p: InviteProject; change: Change }
         <TextField label="Sinhala line" value={c.sinhalaLine} onChange={(v) => set.content("sinhalaLine", v)} />
         <TextArea label="Invitation message" rows={4} value={c.inviteMessage} onChange={(v) => set.content("inviteMessage", v)} />
       </Section>
+      <StorySection p={p} change={change} />
       <Section title="Opening and closing">
         <ChoiceChips label="Personal links are addressed to" value={p.design.addressing} onChange={(v) => set.design((d) => ({ ...d, addressing: v }), "addressing")}
           options={[{ value: "you", label: "You · You Both · You & Your Family" }, { value: "name", label: "The guest's name" }]} />
@@ -180,6 +182,37 @@ export function WordingPanel({ p, change }: { p: InviteProject; change: Change }
         <TextArea label="Closing message" rows={2} value={p.design.closingMessage} onChange={(v) => set.design((d) => ({ ...d, closingMessage: v }), "closingMessage")} />
       </Section>
     </div>
+  );
+}
+
+const STORY_ICON_LABEL: Record<StoryIcon, string> = { meet: "Coffee cups", adventure: "Travel", question: "Ring box", wedding: "Bouquet", heart: "Heart", home: "Home" };
+const STORY_EXAMPLES: StoryChapter[] = [
+  { title: "How we met", text: "", icon: "meet" },
+  { title: "Our first adventure", text: "", icon: "adventure" },
+  { title: "The question", text: "", icon: "question" },
+  { title: "Forever begins", text: "", icon: "wedding" },
+];
+
+function StorySection({ p, change }: { p: InviteProject; change: Change }) {
+  const story = p.content.story;
+  const setStory = (next: StoryChapter[], key = "story") => change((x) => ({ ...x, content: { ...x.content, story: next.slice(0, 8) } }), key);
+  return (
+    <Section title="Our story" hint="A few short chapters — shown on the garden-doors invitation under “Our Story”.">
+      {story.map((ch, i) => (
+        <div key={i} className="flex flex-col gap-2 rounded-[var(--radius-md)] border border-line p-3">
+          <div className="flex items-end gap-2">
+            <TextField label={`Chapter ${i + 1}`} className="min-w-0 flex-1" value={ch.title} onChange={(v) => setStory(story.map((c, j) => (j === i ? { ...c, title: v.slice(0, 60) } : c)), `story.${i}.t`)} />
+            <SelectField label="Picture" className="w-[124px] shrink-0" value={ch.icon} onChange={(v) => setStory(story.map((c, j) => (j === i ? { ...c, icon: v } : c)))} options={STORY_ICONS.map((v) => ({ value: v, label: STORY_ICON_LABEL[v] }))} />
+            <button type="button" className="wos-iconbtn mb-1" aria-label={`Remove chapter ${i + 1}`} onClick={() => setStory(story.filter((_, j) => j !== i))}><Trash2 className="wos-icon" aria-hidden="true" /></button>
+          </div>
+          <TextArea label="What happened" rows={2} placeholder="A rainy evening at the Galle Fort lighthouse…" value={ch.text} onChange={(v) => setStory(story.map((c, j) => (j === i ? { ...c, text: v.slice(0, 400) } : c)), `story.${i}.x`)} />
+        </div>
+      ))}
+      <div className="flex flex-wrap gap-2">
+        <button type="button" className="wos-btn wos-btn--secondary wos-btn--sm" onClick={() => setStory([...story, { title: "", text: "", icon: "heart" }])} disabled={story.length >= 8}><Plus className="wos-icon" aria-hidden="true" />Add a chapter</button>
+        {story.length === 0 && <button type="button" className="wos-btn wos-btn--ghost wos-btn--sm" onClick={() => setStory(STORY_EXAMPLES)}>Start with 4 chapters</button>}
+      </div>
+    </Section>
   );
 }
 
@@ -197,9 +230,16 @@ export function DesignPanel({ p, change }: { p: InviteProject; change: Change })
   const { design: set } = useSetters(change);
   const d = p.design;
   const [primary, setPrimary] = useState(d.colors.floralA);
+  const [theme] = usePlanner("theme");
   return (
     <div className="flex flex-col gap-5">
-      <Section title="Smart colours" hint="Pick your wedding colour — we build a matching, readable palette.">
+      <Section title="Our wedding colours" hint={`From “Our look”: ${theme.name || "your colours"}.`}>
+        <div className="flex flex-wrap items-center gap-3">
+          <span className="flex">{theme.colors.slice(0, 5).map((c, i) => <i key={i} className="-mr-1.5 size-7 rounded-full border-2 border-white shadow-[var(--shadow-sm)]" style={{ background: c }} />)}</span>
+          <button type="button" className="wos-btn wos-btn--primary wos-btn--sm" onClick={() => set((x) => ({ ...x, colors: paletteFromTheme(theme.colors) }), "colors")}>Use our wedding colours</button>
+        </div>
+      </Section>
+      <Section title="Smart colours" hint="Or pick any colour — we build a matching, readable palette.">
         <div className="flex flex-wrap items-center gap-2" role="radiogroup" aria-label="Wedding colour">
           {SWATCHES.map((c) => (
             <button key={c} type="button" role="radio" aria-checked={primary === c} aria-label={c} onClick={() => setPrimary(c)}
@@ -222,12 +262,12 @@ export function DesignPanel({ p, change }: { p: InviteProject; change: Change })
           ))}
         </div>
       </Section>
-      <Section title="Envelope">
+      {d.opening !== "gate" && <Section title="Envelope">
         <ChoiceChips label="Flap" value={d.envelope.flap} onChange={(v) => set((x) => ({ ...x, envelope: { ...x.envelope, flap: v } }), "flap")} options={opts(FLAP_STYLES)} />
         <ChoiceChips label="Paper" value={d.envelope.texture} onChange={(v) => set((x) => ({ ...x, envelope: { ...x.envelope, texture: v } }), "texture")} options={opts(ENVELOPE_TEXTURES)} />
         <ChoiceChips label="Liner pattern" value={d.envelope.liner} onChange={(v) => set((x) => ({ ...x, envelope: { ...x.envelope, liner: v } }), "liner")} options={opts(LINER_STYLES)} />
         <ChoiceChips label="Seal" value={d.seal.style} onChange={(v) => set((x) => ({ ...x, seal: { ...x.seal, style: v } }), "seal")} options={opts(SEAL_STYLES, { foil: "Gold foil" })} />
-      </Section>
+      </Section>}
       <Section title="Card">
         <SelectField label="Layout" value={d.card.layout} onChange={(v) => set((x) => ({ ...x, card: { ...x.card, layout: v } }), "layout")} options={opts(CARD_LAYOUTS, { deco: "Art deco" })} />
         <ChoiceChips label="Shape" value={d.card.shape} onChange={(v) => set((x) => ({ ...x, card: { ...x.card, shape: v } }), "shape")} options={opts(CARD_SHAPES, { arch: "Arch", rounded: "Rounded corners" })} />
@@ -321,9 +361,12 @@ export function MotionPanel({ p, change, onReplay }: { p: InviteProject; change:
   return (
     <div className="flex flex-col gap-5">
       <Section title="Opening animation">
+        <ChoiceChips label="How it opens" value={d.opening} onChange={(v) => set((x) => ({ ...x, opening: v }), "opening")}
+          options={[{ value: "envelope", label: "Envelope with a seal" }, { value: "gate", label: "Garden doors, ribbon & rings" }]} />
+        {d.opening === "gate" && <p className="m-0 -mt-2 text-[13px] text-ink-muted">The ribbon unties, the doors open onto a floral arch, then two gold rings rise in golden light on a crystal background — in your colours.</p>}
         <ChoiceChips label="Style" value={d.animation.preset} onChange={(v) => set((x) => ({ ...x, animation: { ...x.animation, preset: v } }), "preset")} options={opts(ANIMATION_PRESETS)} />
         <Range label="Speed" value={d.animation.speed} min={0.6} max={1.6} step={0.05} format={(v) => (v < 0.95 ? "Slower" : v > 1.05 ? "Faster" : "Normal")} onChange={(v) => set((x) => ({ ...x, animation: { ...x.animation, speed: v } }), "speed")} />
-        <ChoiceChips label="Floating in the air" value={d.ambience} onChange={(v) => set((x) => ({ ...x, ambience: v }), "ambience")} options={opts(AMBIENCES)} />
+        {d.opening !== "gate" && <ChoiceChips label="Floating in the air" value={d.ambience} onChange={(v) => set((x) => ({ ...x, ambience: v }), "ambience")} options={opts(AMBIENCES)} />}
         <button type="button" className="wos-btn wos-btn--secondary wos-btn--sm self-start" onClick={onReplay}><RefreshCw className="wos-icon" aria-hidden="true" />Replay the opening</button>
         <p className="m-0 text-[13px] text-ink-muted">Guests who prefer less motion (a phone setting) go straight to the invitation.</p>
       </Section>

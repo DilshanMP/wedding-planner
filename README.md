@@ -23,6 +23,7 @@ Open the app, choose **Start Planning** for your own wedding, or **Explore Sampl
 | `npm run test:e2e` | Acceptance flow in a real browser against a running app (`BASE_URL`, optional `CHROMIUM_PATH`) |
 | `npm run test:e2e:cloud` | Cloud-mode flow (sign-in gate, sharing, online RSVP) — see `supabase/README.md` |
 | `npm run test:e2e:studio` | EverAfter Studio: create, edit, undo, publish, PNG/PDF/SVG downloads, guest reply, Replies (local mode) |
+| `npm run test:e2e:gate` | Garden-gate invitation: ribbon, doors, rings, story and reply |
 | `npm run test:e2e:cloud-studio` | The same in cloud mode, plus personal `/invite/<token>` links |
 
 ## Storage modes
@@ -48,7 +49,7 @@ Deploy on Vercel as a standard Next.js app; add the variables in the project set
 | `/menu` | Menu planner: venue menu (Paradise Inn “Crystal Glow” 2027 included), choose dishes per course, cost per plate, add to budget, share |
 | `/vendors` | Vendors and quote comparison with Value Score and an advisor |
 | `/design` | Our look: wedding colours (recolour the app), vision board, real-photo preview in your venue, outfits with a style advisor |
-| `/invitations` | EverAfter Studio: animated envelope invitations — 8 templates, wizard, editor with live phone/computer preview, undo/redo, publish to a link with QR and WhatsApp, PNG/PDF/SVG downloads |
+| `/invitations` | EverAfter Studio: animated invitations — 9 templates (envelope with a seal, or garden doors with a ribbon and rising rings), wizard, editor with live phone/computer preview, undo/redo, publish to a link with QR and WhatsApp, PNG/PDF/SVG downloads |
 | `/invitations/rsvps` | Replies from published invitations (add them to the guest list, CSV) |
 | `/invitations/send` | Send each guest their personal link, using your chosen design |
 | `/invitations/canva` | Send the card to Canva (Canva Connect, see [docs/canva.md](docs/canva.md)) |

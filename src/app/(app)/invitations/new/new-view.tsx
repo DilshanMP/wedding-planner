@@ -6,7 +6,8 @@ import { useMemo, useState } from "react";
 import { ArrowLeft, ArrowRight, Check, Sparkles } from "lucide-react";
 import { usePage } from "@/lib/hooks/use-page";
 import { useInvites } from "@/lib/hooks/use-invites";
-import { TEMPLATES, designFromTemplate, initials, matchColors, templateById, type InviteContent } from "@/lib/domain/invite-studio";
+import { TEMPLATES, designFromTemplate, initials, matchColors, paletteFromTheme, templateById, type InviteContent } from "@/lib/domain/invite-studio";
+import { usePlanner } from "@/lib/hooks/use-planner";
 import { CardThumb, TemplateThumb } from "@/components/invite/template-thumb";
 import { ChoiceChips, TextField } from "@/components/ui/fields";
 import { PageHeader, cx } from "@/components/ui/primitives";
@@ -29,7 +30,8 @@ function Wizard() {
   const [templateId, setTemplateId] = useState(TEMPLATES.some((t) => t.id === fromUrl) ? (fromUrl as string) : TEMPLATES[0].id);
   const [step, setStep] = useState(fromUrl ? 1 : 0);
   const [content, setContent] = useState<InviteContent>(() => weddingContent());
-  const [colorMode, setColorMode] = useState<"template" | "match">("template");
+  const [theme] = usePlanner("theme");
+  const [colorMode, setColorMode] = useState<"template" | "theme" | "match">(templateById(fromUrl ?? "").design.opening === "gate" ? "theme" : "template");
   const [primary, setPrimary] = useState("#D9B3B8");
   const [mood, setMood] = useState<"light" | "dark">("light");
   const [name, setName] = useState("");
@@ -39,12 +41,13 @@ function Wizard() {
     const d = designFromTemplate(templateId);
     d.seal.text = initials(content.brideName, content.groomName);
     if (colorMode === "match") d.colors = matchColors(primary, mood);
+    if (colorMode === "theme") d.colors = paletteFromTheme(theme.colors);
     return d;
-  }, [templateId, colorMode, primary, mood, content.brideName, content.groomName]);
+  }, [templateId, colorMode, primary, mood, content.brideName, content.groomName, theme.colors]);
 
   const finish = () => {
     const p = create(templateId, content, name.trim() || templateById(templateId).name);
-    if (colorMode === "match") save({ ...p, design: { ...p.design, colors: design.colors } });
+    if (colorMode !== "template") save({ ...p, design: { ...p.design, colors: design.colors } });
     router.push(`/invitations/${p.id}`);
   };
 
@@ -98,7 +101,13 @@ function Wizard() {
           {step === 2 && (
             <>
               <h2 className="wos-h2">Colours</h2>
-              <ChoiceChips label="Palette" value={colorMode} onChange={setColorMode} options={[{ value: "template", label: "Keep the template's colours" }, { value: "match", label: "Match my wedding colour" }]} />
+              <ChoiceChips label="Palette" value={colorMode} onChange={setColorMode} options={[{ value: "theme", label: "Our wedding colours" }, { value: "template", label: "Keep the template's colours" }, { value: "match", label: "Pick a colour" }]} />
+              {colorMode === "theme" && (
+                <p className="m-0 flex flex-wrap items-center gap-2 text-[13px] text-ink-muted">
+                  <span className="flex">{theme.colors.slice(0, 5).map((c, i) => <i key={i} className="-mr-1.5 size-6 rounded-full border-2 border-white shadow-[var(--shadow-sm)]" style={{ background: c }} />)}</span>
+                  <span className="ml-2">From “Our look”{theme.name ? ` — ${theme.name}` : ""}. Change them any time on the Our look page.</span>
+                </p>
+              )}
               {colorMode === "match" && (
                 <div className="flex flex-col gap-4">
                   <div className="flex flex-wrap items-center gap-2" role="radiogroup" aria-label="Main colour">

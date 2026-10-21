@@ -70,6 +70,12 @@ export interface DesignColors {
 }
 
 export type Addressing = "you" | "name";
+/** How the invitation opens: a sealed envelope, or ribbon-tied garden doors. */
+export const OPENINGS = ["envelope", "gate"] as const;
+export type Opening = (typeof OPENINGS)[number];
+export const STORY_ICONS = ["meet", "adventure", "question", "wedding", "heart", "home"] as const;
+export type StoryIcon = (typeof STORY_ICONS)[number];
+export interface StoryChapter { title: string; text: string; icon: StoryIcon }
 
 export interface InviteDesign {
   templateId: string;
@@ -90,6 +96,7 @@ export interface InviteDesign {
   showDayPlan: boolean;
   /** Personal links: "You / You Both / You & Your Family", or the guest's name. */
   addressing: Addressing;
+  opening: Opening;
   photo: { src: string | null; x: number; y: number; zoom: number; placement: PhotoPlacement };
 }
 
@@ -122,6 +129,8 @@ export interface InviteContent {
   maxParty: number;
   /** Optional moments shown on the invitation (from the day plan). */
   moments: { time: string; title: string }[];
+  /** "Our story" chapters (garden-gate invitations). */
+  story: StoryChapter[];
 }
 
 export type ExportKind = "png" | "svg" | "pdf" | "video" | "canva";
@@ -176,7 +185,7 @@ export interface InviteTemplate {
   name: string;
   tagline: string;
   mood: string[];
-  design: Omit<InviteDesign, "templateId" | "photo" | "openingText" | "closingMessage" | "showCountdown" | "showDayPlan" | "addressing" | "music"> & { music: Music };
+  design: Omit<InviteDesign, "templateId" | "photo" | "openingText" | "closingMessage" | "showCountdown" | "showDayPlan" | "addressing" | "opening" | "music"> & { music: Music; opening?: Opening };
   /** Static (no ambience, quick reveal) or animated by default. */
   animated: boolean;
 }
@@ -184,6 +193,26 @@ export interface InviteTemplate {
 const t = (x: InviteTemplate) => x;
 
 export const TEMPLATES: InviteTemplate[] = [
+  t({
+    id: "crystal-gate",
+    name: "Crystal Garden Gate",
+    tagline: "Ribbon-tied garden doors open on a floral arch, then the rings rise in golden light.",
+    mood: ["Cinematic", "Romantic", "New"],
+    animated: true,
+    design: {
+      colors: { background: "#F6F1EC", envelope: "#EEE5DB", liner: "#E9DCD6", card: "#FFFDFA", ink: "#3E3438", accent: "#B48C46", seal: "#B9787F", floralA: "#EBD9D7", floralB: "#E3D7C3" },
+      envelope: { flap: "pointed", texture: "smooth", liner: "florals" },
+      seal: { style: "none", text: "" },
+      card: { layout: "arch", shape: "arch", ornament: "thin" },
+      florals: "roses",
+      fonts: { names: "pinyon", headings: "cormorant", body: "cormorant" },
+      scale: { names: 1, body: 1 },
+      animation: { preset: "cinematic", speed: 1 },
+      ambience: "sparkles",
+      music: "piano",
+      opening: "gate",
+    },
+  }),
   t({
     id: "ivory-champagne",
     name: "Ivory & Champagne Luxury",
@@ -339,7 +368,7 @@ export const TEMPLATES: InviteTemplate[] = [
 ];
 
 export function templateById(id: string): InviteTemplate {
-  return TEMPLATES.find((x) => x.id === id) ?? TEMPLATES[0];
+  return TEMPLATES.find((x) => x.id === id) ?? TEMPLATES.find((x) => x.id === "ivory-champagne")!;
 }
 
 /* ------------------------------------------------------------------ */
@@ -372,6 +401,7 @@ export function designFromTemplate(templateId: string, keep?: Partial<InviteDesi
     showCountdown: keep?.showCountdown ?? true,
     showDayPlan: keep?.showDayPlan ?? true,
     addressing: keep?.addressing ?? "you",
+    opening: tpl.design.opening ?? "envelope",
     photo: keep?.photo ?? { src: null, x: 50, y: 50, zoom: 1, placement: "none" },
   };
 }
@@ -403,6 +433,7 @@ export function contentFromWedding(w: Pick<Wedding, "brideName" | "groomName" | 
     contacts: "",
     maxParty: 2,
     moments,
+    story: [],
   };
 }
 
@@ -431,7 +462,7 @@ export function applyTemplate(project: InviteProject, templateId: string): Invit
 
 /** Old saves may miss newer fields; fill them so rendering never breaks. */
 export function normalizeProject(p: Partial<InviteProject> & { id: ID }, now: string): InviteProject {
-  const base = designFromTemplate(p.design?.templateId ?? TEMPLATES[0].id);
+  const base = designFromTemplate(p.design?.templateId ?? "ivory-champagne");
   const d = (p.design ?? {}) as Partial<InviteDesign>;
   const c = contentFromWedding({ brideName: "", groomName: "", weddingDate: now.slice(0, 10), venue: "", location: "" });
   return {
@@ -500,6 +531,31 @@ export function matchColors(primary: string, mood: "light" | "dark" = "light"): 
     seal: darkenFor(p, BRAND.ivory, 4.5),
     floralA: mix(p, "#ffffff", 0.25),
     floralB: b > r ? BRAND.sage : BRAND.lavender,
+  };
+}
+
+/**
+ * A soft "crystal" palette from the wedding colours chosen in Our look
+ * ([0] main, [1] second, [2] light, [3] accent/gold).
+ */
+export function paletteFromTheme(theme: string[]): DesignColors {
+  const pick = (i: number, fallback: string) => (theme[i] && parseHex(theme[i]) ? theme[i] : fallback);
+  const main = pick(0, BRAND.dustyPink);
+  const second = pick(1, BRAND.champagne);
+  const light = pick(2, BRAND.ivory);
+  const gold = pick(3, BRAND.gold);
+  const background = luminance(light) > 0.6 ? mix(light, "#ffffff", 0.2) : mix(main, "#ffffff", 0.88);
+  const card = mix(background, "#ffffff", 0.6);
+  return {
+    background,
+    envelope: mix(second, background, 0.62),
+    liner: mix(main, background, 0.72),
+    card,
+    ink: darkenFor(mix(main, "#2a1d1f", 0.62), card, 8),
+    accent: darkenFor(gold, card, 2.6),
+    seal: darkenFor(main, card, 3),
+    floralA: mix(main, "#ffffff", 0.62),
+    floralB: mix(second, "#ffffff", 0.35),
   };
 }
 

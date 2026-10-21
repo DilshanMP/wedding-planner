@@ -10,6 +10,7 @@ import { Ambience } from "./ambience";
 import { EnvelopeBack, EnvelopePocket, FLAP_SHARE, FlapFace, SEAL_AT, SealArt } from "./envelope-parts";
 import { InviteCard } from "./invite-card";
 import { InvitationPage, type RsvpHandler } from "./invitation-page";
+import { GateExperience } from "./gate-experience";
 
 /**
  * The signature moment. A sealed envelope floats in soft light; one tap
@@ -47,7 +48,12 @@ export interface ExperienceProps {
   onOpen?: () => void;
 }
 
+/** Envelope or garden-gate opening, as the design chooses. */
 export function InvitationExperience(props: ExperienceProps) {
+  return props.design.opening === "gate" ? <GateExperience {...props} /> : <EnvelopeExperience {...props} />;
+}
+
+function EnvelopeExperience(props: ExperienceProps) {
   const { content, design, guestName, party, framed, startOpen, silent, onOpen } = props;
   const reduce = useReducedMotion();
   const [phase, setPhase] = useState<Phase>(startOpen ? 5 : 0);

@@ -14,10 +14,10 @@ const id = () => `id-${++n}`;
 const wedding = { brideName: "Sachini", groomName: "Dilshan", weddingDate: "2027-05-27", venue: "Paradise Inn", location: "Bolgoda" };
 
 describe("templates", () => {
-  it("has eight distinct, complete templates", () => {
-    expect(TEMPLATES).toHaveLength(8);
-    expect(new Set(TEMPLATES.map((t) => t.id)).size).toBe(8);
-    expect(new Set(TEMPLATES.map((t) => t.design.card.layout)).size).toBe(8);
+  it("has nine distinct, complete templates covering every card layout", () => {
+    expect(TEMPLATES).toHaveLength(9);
+    expect(new Set(TEMPLATES.map((t) => t.id)).size).toBe(9);
+    expect(new Set(TEMPLATES.map((t) => t.design.card.layout)).size).toBe(CARD_LAYOUTS.length);
     for (const t of TEMPLATES) {
       expect(CARD_LAYOUTS).toContain(t.design.card.layout);
       expect(Object.keys(FONTS)).toContain(t.design.fonts.names);
@@ -121,5 +121,28 @@ describe("addressing personal invitations", () => {
     const wedding = { brideName: "Amaya", groomName: "Kavindu", weddingDate: "2027-05-27", venue: "Paradise Inn", location: "Bolgoda" };
     const msg = invitationMessage(wedding as never, { name: "Perera family", adults: 2, children: 2 } as never, null);
     expect(msg).toContain("warmly invite you and your family to celebrate");
+  });
+});
+
+describe("garden gate design", () => {
+  it("opens with doors for the Crystal Garden Gate, envelopes elsewhere and in old saves", async () => {
+    const { designFromTemplate, normalizeProject, TEMPLATES } = await import("../invite-studio");
+    expect(TEMPLATES[0].id).toBe("crystal-gate");
+    expect(designFromTemplate("crystal-gate").opening).toBe("gate");
+    expect(designFromTemplate("ivory-champagne").opening).toBe("envelope");
+    const old = normalizeProject({ id: "x", design: { templateId: "ivory-champagne" } as never, content: { brideName: "A" } as never }, "2026-10-21T00:00:00.000Z");
+    expect(old.design.opening).toBe("envelope");
+    expect(old.content.story).toEqual([]);
+  });
+
+  it("builds a readable crystal palette from the wedding colours", async () => {
+    const { paletteFromTheme } = await import("../invite-studio");
+    const { contrast } = await import("../../theme-colors");
+    for (const theme of [["#b9787f", "#dcc6a2", "#fbf7f0", "#a8875a"], ["#722F37", "#E8D4B0"], [], ["not-a-colour"]]) {
+      const p = paletteFromTheme(theme);
+      expect(contrast(p.ink, p.card)).toBeGreaterThanOrEqual(7);
+      expect(contrast(p.accent, p.card)).toBeGreaterThanOrEqual(2.5);
+      for (const v of Object.values(p)) expect(v).toMatch(/^#[0-9a-f]{6}$/i);
+    }
   });
 });
