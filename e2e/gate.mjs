@@ -1,7 +1,7 @@
 // Garden-gate invitation: create from the Crystal Garden Gate template in the
 // wedding colours, add story chapters, publish, then open the guest link on a
-// phone — ribbon, doors, card, rings and golden light, the page below, and a
-// reply. Run against a started app: node e2e/gate.mjs [baseUrl] [screenshotDir]
+// phone — greeting, English/Sinhala switch, ribbon, petals, doors, card, rings
+// and golden light, the page below, and a reply. Run against a started app: node e2e/gate.mjs [baseUrl] [screenshotDir]
 import { chromium } from "playwright-core";
 
 const B = process.argv[2] ?? "http://localhost:3200";
@@ -66,8 +66,15 @@ ok(/\/i\//.test(link), `published ${link}`);
 const g = await ctx.newPage();
 await g.setViewportSize({ width: 390, height: 844 });
 watch(g);
-await g.goto(link);
+// A personal greeting from the link, in either language.
+await g.goto(`${link}${link.includes("?") ? "&" : "?"}to=family`);
 await g.locator(".mx-hint").waitFor();
+ok((await g.locator(".mx-to").innerText()).toLowerCase().includes("you & your family"), "greeting reads “You & Your Family”");
+await g.getByRole("radio", { name: "සිංහල" }).click();
+ok((await g.locator(".mx-to").innerText()).includes("ඔබට සහ ඔබේ පවුලේ සැමට"), "Sinhala greeting");
+ok((await g.locator(".mx-hint").innerText()).includes("ස්පර්ශ කරන්න"), "Sinhala tap hint");
+await g.getByRole("radio", { name: "English" }).click();
+ok((await g.locator(".mx-hint").innerText()).toLowerCase().includes("tap to open"), "back to English");
 await g.waitForTimeout(800);
 ok(await g.locator(".mx-door").count() === 2 && await g.locator(".mx-bow").isVisible(), "two doors tied with a ribbon bow");
 const left = await brightness(g, { x: 20, y: 200, width: 150, height: 300 });
@@ -75,7 +82,9 @@ const right = await brightness(g, { x: 220, y: 200, width: 150, height: 300 });
 ok(left > 150 && right > 150 && Math.abs(left - right) < 30, `both doors are carved white (left ${Math.round(left)}, right ${Math.round(right)})`);
 if (S) await g.screenshot({ path: `${S}/gate-closed.png` });
 await g.locator(".mx-hint").click();
-await g.waitForTimeout(1200);
+await g.locator(".mx-petal").first().waitFor({ state: "attached", timeout: 3000 });
+ok(await g.locator(".mx-petal").count() > 20, "petals burst upward as the ribbon opens");
+await g.waitForTimeout(1000);
 ok(!(await g.locator(".mx-bow").isVisible().catch(() => false)) || (await g.locator(".mx-bow").evaluate((el) => Number(getComputedStyle(el).opacity))) < 0.6, "the ribbon falls away");
 await g.locator(".mx-scroll-cue").waitFor({ timeout: 20_000 });
 if (S) await g.screenshot({ path: `${S}/gate-open.png` });

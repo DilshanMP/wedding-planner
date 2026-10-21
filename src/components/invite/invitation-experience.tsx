@@ -3,7 +3,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import { motion, useMotionValue, useReducedMotion, useSpring } from "motion/react";
 import { FastForward, RotateCcw, Volume2, VolumeX } from "lucide-react";
-import { FONTS, addressFor, readableOn, type InviteContent, type InviteDesign } from "@/lib/domain/invite-studio";
+import { ADDRESS_TEXT, FONTS, readableOn, type AddressKind, type GuestLanguage, type InviteContent, type InviteDesign } from "@/lib/domain/invite-studio";
+import { words } from "@/lib/domain/invite-i18n";
+import { LangToggle } from "./lang-toggle";
 import { InviteSound } from "@/lib/invite-sound";
 import { mix } from "@/lib/theme-colors";
 import { Ambience } from "./ambience";
@@ -33,9 +35,10 @@ const EASE_PAPER = [0.65, 0, 0.35, 1] as const;
 export interface ExperienceProps {
   content: InviteContent;
   design: InviteDesign;
-  /** The guest, for personal links. With "you" addressing (the default) only their party size is used. */
+  /** The guest's name, for personal links ("Dear …" when the design addresses guests by name). */
   guestName?: string;
-  party?: { adults: number; children: number };
+  /** "You", "You Both" or "You & Your Family" — personal links and, if the design says so, the shared link. */
+  addressee?: AddressKind;
   rsvp?: RsvpHandler;
   /** Link guests share (published URL). */
   shareUrl?: string;
@@ -54,7 +57,9 @@ export function InvitationExperience(props: ExperienceProps) {
 }
 
 function EnvelopeExperience(props: ExperienceProps) {
-  const { content, design, guestName, party, framed, startOpen, silent, onOpen } = props;
+  const { content, design, guestName, addressee, framed, startOpen, silent, onOpen } = props;
+  const [lang, setLang] = useState<GuestLanguage>(design.language ?? "en");
+  const w = words(lang);
   const reduce = useReducedMotion();
   const [phase, setPhase] = useState<Phase>(startOpen ? 5 : 0);
   const [muted, setMuted] = useState(Boolean(silent));
@@ -177,13 +182,13 @@ function EnvelopeExperience(props: ExperienceProps) {
   const couple = `${content.brideName} & ${content.groomName}`;
   const scriptFont = FONTS[design.fonts.names].family;
   // "You / You Both / You & Your Family" in a clean modern face, or the guest's name in script.
-  const personal = Boolean(guestName || party);
   const modern = design.addressing !== "name" || !guestName;
-  const to = personal ? (modern ? addressFor(party ?? { adults: 1, children: 0 }) : guestName!) : null;
+  const kind = addressee ?? (guestName ? "you" : design.publicAddress !== "none" ? design.publicAddress : null);
+  const to = modern ? (kind ? ADDRESS_TEXT[kind][lang] : null) : guestName ?? null;
   const opened = phase >= 5;
 
   return (
-    <div ref={root} className={`ea-root${framed ? " ea-root--framed" : ""} ea-preset--${design.animation.preset}`} style={vars} data-phase={phase}>
+    <div ref={root} className={`ea-root${framed ? " ea-root--framed" : ""} ea-preset--${design.animation.preset}${lang === "si" ? " is-si" : ""}`} style={vars} data-phase={phase}>
       <div className="ea-light" aria-hidden="true" />
       <Ambience kind={design.ambience} c={c} />
       <div ref={scroller} className="ea-scroll">
@@ -200,7 +205,7 @@ function EnvelopeExperience(props: ExperienceProps) {
               tiltY.set(0);
             }}>
             <motion.p className={`ea-greeting${to && modern ? " ea-greeting--modern" : ""}`} animate={{ opacity: phase === 0 ? 1 : 0, y: phase === 0 ? 0 : -12 }} transition={{ duration: 0.5 }}>
-              {to ? (modern ? <>An invitation for<b className="ea-to">{to}</b></> : <>Dear <b>{to}</b></>) : <>{couple}</>}
+              {to ? (modern ? <>{w.invitationFor}<b className="ea-to">{to}</b></> : <>{w.dear} <b>{to}</b></>) : <>{couple}</>}
             </motion.p>
 
             <motion.div className="ea-camera" animate={{ scale: design.animation.preset === "cinematic" && phase >= 3 ? 1.06 : 1 }} transition={{ duration: T.rise * 1.4, ease: EASE_SOFT }}>
@@ -253,11 +258,12 @@ function EnvelopeExperience(props: ExperienceProps) {
             </motion.div>
 
             <motion.button type="button" className="ea-hint" onClick={open} animate={{ opacity: phase === 0 ? 1 : 0 }} transition={{ duration: 0.4 }} tabIndex={phase === 0 ? 0 : -1}>
-              <span className="ea-hint-dot" aria-hidden="true" />{design.openingText}
+              <span className="ea-hint-dot" aria-hidden="true" />{lang === "si" ? w.tapToOpen : design.openingText}
             </motion.button>
+            {phase === 0 && <LangToggle lang={lang} onChange={setLang} className="ea-lang" />}
           </div>
         ) : (
-          <InvitationPage {...props} onReplay={reset} />
+          <InvitationPage {...props} lang={lang} onReplay={reset} />
         )}
       </div>
 
@@ -271,8 +277,9 @@ function EnvelopeExperience(props: ExperienceProps) {
       )}
 
       <div className="ea-controls">
-        {phase > 0 && phase < 5 && <button type="button" className="ea-ctl" onClick={skip}><FastForward aria-hidden="true" />Skip</button>}
-        {phase === 0 && <button type="button" className="ea-ctl" onClick={skip}>Skip animation</button>}
+        {phase > 0 && phase < 5 && <button type="button" className="ea-ctl" onClick={skip}><FastForward aria-hidden="true" />{w.skipShort}</button>}
+        {phase === 0 && <button type="button" className="ea-ctl" onClick={skip}>{w.skip}</button>}
+        {opened && <LangToggle lang={lang} onChange={setLang} className="inv-lang--sm" />}
         {opened && !startOpen && <button type="button" className="ea-ctl ea-ctl--icon" onClick={reset} aria-label="Replay the opening" title="Replay"><RotateCcw aria-hidden="true" /></button>}
         {!silent && design.music !== "none" && (
           <button type="button" className="ea-ctl ea-ctl--icon" onClick={toggleMute} aria-pressed={!muted} aria-label={muted ? "Turn music on" : "Turn music off"}>

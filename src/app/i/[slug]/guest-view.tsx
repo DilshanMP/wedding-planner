@@ -1,10 +1,10 @@
 "use client";
 
-import { useParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { cloudEnabled, getSupabase } from "@/lib/supabase/client";
 import { CloudPublished, LocalPublished, type PublishedStore } from "@/lib/data/published";
-import { SLUG_RE, normalizeProject, type PublishedSnapshot } from "@/lib/domain/invite-studio";
+import { ADDRESS_KINDS, SLUG_RE, normalizeProject, type AddressKind, type PublishedSnapshot } from "@/lib/domain/invite-studio";
 import { InvitationExperience } from "@/components/invite/invitation-experience";
 import { LotusMark } from "@/components/ui/primitives";
 
@@ -33,6 +33,9 @@ async function find(slug: string): Promise<{ snap: PublishedSnapshot; store: Pub
 
 export function GuestInvitation() {
   const { slug } = useParams<{ slug: string }>();
+  // "?to=both" or "?to=family" picks the greeting for a shared link.
+  const to = useSearchParams().get("to");
+  const addressee = ADDRESS_KINDS.includes(to as AddressKind) ? (to as AddressKind) : undefined;
   const valid = SLUG_RE.test(slug ?? "");
   const [state, setState] = useState<State>(valid ? { status: "loading" } : { status: "missing" });
 
@@ -69,6 +72,7 @@ export function GuestInvitation() {
       <InvitationExperience
         content={p.content}
         design={p.design}
+        addressee={addressee}
         shareUrl={typeof window !== "undefined" ? window.location.href : undefined}
         rsvp={{
           submit: async (reply) => {

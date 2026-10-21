@@ -262,3 +262,19 @@
 @keyframes ea-beat { 50% { transform: scale(1.08); } }
 @media (prefers-reduced-motion: reduce) { .ea-loading-seal { animation: none; } }
 }
+
+/* Guest language switch (both invitation styles) */
+@layer components {
+.inv-lang { display: inline-flex; padding: 3px; gap: 2px; border-radius: 999px; background: color-mix(in srgb, #ffffff 82%, transparent); border: 1px solid rgb(0 0 0 / .08); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); box-shadow: 0 6px 18px rgb(40 24 20 / .12); }
+.inv-lang button { min-width: 74px; height: 34px; padding: 0 14px; border: 0; border-radius: 999px; background: none; cursor: pointer; color: #3a2e2c; font: 600 13px/1 'Manrope', 'Yaldevi', 'Noto Sans Sinhala', system-ui, sans-serif; }
+.inv-lang button[lang="si"] { font-family: 'Yaldevi', 'Noto Sans Sinhala', system-ui, sans-serif; font-size: 14px; }
+.inv-lang button[aria-checked="true"] { background: #3a2e2c; color: #fffaf3; }
+.inv-lang button:focus-visible { outline: 2px solid #b48c46; outline-offset: 2px; }
+/* Sinhala reading: Abhaya Libre for wording, Yaldevi for buttons and forms. */
+.is-si { --wos-sans: 'Yaldevi', 'Noto Sans Sinhala', system-ui, sans-serif; }
+.is-si .ea-over, .is-si .mx-caps { letter-spacing: .06em; text-transform: none; }
+}
+@layer components {
+.ea-lang { margin-top: 4px; }
+.inv-lang--sm button { min-width: 0; height: 30px; padding: 0 10px; font-size: 12px; }
+}

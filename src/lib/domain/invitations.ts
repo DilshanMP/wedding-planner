@@ -1,4 +1,4 @@
-import { addressFor } from "./invite-studio";
+import { addressFor, addressKind } from "./invite-studio";
 import { formatLongDate } from "./dates";
 import type { Guest, Wedding } from "./types";
 
@@ -20,8 +20,9 @@ export function rsvpUrl(origin: string, guest: Guest): string {
 }
 
 /** The animated invitation (which includes the RSVP). */
+/** The guest's personal link; `to` tells the invitation how to greet them (You / You Both / You & Your Family). */
 export function inviteUrl(origin: string, guest: Guest): string {
-  return `${origin}/invite/${guest.rsvpToken}`;
+  return `${origin}/invite/${guest.rsvpToken}?to=${addressKind(guest)}`;
 }
 
 export function invitationMessage(wedding: Wedding, guest: Guest, link: string | null): string {

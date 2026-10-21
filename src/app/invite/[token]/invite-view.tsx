@@ -1,10 +1,10 @@
 "use client";
 
-import { useParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { cloudEnabled, getSupabase } from "@/lib/supabase/client";
 import { invitationLookup, invitationOpened, rsvpSubmit, type InvitationData } from "@/lib/data/cloud-services";
-import { contentFromWedding, designFromTemplate, initials, normalizeProject, type InviteContent, type InviteDesign } from "@/lib/domain/invite-studio";
+import { ADDRESS_KINDS, addressKind, contentFromWedding, designFromTemplate, initials, normalizeProject, type AddressKind, type InviteContent, type InviteDesign } from "@/lib/domain/invite-studio";
 import { InvitationExperience } from "@/components/invite/invitation-experience";
 import { LotusMark } from "@/components/ui/primitives";
 
@@ -29,6 +29,7 @@ function inviteFor(inv: InvitationData): { content: InviteContent; design: Invit
 /** The guest's personal, animated invitation. */
 export function InviteView() {
   const { token } = useParams<{ token: string }>();
+  const to = useSearchParams().get("to");
   const [state, setState] = useState<State>(cloudEnabled ? { status: "loading" } : { status: "missing" });
 
   useEffect(() => {
@@ -64,7 +65,7 @@ export function InviteView() {
         content={content}
         design={design}
         guestName={invite.guestName}
-        party={{ adults: invite.adults, children: invite.children }}
+        addressee={ADDRESS_KINDS.includes(to as AddressKind) ? (to as AddressKind) : addressKind({ adults: invite.adults, children: invite.children })}
         onOpen={() => void invitationOpened(getSupabase(), token)}
         rsvp={{
           knownGuest: true,

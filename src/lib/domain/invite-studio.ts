@@ -44,15 +44,15 @@ export type FontId = (typeof FONT_IDS)[number];
 
 /** CSS / SVG font stacks. Sinhala text falls through to Noto Serif Sinhala. */
 export const FONTS: Record<FontId, { label: string; family: string; kind: "serif" | "script" | "sans" }> = {
-  cormorant: { label: "Cormorant (classic serif)", family: "'Cormorant Garamond', 'Noto Serif Sinhala', Georgia, serif", kind: "serif" },
-  playfair: { label: "Playfair Display", family: "'Playfair Display', 'Noto Serif Sinhala', Georgia, serif", kind: "serif" },
-  cinzel: { label: "Cinzel (royal capitals)", family: "'Cinzel', 'Noto Serif Sinhala', Georgia, serif", kind: "serif" },
-  bodoni: { label: "Bodoni (editorial)", family: "'Bodoni Moda', 'Noto Serif Sinhala', Georgia, serif", kind: "serif" },
-  greatvibes: { label: "Great Vibes (calligraphy)", family: "'Great Vibes', 'Noto Serif Sinhala', cursive", kind: "script" },
-  pinyon: { label: "Pinyon Script", family: "'Pinyon Script', 'Noto Serif Sinhala', cursive", kind: "script" },
-  parisienne: { label: "Parisienne", family: "'Parisienne', 'Noto Serif Sinhala', cursive", kind: "script" },
-  manrope: { label: "Manrope (modern sans)", family: "'Manrope', 'Noto Sans Sinhala', system-ui, sans-serif", kind: "sans" },
-  jost: { label: "Jost (geometric sans)", family: "'Jost', 'Noto Sans Sinhala', system-ui, sans-serif", kind: "sans" },
+  cormorant: { label: "Cormorant (classic serif)", family: "'Cormorant Garamond', 'Abhaya Libre', 'Noto Serif Sinhala', Georgia, serif", kind: "serif" },
+  playfair: { label: "Playfair Display", family: "'Playfair Display', 'Abhaya Libre', 'Noto Serif Sinhala', Georgia, serif", kind: "serif" },
+  cinzel: { label: "Cinzel (royal capitals)", family: "'Cinzel', 'Abhaya Libre', 'Noto Serif Sinhala', Georgia, serif", kind: "serif" },
+  bodoni: { label: "Bodoni (editorial)", family: "'Bodoni Moda', 'Abhaya Libre', 'Noto Serif Sinhala', Georgia, serif", kind: "serif" },
+  greatvibes: { label: "Great Vibes (calligraphy)", family: "'Great Vibes', 'Abhaya Libre', 'Noto Serif Sinhala', cursive", kind: "script" },
+  pinyon: { label: "Pinyon Script", family: "'Pinyon Script', 'Abhaya Libre', 'Noto Serif Sinhala', cursive", kind: "script" },
+  parisienne: { label: "Parisienne", family: "'Parisienne', 'Abhaya Libre', 'Noto Serif Sinhala', cursive", kind: "script" },
+  manrope: { label: "Manrope (modern sans)", family: "'Manrope', 'Yaldevi', 'Noto Sans Sinhala', system-ui, sans-serif", kind: "sans" },
+  jost: { label: "Jost (geometric sans)", family: "'Jost', 'Yaldevi', 'Noto Sans Sinhala', system-ui, sans-serif", kind: "sans" },
 };
 
 export interface DesignColors {
@@ -76,6 +76,17 @@ export type Opening = (typeof OPENINGS)[number];
 export const STORY_ICONS = ["meet", "adventure", "question", "wedding", "heart", "home"] as const;
 export type StoryIcon = (typeof STORY_ICONS)[number];
 export interface StoryChapter { title: string; text: string; icon: StoryIcon }
+/** Who a personal invitation speaks to. */
+export const ADDRESS_KINDS = ["you", "both", "family"] as const;
+export type AddressKind = (typeof ADDRESS_KINDS)[number];
+export const ADDRESS_TEXT: Record<AddressKind, { en: string; si: string }> = {
+  you: { en: "You", si: "ඔබට" },
+  both: { en: "You Both", si: "ඔබ දෙදෙනාට" },
+  family: { en: "You & Your Family", si: "ඔබට සහ ඔබේ පවුලේ සැමට" },
+};
+export type GuestLanguage = "en" | "si";
+/** Sinhala versions of the couple's own wording, shown when a guest picks සිංහල. */
+export interface SinhalaText { inviteMessage: string; ceremonyTitle: string; receptionTitle: string; dressCode: string; closing: string }
 
 export interface InviteDesign {
   templateId: string;
@@ -97,6 +108,10 @@ export interface InviteDesign {
   /** Personal links: "You / You Both / You & Your Family", or the guest's name. */
   addressing: Addressing;
   opening: Opening;
+  /** Greeting on the shared (non-personal) link. */
+  publicAddress: AddressKind | "none";
+  /** Language guests see first; they can switch. */
+  language: GuestLanguage;
   photo: { src: string | null; x: number; y: number; zoom: number; placement: PhotoPlacement };
 }
 
@@ -131,6 +146,7 @@ export interface InviteContent {
   moments: { time: string; title: string }[];
   /** "Our story" chapters (garden-gate invitations). */
   story: StoryChapter[];
+  si: SinhalaText;
 }
 
 export type ExportKind = "png" | "svg" | "pdf" | "video" | "canva";
@@ -185,7 +201,7 @@ export interface InviteTemplate {
   name: string;
   tagline: string;
   mood: string[];
-  design: Omit<InviteDesign, "templateId" | "photo" | "openingText" | "closingMessage" | "showCountdown" | "showDayPlan" | "addressing" | "opening" | "music"> & { music: Music; opening?: Opening };
+  design: Omit<InviteDesign, "templateId" | "photo" | "openingText" | "closingMessage" | "showCountdown" | "showDayPlan" | "addressing" | "opening" | "publicAddress" | "language" | "music"> & { music: Music; opening?: Opening };
   /** Static (no ambience, quick reveal) or animated by default. */
   animated: boolean;
 }
@@ -375,12 +391,24 @@ export function templateById(id: string): InviteTemplate {
 /* Creating projects                                                   */
 /* ------------------------------------------------------------------ */
 
-/** How a personal invitation addresses its guest, in plain English. */
-export function addressFor(party: { adults: number; children: number }): string {
-  const n = Math.max(1, party.adults + party.children);
-  if (n === 1) return "You";
-  if (n === 2 && party.children === 0) return "You Both";
-  return "You & Your Family";
+/**
+ * Who a personal invitation speaks to: the guest list's party type when it
+ * says (single / couple / family or group), otherwise the head count.
+ */
+export function addressKind(party: { adults: number; children: number; partyType?: string }): AddressKind {
+  if (party.partyType === "single") return "you";
+  if (party.partyType === "couple") return "both";
+  if (party.partyType === "family" || party.partyType === "group") return "family";
+  const kids = party.children || 0;
+  const n = Math.max(1, (party.adults || 0) + kids);
+  if (n === 1) return "you";
+  if (n === 2 && kids === 0) return "both";
+  return "family";
+}
+
+/** The greeting in plain English ("You", "You Both", "You & Your Family"). */
+export function addressFor(party: { adults: number; children: number; partyType?: string }): string {
+  return ADDRESS_TEXT[addressKind(party)].en;
 }
 
 export function initials(bride: string, groom: string): string {
@@ -402,6 +430,8 @@ export function designFromTemplate(templateId: string, keep?: Partial<InviteDesi
     showDayPlan: keep?.showDayPlan ?? true,
     addressing: keep?.addressing ?? "you",
     opening: tpl.design.opening ?? "envelope",
+    publicAddress: keep?.publicAddress ?? "none",
+    language: keep?.language ?? "en",
     photo: keep?.photo ?? { src: null, x: 50, y: 50, zoom: 1, placement: "none" },
   };
 }
@@ -434,6 +464,7 @@ export function contentFromWedding(w: Pick<Wedding, "brideName" | "groomName" | 
     maxParty: 2,
     moments,
     story: [],
+    si: { inviteMessage: "", ceremonyTitle: "පෝරුව චාරිත්‍රය", receptionTitle: "මංගල සාදය", dressCode: "", closing: "" },
   };
 }
 
@@ -468,7 +499,7 @@ export function normalizeProject(p: Partial<InviteProject> & { id: ID }, now: st
   return {
     id: p.id,
     name: p.name ?? "Our invitation",
-    content: { ...c, ...(p.content ?? {}) },
+    content: { ...c, ...(p.content ?? {}), si: { ...c.si, ...(p.content?.si ?? {}) } },
     design: {
       ...base,
       ...d,

@@ -5,6 +5,7 @@ import { useState } from "react";
 import { Copy, Eye, Link2, Maximize2, MessageCircle, Play, Send, Sparkles, X } from "lucide-react";
 import { usePage } from "@/lib/hooks/use-page";
 import { useInvites } from "@/lib/hooks/use-invites";
+import { addressKind } from "@/lib/domain/invite-studio";
 import { useAuth, useStore } from "@/lib/store/provider";
 import { invitationMessage, inviteUrl, whatsAppLink } from "@/lib/domain/invitations";
 import { INVITATION_LABEL, RSVP_LABEL } from "@/lib/domain/catalog";
@@ -89,7 +90,7 @@ function Invitations({ data }: { data: WeddingData }) {
           <div className="phone-frame">
             <div className="phone-screen">
               {main ? (
-                <InvitationExperience key={`${replay}-${previewId}-${main.id}`} content={main.content} design={main.design} guestName={previewGuest?.name} party={previewGuest ? { adults: previewGuest.adults, children: previewGuest.children } : undefined} framed silent />
+                <InvitationExperience key={`${replay}-${previewId}-${main.id}`} content={main.content} design={main.design} guestName={previewGuest?.name} addressee={previewGuest ? addressKind(previewGuest) : undefined} framed silent />
               ) : (
                 <div className="grid h-full place-items-center p-6 text-center text-ink-muted">Choose or create a design to preview it here.</div>
               )}
@@ -189,6 +190,15 @@ function Invitations({ data }: { data: WeddingData }) {
                             {replied(g) ? RSVP_LABEL[g.rsvp] : INVITATION_LABEL[g.invitation]}
                           </Badge>
                           {!wa && <span className="text-[12px]">No WhatsApp number</span>}
+                          <label className="inline-flex items-center gap-1 text-[12px]">
+                            <span className="sr-only">Greeting for {g.name}</span>
+                            <select className="rounded-full border border-line bg-surface-raised px-2 py-0.5 text-[12px] text-ink" value={addressKind(g)}
+                              onChange={(e) => store.upsert("guests", { ...g, partyType: e.target.value === "you" ? "single" : e.target.value === "both" ? "couple" : g.partyType === "group" ? "group" : "family" })}>
+                              <option value="you">“You”</option>
+                              <option value="both">“You Both”</option>
+                              <option value="family">“You &amp; Your Family”</option>
+                            </select>
+                          </label>
                         </div>
                       </div>
                       <div className="flex flex-none gap-1">
@@ -217,7 +227,7 @@ function Invitations({ data }: { data: WeddingData }) {
 
       {full && (
         <div className="inv-full" role="dialog" aria-modal="true" aria-label="Invitation preview">
-          {main && <InvitationExperience content={main.content} design={main.design} guestName={previewGuest?.name} party={previewGuest ? { adults: previewGuest.adults, children: previewGuest.children } : undefined} silent />}
+          {main && <InvitationExperience content={main.content} design={main.design} guestName={previewGuest?.name} addressee={previewGuest ? addressKind(previewGuest) : undefined} silent />}
           <button type="button" className="inv-full-close" onClick={() => setFull(false)} aria-label="Close preview"><X aria-hidden="true" /></button>
         </div>
       )}

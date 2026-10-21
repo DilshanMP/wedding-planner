@@ -22,7 +22,7 @@ function Preview() {
   const { plan } = useInvites();
   const [run, setRun] = useState(0);
   const [guest, setGuest] = useState("");
-  const [party, setParty] = useState<"" | "1" | "2" | "4">("2");
+  const [party, setParty] = useState<"" | "you" | "both" | "family">("both");
   const p = plan.projects.find((x) => x.id === id);
   if (!p) {
     return <EmptyState title="We couldn't find this invitation" action={<Link href="/invitations" className="wos-btn wos-btn--primary">Back to my invitations</Link>} />;
@@ -34,7 +34,7 @@ function Preview() {
         content={p.content}
         design={p.design}
         guestName={guest || undefined}
-        party={party ? { adults: party === "4" ? 2 : Number(party), children: party === "4" ? 2 : 0 } : undefined}
+        addressee={party || undefined}
         rsvp={{ submit: async () => null }}
       />
       <div className="pointer-events-none fixed inset-x-0 top-0 z-[95] flex items-center justify-between gap-2 p-3">
@@ -43,10 +43,10 @@ function Preview() {
           <label className="flex items-center gap-1.5 text-[12px] text-ink-muted">
             For
             <select className="rounded-full border border-line bg-white px-2 py-1 text-[13px] text-ink" value={party} onChange={(e) => { setParty(e.target.value as typeof party); setRun((r) => r + 1); }}>
-              <option value="">Public link</option>
-              <option value="1">One guest</option>
-              <option value="2">A couple</option>
-              <option value="4">A family</option>
+              <option value="">Shared link</option>
+              <option value="you">“You”</option>
+              <option value="both">“You Both”</option>
+              <option value="family">“You &amp; Your Family”</option>
             </select>
           </label>
           {p.design.addressing === "name" && party && (

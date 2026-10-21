@@ -4,7 +4,7 @@ import { useId, useMemo, useRef, useState, type CSSProperties, type ReactNode } 
 import { ImagePlus, Plus, RefreshCw, Trash2, Wand2 } from "lucide-react";
 import {
   AMBIENCES, ANIMATION_PRESETS, CARD_LAYOUTS, CARD_SHAPES, ENVELOPE_TEXTURES, FLAP_STYLES, FLORALS, FONTS, FONT_IDS, LINER_STYLES, MUSIC, ORNAMENTS, PHOTO_PLACEMENTS, SEAL_STYLES, TEMPLATES,
-  STORY_ICONS, initials, matchColors, paletteFromTheme, type DesignColors, type FontId, type InviteContent, type InviteDesign, type InviteProject, type StoryChapter, type StoryIcon,
+  STORY_ICONS, initials, matchColors, paletteFromTheme, type DesignColors, type FontId, type InviteContent, type InviteDesign, type InviteProject, type SinhalaText, type StoryChapter, type StoryIcon,
 } from "@/lib/domain/invite-studio";
 import { usePlanner } from "@/lib/hooks/use-planner";
 import { generateWording, type Language, type Length, type Tone, type Tradition } from "@/lib/domain/invite-wording";
@@ -174,14 +174,45 @@ export function WordingPanel({ p, change }: { p: InviteProject; change: Change }
         <TextArea label="Invitation message" rows={4} value={c.inviteMessage} onChange={(v) => set.content("inviteMessage", v)} />
       </Section>
       <StorySection p={p} change={change} />
+      <SinhalaSection p={p} change={change} />
       <Section title="Opening and closing">
         <ChoiceChips label="Personal links are addressed to" value={p.design.addressing} onChange={(v) => set.design((d) => ({ ...d, addressing: v }), "addressing")}
           options={[{ value: "you", label: "You · You Both · You & Your Family" }, { value: "name", label: "The guest's name" }]} />
-        <p className="m-0 -mt-2 text-[13px] text-ink-muted">With the first option the envelope says “An invitation for You Both” (or You / You &amp; Your Family, from the guest list) in a clean modern font.</p>
+        <p className="m-0 -mt-2 text-[13px] text-ink-muted">Personal links use each guest&apos;s choice on the Send to guests page (You, You Both or You &amp; Your Family) in a clean modern font.</p>
+        <SelectField label="The shared link (not personal) is addressed to" value={p.design.publicAddress} onChange={(v) => set.design((d) => ({ ...d, publicAddress: v }), "publicAddress")}
+          options={[{ value: "none", label: "No greeting — just the couple's names" }, { value: "you", label: "“You”" }, { value: "both", label: "“You Both”" }, { value: "family", label: "“You & Your Family”" }]} />
         <TextField label="Text on the envelope" value={p.design.openingText} onChange={(v) => set.design((d) => ({ ...d, openingText: v }), "openingText")} />
         <TextArea label="Closing message" rows={2} value={p.design.closingMessage} onChange={(v) => set.design((d) => ({ ...d, closingMessage: v }), "closingMessage")} />
       </Section>
     </div>
+  );
+}
+
+
+const SI_FIELDS: [keyof SinhalaText, string, boolean][] = [
+  ["inviteMessage", "Invitation message (සිංහල)", true],
+  ["ceremonyTitle", "Ceremony name (සිංහල)", false],
+  ["receptionTitle", "Reception name (සිංහල)", false],
+  ["dressCode", "Dress code (සිංහල)", false],
+  ["closing", "Closing message (සිංහල)", true],
+];
+
+function SinhalaSection({ p, change }: { p: InviteProject; change: Change }) {
+  const si = p.content.si;
+  const setSi = (k: keyof SinhalaText, v: string) => change((x) => ({ ...x, content: { ...x.content, si: { ...x.content.si, [k]: v.slice(0, 600) } } }), `si.${k}`);
+  const suggest = () => {
+    const idea = generateWording(p.content, { tone: "formal", tradition: "traditional", language: "si", length: "short", variant: 0 });
+    change((x) => ({ ...x, content: { ...x.content, si: { ...x.content.si, inviteMessage: x.content.si.inviteMessage || idea.inviteMessage, closing: x.content.si.closing || idea.closingMessage } } }), "si.suggest");
+  };
+  return (
+    <Section title="සිංහල — for guests who read Sinhala" hint="Guests can switch the invitation to සිංහල with one tap. Buttons and headings switch by themselves; write your own wording here (empty fields show the English).">
+      <ChoiceChips label="Guests first see" value={p.design.language} onChange={(v) => change((x) => ({ ...x, design: { ...x.design, language: v } }), "language")}
+        options={[{ value: "en", label: "English" }, { value: "si", label: "සිංහල" }]} />
+      {SI_FIELDS.map(([k, label, long]) => long
+        ? <TextArea key={k} label={label} rows={3} value={si[k]} onChange={(v) => setSi(k, v)} />
+        : <TextField key={k} label={label} value={si[k]} onChange={(v) => setSi(k, v)} />)}
+      <button type="button" className="wos-btn wos-btn--secondary wos-btn--sm self-start" onClick={suggest}><Wand2 className="wos-icon" aria-hidden="true" />Suggest Sinhala wording</button>
+    </Section>
   );
 }
 
