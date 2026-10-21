@@ -2,10 +2,11 @@
 
 import Link from "next/link";
 import { useRef, useState } from "react";
-import { Download, FileImage, FileText, Globe, PenTool, Star, Video } from "lucide-react";
-import { FONTS, hasUnpublishedChanges, type ExportKind, type InviteProject } from "@/lib/domain/invite-studio";
+import { Download, FileImage, FileText, Globe, PenTool, Share2, Star, Video } from "lucide-react";
+import { FONTS, hasUnpublishedChanges, type ExportKind, type GuestLanguage, type InviteProject } from "@/lib/domain/invite-studio";
 import { downloadBlob, familiesOf, jpegToPdf, svgToFile, svgToPng } from "@/lib/svg-export";
 import { Badge, Notice } from "@/components/ui/primitives";
+import { gateCardPicture } from "./card-picture";
 import { InviteCard } from "./invite-card";
 import { SharePanel } from "./share-panel";
 
@@ -23,6 +24,9 @@ export function PublishPanel({ project, isMain, cloud, onPublish, onUnpublish, o
   onError: (m: string) => void;
 }) {
   const [busy, setBusy] = useState<string | null>(null);
+  const [note, setNote] = useState<string | null>(null);
+  const [picLang, setPicLang] = useState<GuestLanguage>(project.design.language ?? "en");
+  const gate = project.design.opening === "gate";
   const art = useRef<HTMLDivElement>(null);
   const live = Boolean(project.publishedAt && project.slug);
   const pending = hasUnpublishedChanges(project);
@@ -39,11 +43,40 @@ export function PublishPanel({ project, isMain, cloud, onPublish, onUnpublish, o
     }
   };
 
-  const exportFile = (kind: "png" | "svg" | "pdf") => run(kind, async () => {
+  const cardSvg = () => {
     const svg = art.current?.querySelector("svg");
     if (!svg) throw new Error("The card isn't ready yet.");
     const d = project.design;
-    const families = familiesOf(FONTS[d.fonts.names].family, FONTS[d.fonts.headings].family, FONTS[d.fonts.body].family);
+    return { svg, families: familiesOf(FONTS[d.fonts.names].family, FONTS[d.fonts.headings].family, FONTS[d.fonts.body].family) };
+  };
+
+  // Sends the card itself as a picture (no link). Phones open the share sheet
+  // (WhatsApp, Viber…); elsewhere the picture is saved to attach by hand.
+  const sharePicture = () => run("share", async () => {
+    setNote(null);
+    let blob: Blob;
+    if (gate) blob = await gateCardPicture(project.content, project.design, picLang);
+    else {
+      const { svg, families } = cardSvg();
+      blob = await svgToPng(svg, 1080, families, "image/jpeg");
+    }
+    const name = `${base}${gate && picLang === "si" ? "-si" : ""}.jpg`;
+    const file = new File([blob], name, { type: "image/jpeg" });
+    if (typeof navigator.canShare === "function" && navigator.canShare({ files: [file] })) {
+      try {
+        await navigator.share({ files: [file], title: `${project.content.brideName} & ${project.content.groomName}` });
+      } catch (e) {
+        if (e instanceof DOMException && e.name === "AbortError") return;
+        throw e;
+      }
+      return;
+    }
+    downloadBlob(blob, name);
+    setNote("The card picture is saved to your downloads. Attach it to a WhatsApp chat like any photo.");
+  });
+
+  const exportFile = (kind: "png" | "svg" | "pdf") => run(kind, async () => {
+    const { svg, families } = cardSvg();
     const name = `${base}.${kind}`;
     try {
       if (kind === "svg") downloadBlob(await svgToFile(svg, families), name);
@@ -77,6 +110,20 @@ export function PublishPanel({ project, isMain, cloud, onPublish, onUnpublish, o
         ) : (
           <button type="button" className="wos-btn wos-btn--ghost wos-btn--sm self-start" disabled={busy !== null} onClick={() => run("main", onMakeMain)}><Star className="wos-icon" aria-hidden="true" />Use for personal guest links</button>
         )}
+      </section>
+
+      <section className="flex flex-col gap-3 border-t border-line pt-4">
+        <h3 className="m-0 font-[family-name:var(--wos-serif)] text-[18px] text-ink">Send the card without a link</h3>
+        <p className="m-0 text-[13px] text-ink-muted">Share the card as a picture on WhatsApp or Viber. Guests see the card only — the opening animation, countdown and online reply need the link.</p>
+        {gate && (
+          <div role="radiogroup" aria-label="Picture language" className="flex flex-wrap gap-2">
+            {([["en", "English"], ["si", "සිංහල"]] as const).map(([v, label]) => (
+              <button key={v} type="button" role="radio" aria-checked={picLang === v} className="wos-chip" onClick={() => setPicLang(v)}>{label}</button>
+            ))}
+          </div>
+        )}
+        <button type="button" className="wos-btn wos-btn--primary wos-btn--sm self-start" disabled={busy !== null} onClick={sharePicture}><Share2 className="wos-icon" aria-hidden="true" />{busy === "share" ? "Preparing…" : "Share the card as a picture"}</button>
+        {note && <p role="status" className="m-0 text-[13px] text-ink">{note}</p>}
       </section>
 
       <section className="flex flex-col gap-3 border-t border-line pt-4">
